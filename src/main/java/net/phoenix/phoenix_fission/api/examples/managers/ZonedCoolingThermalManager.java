@@ -4,57 +4,6 @@ import net.phoenix.phoenix_fission.api.block.IFissionCoolerType;
 import net.phoenix.phoenix_fission.common.data.multiblock.fission.FissionWorkableElectricMultiblockMachine;
 import net.phoenix.phoenix_fission.common.data.multiblock.fission.managers.FissionThermalManager;
 
-/**
- * EXAMPLE -- LEVEL 5: Three-Zone Thermal Model (Complex)
- *
- * Divides the reactor's heat range into three operating zones and applies
- * different cooling and passive-heat physics in each one. This lets you
- * design reactors where operating temperature meaningfully matters --
- * not just "hot = meltdown" but "cold = inefficient, sweet spot = ideal,
- * too hot = runaway".
- *
- * Zone | Definition
- * ---------|--------------------------------------------------
- * COLD | heat &lt; coldThreshold (fraction of maxSafeHeat)
- * NOMINAL | coldThreshold &lt;= heat &lt;= hotThreshold
- * HOT | heat &gt; hotThreshold
- *
- * Passive cooling differences per zone:
- * COLD -- passive cooling is weaker; the core struggles to heat up
- * in cold environments (models insulation being needed).
- * NOMINAL -- standard conductivity (same as base game).
- * HOT -- passive cooling is stronger; convection kicks in and
- * dumps heat faster (but likely not fast enough alone).
- *
- * Active cooler differences per zone:
- * COLD -- coolers are throttled; fluid flowing past a cold core
- * does not exchange much heat.
- * NOMINAL -- standard efficiency.
- * HOT -- coolers become less effective as the temperature
- * differential becomes hard for the coolant to handle;
- * models film-boiling / coolant breakdown at extremes.
- *
- * Meltdown grace period:
- * Scales more aggressively with overheat -- the grace period halves
- * every time heat doubles past the safe ceiling.
- *
- * Usage:
- * 
- * <pre>{@code
- * 
- * @Override
- * protected FissionThermalManager createThermalManager() {
- *     return new ZonedCoolingThermalManager(this,
- *             0.35,   // COLD zone ends at 35% of maxSafeHeat
- *             0.80,   // HOT zone starts at 80% of maxSafeHeat
- *             0.40,   // passive conductivity multiplier in COLD zone
- *             1.80,   // passive conductivity multiplier in HOT zone (convection)
- *             0.50,   // active cooler efficiency in COLD zone
- *             0.65    // active cooler efficiency in HOT zone
- *     );
- * }
- * }</pre>
- */
 public class ZonedCoolingThermalManager extends FissionThermalManager {
 
     private final double coldThreshold;
@@ -66,14 +15,6 @@ public class ZonedCoolingThermalManager extends FissionThermalManager {
     private final double coldActiveMult;
     private final double hotActiveMult;
 
-    /**
-     * @param coldThreshold   fraction of maxSafeHeat below which the core is "cold"
-     * @param hotThreshold    fraction of maxSafeHeat above which the core is "hot"
-     * @param coldPassiveMult passive cooling conductivity multiplier in the cold zone
-     * @param hotPassiveMult  passive cooling conductivity multiplier in the hot zone
-     * @param coldActiveMult  active cooler efficiency multiplier in the cold zone
-     * @param hotActiveMult   active cooler efficiency multiplier in the hot zone
-     */
     public ZonedCoolingThermalManager(FissionWorkableElectricMultiblockMachine machine,
                                       double coldThreshold, double hotThreshold,
                                       double coldPassiveMult, double hotPassiveMult,
@@ -101,11 +42,6 @@ public class ZonedCoolingThermalManager extends FissionThermalManager {
         return delta < 0 ? -delta : 0.0;
     }
 
-    /**
-     * Aggressive meltdown timer: grace period halves every time heat
-     * doubles past the safe ceiling, giving runaway reactors very little
-     * time to recover the further they overshoot.
-     */
     @Override
     protected int computeMeltdownGracePeriodTicks(double heat, double maxSafeHeat,
                                                   double minGrace, double baseGrace, double severity) {

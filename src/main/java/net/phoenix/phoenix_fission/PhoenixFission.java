@@ -61,7 +61,7 @@ public class PhoenixFission {
         modEventBus.addListener(this::clientSetup);
         modEventBus.addGenericListener(RecipeConditionType.class, this::registerConditions);
         modEventBus.addGenericListener(GTRecipeType.class, this::registerRecipeTypes);
-        // modEventBus.addGenericListener(SoundEntry.class, this::registerSounds);
+
         modEventBus.addGenericListener(MachineDefinition.class, this::registerMachines);
 
         modEventBus.addListener(this::addCreative);
@@ -110,10 +110,6 @@ public class PhoenixFission {
     private void registerRecipeTypes(GTCEuAPI.RegisterEvent<ResourceLocation, GTRecipeType> event) {
         PhoenixRecipeTypes.init();
     }
-
-    // public void registerSounds(GTCEuAPI.RegisterEvent<ResourceLocation, SoundEntry> event) {
-    // PhoenixSounds.init();
-    // }
 
     private void registerMachines(GTCEuAPI.RegisterEvent<ResourceLocation, MachineDefinition> event) {
         PhoenixFissionMachines.init();

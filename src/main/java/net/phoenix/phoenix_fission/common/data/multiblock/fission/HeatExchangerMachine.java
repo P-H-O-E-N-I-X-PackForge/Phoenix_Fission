@@ -155,7 +155,6 @@ public class HeatExchangerMachine extends WorkableElectricMultiblockMachine impl
         return isFormed() ? this.dynamoTier : GTValues.ULV;
     }
 
-    // Idiot thing is saying recipe is not used, it is. Recipe modifer for the heat exhcnager or smth idk.
     public static ModifierFunction recipeModifier(@NotNull MetaMachine machine, @NotNull GTRecipe recipe) {
         if (!(machine instanceof HeatExchangerMachine exchanger))
             return ModifierFunction.IDENTITY;
@@ -260,7 +259,5 @@ public class HeatExchangerMachine extends WorkableElectricMultiblockMachine impl
     }
 
     @Override
-    public void addDisplayText(@NotNull List<Component> textList) {
-        // We leave this empty, ON PURPOSE. Trust.
-    }
+    public void addDisplayText(@NotNull List<Component> textList) {}
 }

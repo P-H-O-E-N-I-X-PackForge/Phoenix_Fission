@@ -5,18 +5,15 @@ import com.tterrag.registrate.providers.RegistrateLangProvider;
 public class PhoenixMachineLangHandler {
 
     public static void init(RegistrateLangProvider provider) {
-        // EMI Recipe Categories
         provider.add("emi.category.phoenix_fission.fission_fuel_burn", "Fission Fuel Burn");
         provider.add("emi.category.phoenix_fission.fission_coolant_cycle", "Fission Coolant Cycle");
         provider.add("emi.category.phoenix_fission.fission_moderator", "Fission Moderator");
         provider.add("emi.category.phoenix_fission.fission_blanket", "Breeder Blanket");
         provider.add("emi.category.phoenix_fission.fission_msr_liner", "MSR Core Liner");
 
-        // Main Structural Elements
         provider.add("block.phoenix_fission.fission_blanket.info_header", "Breeder Blanket Specifications:");
         provider.add("phoenix_fission.blanket.input", "Breeding Target Input");
 
-        // Custom Fission Tooltip Stats
         provider.add("phoenix_fission.tooltip.amount", "Yield Batch Size");
         provider.add("phoenix_fission.tooltip.required_fuel_tier", "Required Driver Fuel");
 
@@ -37,12 +34,10 @@ public class PhoenixMachineLangHandler {
         provider.add("tech.phoenix_fission.laser.output.mid", "Tesla Photonic Coalescence Array");
         provider.add("tech.phoenix_fission.laser.output.high", "Tesla Photonic Coalescence Matrix");
 
-        // Heat Exchanger System
         provider.add("gui.phoenix_fission.heat_exchanger.heat_exchange_surface", "Exchange Columns: %d");
         provider.add("gui.phoenix_fission.heat_exchanger.current_efficiency", "Thermal Conductivity: Tier %d");
         provider.add("gui.phoenix_fission.missing_spring", "Missing Heat Exchange Spring!");
 
-        // Fission Reactor System
         provider.add("tooltip.phoenix.empty_component.0", "This is an empty component, provides no stats.");
         provider.add("tooltip.phoenix.empty_component.1", "Useful for filling out a Fission Reactor.");
         provider.add("phoenix_fission.not_formed", "Structure not formed!");
@@ -52,7 +47,6 @@ public class PhoenixMachineLangHandler {
         provider.add("phoenix_fission.status.no_coolant", "§eWARNING: Coolant Supply Exhausted");
         provider.add("phoenix_fission.nuke_radius", "Blast area: %s");
 
-        // Breeding & Transmutation
         provider.add("phoenix_fission.blanket.potential_outputs", "Potential Transmutations:");
         provider.add("phoenix_fission.blanket.bias_hint",
                 "§d§oHigher instability yields are favored by a Fast Neutron Spectrum (High Heat/Bias).");
@@ -62,7 +56,6 @@ public class PhoenixMachineLangHandler {
         provider.add("phoenix_fission.blanket_desc", "Irradiate target materials to produce specialized isotopes.");
         provider.add("phoenix_fission.blanket_cycle", "Transmutes §f%s§7 units every §6%s§7 seconds");
 
-        // Core Stats & Heat
         provider.add("phoenix_fission.neutron_bias", "§7Neutron Bias: §f%s");
         provider.add("phoenix_fission.spectrum_shift", "§7Spectrum Shift: §f%s");
         provider.add("phoenix_fission.current_heat", "Core Temperature: %s HU");
@@ -71,7 +64,6 @@ public class PhoenixMachineLangHandler {
         provider.add("phoenix_fission.eu_generation", "Output: %s EU/t");
         provider.add("phoenix_fission.parallels", "Parallel Processing: %sx");
 
-        // Components & Cooling
         provider.add("phoenix_fission.moderator", "Primary Moderator: %s");
         provider.add("phoenix_fission.moderator_fuel_discount", "Fuel Efficiency: +%s%%");
         provider.add("phoenix_fission.cooler", "Primary Cooling: %s");
@@ -83,14 +75,12 @@ public class PhoenixMachineLangHandler {
         provider.add("phoenix_fission.summary", "Cooling: %s / %s HU/t");
         provider.add("phoenix_fission.cooling_power", "§bCooling Capacity: §f%s HU/t");
 
-        // Fuel Management
         provider.add("phoenix_fission.fuel_cycle", "Consumes §f%s§7 units every §6%s§7 seconds");
         provider.add("phoenix_fission.depleted_fuel", "§7Depleted Fuel: §f%s");
         provider.add("phoenix_fission.fuel_usage", "Fuel Consumption: §f%s");
         provider.add("phoenix_fission.fuel_required", "§7Requires Fuel: §f%s");
         provider.add("phoenix_fission.coolant_required", "§3Required Coolant: §f%s");
 
-        // Block Specific Tooltips & Jade Integration
         provider.add("block.phoenix_fission.fission_cooler.capacity", "§bCooling Capacity: §f%s HU/t");
         provider.add("block.phoenix_fission.fission_cooler.required_coolant", "§3Required Coolant: §f%s");
         provider.add("block.phoenix_fission.fission_moderator.multiplier", "§6Heat Multiplier: §f%sx");
@@ -105,7 +95,6 @@ public class PhoenixMachineLangHandler {
         provider.add("phoenix_fission.current_heat_display", "Core Temperature: %s / %s HU");
         provider.add("phoenix_fission.status.scram", "§c§lSCRAM ACTIVE");
 
-        // SCRAM Hatch Tooltips
         provider.add("block.phoenix_fission.fission_scram_hatch.desc",
                 "Stops fuel consumption and heat generation when receiving a Redstone signal.");
 
@@ -135,7 +124,6 @@ public class PhoenixMachineLangHandler {
         provider.add("gui.phoenix_fission.advanced_stability_sensor.hint1", "Emits fixed strength on back face only.");
         provider.add("gui.phoenix_fission.advanced_stability_sensor.hint2", "Pair with an Advanced SCRAM Hatch.");
 
-        // UI Elements for the Advanced SCRAM Hatch
         provider.add("gui.phoenix_fission.advanced_scram.title", "Advanced SCRAM Configuration");
         provider.add("gui.phoenix_fission.advanced_scram.threshold", "Min Signal Strength (1-15)");
         provider.add("gui.phoenix_fission.advanced_scram.sustain", "Sustain Duration (ticks)");
@@ -147,12 +135,10 @@ public class PhoenixMachineLangHandler {
         provider.add("gui.phoenix_fission.advanced_scram.hint1", "Signal must meet strength threshold");
         provider.add("gui.phoenix_fission.advanced_scram.hint2", "for the full sustain duration to SCRAM.");
 
-        // SCRAM status for Jade / controller display
         provider.add("phoenix_fission.status.scram_basic", "§c§lSCRAM ACTIVE §8(Basic Hatch)");
         provider.add("phoenix_fission.status.scram_advanced", "§6§lSCRAM ACTIVE §8(Advanced Hatch)");
         provider.add("phoenix_fission.status.scram_arming", "§e§lSCRAM ARMING: §f%d / %d ticks");
 
-        // Multiblock Pattern Info
         provider.add("phoenix.multiblock.pattern.info.multiple_fuel_rods",
                 "Requires Fuel Rods. These generate base heat and determine recipe parallels.");
         provider.add("phoenix.multiblock.pattern.info.multiple_blankets",
@@ -164,7 +150,6 @@ public class PhoenixMachineLangHandler {
         provider.add("phoenix.multiblock.pattern.info.multiple_liners",
                 "Liners provide fuel and flow, can mix and match..");
 
-        // Recipe Typesk
         provider.add("gtceu.high_performance_breeder_reactor",
                 "High-Performance Breeder Reactor");
         provider.add("gtceu.heat_exchanging",
@@ -188,13 +173,11 @@ public class PhoenixMachineLangHandler {
 
         provider.add("gtceu.tooltip.tier", "Tier: %s");
 
-        // Jade Integration
         provider.add("config.jade.plugin_phoenix_fission.source_machine_info", "Source Machine Information");
         provider.add("config.jade.plugin_phoenix_fission.plasma_furnace_info", "High-Pressure Plasma Arc Furnace Info");
         provider.add("config.jade.plugin_phoenix_fission.tesla_network_info", "Tesla Network Information");
         provider.add("config.jade.plugin_phoenix_fission.fission_machine_info", "Fission Machine Info");
 
-        // Advanced Fission Stability Sensor Tooltips
         provider.add("phoenix_fission.machine.fission_advanced_stability_sensor.tooltip",
                 "§bAdvanced Thermal Monitor§r: Emits a highly customizable redstone payload.");
         provider.add("phoenix_fission.machine.fission_advanced_stability_sensor.tooltip2",
@@ -228,13 +211,11 @@ public class PhoenixMachineLangHandler {
         provider.add("jade.phoenix_fission.source_consumption", "Source Consumption:");
         provider.add("jade.phoenix_fission.source_production", "Source Production:");
 
-        // Multiblock Tooltip Builder
         provider.add("multiblock.tooltip.machinetype", "Machine Type: %s");
         provider.add("multiblock.yellowline", "§e--------------------");
         provider.add("multiblock.underyellowline", "Hold §e§lSHIFT§r to display structure details!");
         provider.add("multiblock.structureadvtooltip", "Structure:");
 
-        // Molten Salt Reactor System Details
         provider.add("phoenix_fission.msr.thermal_efficiency", "Thermal Efficiency: %s");
         provider.add("phoenix_fission.msr.structural_tier", "MSR Core Structural Tier: %s");
         provider.add("phoenix_fission.msr.active_liners", "Active Core Liner Blocks: %d");
@@ -243,7 +224,6 @@ public class PhoenixMachineLangHandler {
         provider.add("phoenix_fission.msr.xenon_clean", "Xenon Status: CLEAN CORE (1.5x Power Bonus!)");
         provider.add("phoenix_fission.msr.xenon_poisoning", "Xenon Poisoning Interference: %s");
 
-        // MSR Block Tooltips
         provider.add("phoenix_fission.msr_liner.tier", "Structural Tier: MK%d");
         provider.add("phoenix_fission.msr_liner.flow_rate", "Flow Efficiency: %d mb/t per block");
         provider.add("phoenix_fission.msr_liner.thermal_dissipation", "Thermal Dissipation: %s Heat/mb");

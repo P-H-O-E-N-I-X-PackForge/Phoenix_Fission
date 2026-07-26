@@ -40,59 +40,26 @@ public class FissionFuelManager {
         machine.lastParallels = Math.max(1, totalRods);
     }
 
-    /**
-     * Scaling factor applied to heat/fuel based on the number of fuel rods present.
-     * Default: {@code (totalRods + 1) / 2} — linear growth so a single rod is 1×,
-     * two rods are 1.5×, etc.
-     */
     protected double computeRodInteractionFactor(int totalRods) {
         return (totalRods + 1.0) / 2.0;
     }
 
-    /**
-     * Thermal multiplier used in <em>heat production</em>.
-     * Default: {@code (1 + heat/maxSafeHeat)^2} — quadratic runaway above safe threshold.
-     */
-    protected double computeHeatThermalScalar(double heat, double maxSafeHeat) {
-        return Math.pow(1.0 + (heat / Math.max(1.0, maxSafeHeat)), 2.0);
+    protected double computeHeatThermalScalar(double heat, double maxSafeHeat, double exponent) {
+        return Math.pow(1.0 + (heat / Math.max(1.0, maxSafeHeat)), exponent);
     }
 
-    /**
-     * Thermal multiplier used in <em>fuel consumption</em>.
-     * Default: {@code (1 + heat/maxSafeHeat)^4} — steeper curve than heat production
-     * to model fuel burning faster as the core overheats.
-     */
-    protected double computeFuelConsumptionThermalScalar(double heat, double maxSafeHeat) {
-        return Math.pow(1.0 + (heat / Math.max(1.0, maxSafeHeat)), 4.0);
+    protected double computeFuelConsumptionThermalScalar(double heat, double maxSafeHeat, double exponent) {
+        return Math.pow(1.0 + (heat / Math.max(1.0, maxSafeHeat)), exponent);
     }
 
-    /**
-     * Multiplicative bonus to heat production from moderators.
-     * Default: {@code 1 + moderatorEUBoost/100}.
-     */
     protected double computeModeratorHeatMultiplier() {
         return 1.0 + (getModeratorEUBoostClamped() / 100.0);
     }
 
-    /**
-     * Fuel consumption discount multiplier from moderators.
-     * Default: {@code max(0, 1 - moderatorFuelDiscount/100)}.
-     */
     protected double computeModeratorFuelDiscountMultiplier() {
         return Math.max(0.0, 1.0 - (getModeratorFuelDiscountClamped() / 100.0));
     }
 
-    /**
-     * Heat produced this tick by a single rod-type group.
-     *
-     * @param rod                 the fuel rod type
-     * @param count               number of rods of this type in the reactor
-     * @param rodInteraction      value from {@link #computeRodInteractionFactor}
-     * @param thermalScalar       value from {@link #computeHeatThermalScalar}
-     * @param moderatorMultiplier value from {@link #computeModeratorHeatMultiplier}
-     * @param reactivity          current reactivity factor [0, 1]
-     * @param fuelConductivity    config conductivity multiplier
-     */
     protected double computeHeatDeltaForRodGroup(IFissionFuelRodType rod, long count,
                                                  double rodInteraction, double thermalScalar,
                                                  double moderatorMultiplier,
@@ -101,17 +68,6 @@ public class FissionFuelManager {
                 fuelConductivity;
     }
 
-    /**
-     * Fuel consumed per tick by a single rod-type group (as a fractional amount;
-     * the caller accumulates remainders and converts to whole items).
-     *
-     * @param rod            the fuel rod type
-     * @param count          number of rods of this type
-     * @param rodInteraction value from {@link #computeRodInteractionFactor}
-     * @param thermalScalar  value from {@link #computeFuelConsumptionThermalScalar}
-     * @param discountMult   value from {@link #computeModeratorFuelDiscountMultiplier}
-     * @param reactivity     current reactivity factor [0, 1]
-     */
     protected double computeFuelConsumptionForRodGroup(IFissionFuelRodType rod, long count,
                                                        double rodInteraction, double thermalScalar, double discountMult,
                                                        double reactivity) {
@@ -119,18 +75,6 @@ public class FissionFuelManager {
         return baseRate * rodInteraction * thermalScalar * count * discountMult * reactivity;
     }
 
-    /**
-     * Final EU/t output given the heat activity and current heat level.
-     * Called once per tick by {@link #processPowerGeneration}.
-     *
-     * @param activity      heat gained this tick (or current heat if idle)
-     * @param currentHeat   current reactor heat
-     * @param maxSafeHeat   configured maximum safe heat
-     * @param euPerHeatUnit config: EU multiplier per heat unit
-     * @param powerStart    config: heat fraction at which power bonus begins
-     * @param curveExponent config: exponent of the power bonus curve
-     * @return raw EU/t before clamping; return 0 to suppress power output
-     */
     protected double computePowerOutput(double activity, double currentHeat, double minHeat,
                                         double maxSafeHeat, double euPerHeatUnit, double powerStart,
                                         double curveExponent) {
@@ -151,7 +95,8 @@ public class FissionFuelManager {
 
         int totalRods = comp.getActiveFuelRods().size();
         double rodInteractionFactor = computeRodInteractionFactor(totalRods);
-        double thermalFactor = computeHeatThermalScalar(machine.getHeat(), machine.getMaxSafeHeatHU());
+        double thermalFactor = computeHeatThermalScalar(machine.getHeat(), machine.getMaxSafeHeatHU(),
+                hm.heatGenerationExponent);
         double reactivity = machine.getReactivityFactor();
         double modBonus = computeModeratorHeatMultiplier();
 
@@ -174,9 +119,11 @@ public class FissionFuelManager {
         var comp = machine.getComponentManager();
         if (comp.getActiveFuelRods().isEmpty() || machine.getReactivityFactor() <= 0.0) return;
 
+        var hm = PhoenixFissionConfigs.INSTANCE.fission.heatModel;
         int totalRods = comp.getActiveFuelRods().size();
         double rodInteractionFactor = computeRodInteractionFactor(totalRods);
-        double heatScalar = computeFuelConsumptionThermalScalar(machine.getHeat(), machine.getMaxSafeHeatHU());
+        double heatScalar = computeFuelConsumptionThermalScalar(machine.getHeat(), machine.getMaxSafeHeatHU(),
+                hm.fuelConsumptionExponent);
         double reactivity = machine.getReactivityFactor();
         double discountMult = computeModeratorFuelDiscountMultiplier();
 
@@ -248,8 +195,9 @@ public class FissionFuelManager {
         if (!PhoenixFissionConfigs.INSTANCE.fission.enableDirectEUOutput) return;
         if (machine.isOverCooled) return;
 
+        double ambientHU = PhoenixFissionConfigs.INSTANCE.fission.heatModel.ambientTemperatureHU;
         double activity = (running && machine.lastHeatGainedPerTick > 0.0) ? machine.lastHeatGainedPerTick :
-                Math.max(0.0, machine.getHeat());
+                Math.max(0.0, machine.getHeat() - ambientHU);
         if (activity <= 0.0001) return;
 
         double finalEUt = computePowerOutput(activity, machine.getHeat(),

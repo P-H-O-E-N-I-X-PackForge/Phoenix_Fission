@@ -71,9 +71,6 @@ public class MSRCoreLinerBlock extends ActiveBlock {
                 .collect(java.util.stream.Collectors.joining(" "));
     }
 
-    /**
-     * Completely modular container class for custom runtime MSR Liners.
-     */
     public static class BindableLinerType implements IMSRCoreLinerType {
 
         @Getter

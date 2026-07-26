@@ -18,45 +18,8 @@ import net.phoenix.phoenix_fission.common.data.multiblock.fission.FissionWorkabl
 import net.phoenix.phoenix_fission.common.data.multiblock.fission.managers.FissionThermalManager;
 import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
 
-/**
- * EXAMPLE -- LEGACY PHYSICS: Pre-refactor Flat Cooling Thermal Model
- *
- * Ports the original Phoenix Core thermal logic into the new manager API.
- * This is a full replacement of tickThermalLogic, because the old model's
- * structure differs enough from the current one that individual hook overrides
- * would not cleanly express it.
- *
- * Key differences from the current default:
- * 1. FLAT COOLING (not conductance-based)
- * Old: removed = min(heat - minHeat, sum(cooler.getCoolerTemperature()))
- * Coolers contribute a flat "temperature rating" that is subtracted
- * directly from heat each tick instead of using a conductivity constant.
- *
- * 2. IDLE COOLING (heat decay when reactor is off)
- * When not running, active coolers are applied at 25% efficiency, AND
- * a separate passive idle drain of max(idleHeatLoss, heat * 0.5%)
- * pulls heat toward zero.
- * The new model instead drives heat toward 293K via conductivity.
- *
- * 3. NO AMBIENT TEMPERATURE CONVERGENCE when running
- * Passive cooling only applies when the reactor is off; when running,
- * all heat removal comes from the installed cooler blocks.
- *
- * 4. MELTDOWN TIMER -- same algorithm as the current default, preserved.
- *
- * Usage (pair with LegacyPhysicsFuelManager for full old-model behaviour):
- * 
- * <pre>{@code
- * 
- * @Override
- * protected FissionThermalManager createThermalManager() {
- *     return new LegacyFlatCoolingThermalManager(this, 2.0);
- * }
- * }</pre>
- */
 public class LegacyFlatCoolingThermalManager extends FissionThermalManager {
 
-    /** Minimum heat drained per tick while the reactor is idle. */
     private final double idleHeatLoss;
 
     public LegacyFlatCoolingThermalManager(FissionWorkableElectricMultiblockMachine machine,
@@ -65,15 +28,10 @@ public class LegacyFlatCoolingThermalManager extends FissionThermalManager {
         this.idleHeatLoss = Math.max(0.0, idleHeatLoss);
     }
 
-    /** Convenience constructor with old-default idle loss of 2.0 HU/t. */
     public LegacyFlatCoolingThermalManager(FissionWorkableElectricMultiblockMachine machine) {
         this(machine, 2.0);
     }
 
-    /**
-     * Replaces the entire thermal tick with the old flat-cooling model.
-     * Structure mirrors old handleReactorLogic's heat/cooling section.
-     */
     @Override
     public void tickThermalLogic(boolean running) {
         machine.lastHeatGainedPerTick = 0.0;

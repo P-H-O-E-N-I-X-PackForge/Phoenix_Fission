@@ -72,7 +72,6 @@ public class FissionCoolantCycleEmiRecipe implements EmiRecipe {
 
         FissionEmiUtils.drawPanel(widgets, W, h);
 
-        // Name header, color-coded by tier
         String name = FissionEmiUtils.formatName(type.getName());
         FissionEmiUtils.text(widgets, name, W / 2 - font.width(name) / 2, 8, FissionEmiUtils.tierColor(type.getTier()));
 
@@ -93,7 +92,6 @@ public class FissionCoolantCycleEmiRecipe implements EmiRecipe {
             int slotY = 22;
             EmiTexture arrow = EmiTexture.FULL_ARROW;
 
-            // Center the input/arrow/(output or label) group in the widened panel
             int outWidth = sameFluid ? font.width("(same fluid)") : 18;
             int groupWidth = 18 + 6 + arrow.width + 6 + outWidth;
             int groupX = W / 2 - groupWidth / 2;

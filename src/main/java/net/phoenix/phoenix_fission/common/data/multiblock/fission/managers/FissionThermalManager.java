@@ -50,42 +50,16 @@ public class FissionThermalManager {
         overcooledThisTick = false;
     }
 
-    /**
-     * Passive (ambient) heat change applied every tick regardless of running state.
-     * Negative return value means the core is cooling toward ambient.
-     * Default: {@code (293K - heat) * passiveConductivity}.
-     */
     protected double computePassiveCoolingDelta(double heat, double ambientTemp, double conductivity) {
         return (ambientTemp - heat) * conductivity;
     }
 
-    /**
-     * Heat removed by a single active cooler group in one tick.
-     * Return a non-negative value; the caller subtracts it from reactor heat.
-     * Default: conductance model — {@code max(0, (heat - coolerTemp)) * count * conductivity}.
-     *
-     * @param cooler       the cooler type
-     * @param heat         current reactor heat
-     * @param count        number of cooler blocks of this type
-     * @param conductivity config active cooling conductivity
-     */
     protected double computeActiveCoolerHeatRemoval(IFissionCoolerType cooler, double heat,
                                                     long count, double conductivity) {
         double delta = (cooler.getCoolerTemperature() - heat) * count * conductivity;
         return delta < 0 ? -delta : 0.0;
     }
 
-    /**
-     * Grace period in ticks before a meltdown detonates when heat exceeds
-     * {@code maxSafeHeat}. Return a large number (or {@code Integer.MAX_VALUE})
-     * to effectively disable meltdowns.
-     *
-     * @param heat        current reactor heat
-     * @param maxSafeHeat configured safe heat ceiling
-     * @param minGrace    config minimum grace in seconds
-     * @param baseGrace   config base grace in seconds
-     * @param severity    config excess-heat severity multiplier
-     */
     protected int computeMeltdownGracePeriodTicks(double heat, double maxSafeHeat,
                                                   double minGrace, double baseGrace, double severity) {
         double scale = ((heat - maxSafeHeat) / Math.max(1.0, maxSafeHeat)) * Math.max(0.0001, severity);
@@ -93,10 +67,6 @@ public class FissionThermalManager {
         return (int) Math.max(1, Math.floor(grace * 20.0));
     }
 
-    /**
-     * Explosion power when a meltdown detonates.
-     * Default: base power + power-per-rod × rod count + power-per-heat × avg rod heat.
-     */
     protected float computeExplosionPower(double base, double powerPerRod, double powerPerHeat) {
         var comp = machine.getComponentManager();
         double avgRodHeat = comp.getActiveFuelRods().stream()
@@ -106,13 +76,6 @@ public class FissionThermalManager {
 
     private boolean overcooledThisTick = false;
 
-    /**
-     * The lowest heat the reactor can ever be pulled down to this tick.
-     * Passive/ambient cooling should never push heat below whatever active
-     * coolers are actually installed — a cooler can only cool the reactor
-     * down to its own operating temperature, never past it. Falls back to
-     * ambient when no coolers are present.
-     */
     protected double computeCoolingFloorHU(Collection<IFissionCoolerType> activeCoolers, double ambientTemperatureHU) {
         OptionalDouble minCoolerTemp = activeCoolers.stream()
                 .mapToDouble(IFissionCoolerType::getCoolerTemperature).min();
@@ -151,13 +114,24 @@ public class FissionThermalManager {
         machine.setHeat(machine.getHeat() + passiveDelta);
 
         double activeCoolingRemoved = 0.0;
+        double activeHeatingAdded = 0.0;
 
-        if (!comp.getActiveCoolers().isEmpty() && machine.getHeat() > coolingFloorHU) {
+        if (!comp.getActiveCoolers().isEmpty()) {
             for (IFissionCoolerType cooler : comp.getActiveCoolers()) {
                 if (!cooler.isPassive()) continue;
-                double applied = Math.min(cooler.getFlatCoolingHUt(), machine.getHeat() - coolingFloorHU);
-                machine.setHeat(machine.getHeat() - applied);
-                activeCoolingRemoved += applied;
+                double flat = cooler.getFlatCoolingHUt();
+                if (flat > 0.0) {
+
+                    if (machine.getHeat() <= coolingFloorHU) continue;
+                    double applied = Math.min(flat, machine.getHeat() - coolingFloorHU);
+                    machine.setHeat(machine.getHeat() - applied);
+                    activeCoolingRemoved += applied;
+                } else if (flat < 0.0) {
+
+                    double added = -flat;
+                    machine.setHeat(machine.getHeat() + added);
+                    activeHeatingAdded += added;
+                }
             }
         }
 
@@ -189,6 +163,7 @@ public class FissionThermalManager {
             }
         }
 
+        machine.lastHeatGainedPerTick += activeHeatingAdded;
         machine.lastHeatRemovedPerTick = activeCoolingRemoved + (passiveDelta < 0 ? -passiveDelta : 0.0);
         machine.lastProvidedCooling = (int) Math.round(calculateTheoreticalMaxCooling(machine.getMaxSafeHeatHU()));
 

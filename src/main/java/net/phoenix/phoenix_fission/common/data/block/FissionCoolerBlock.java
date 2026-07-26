@@ -118,7 +118,6 @@ public class FissionCoolerBlock extends ActiveBlock {
         private final Supplier<String> outputSupplier;
         private final Supplier<Double> flatSupplier;
 
-        /** Output volume matches input volume 1:1 — use the other constructor for a custom ratio. */
         public BindableCoolerType(String name, int tier, int tintColor,
                                   Supplier<Integer> tempSupplier,
                                   Supplier<Integer> usageSupplier,

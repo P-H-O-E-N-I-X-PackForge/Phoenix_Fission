@@ -85,7 +85,7 @@ public class FissionCoolerBlockBuilder extends BlockBuilder {
 
         @Override
         public double getFlatCoolingHUt() {
-            return Math.max(0.0, flatCoolingHUt);
+            return flatCoolingHUt;
         }
 
         @Override

@@ -44,7 +44,7 @@ public class PhoenixFissionBlocks {
 
     public static final BlockEntry<NukeBlock> NUKE_BLOCK = PHOENIX_REGISTRATE
             .block("nuke_block", NukeBlock::new)
-            .initialProperties(() -> Blocks.TNT) // TNT-ish
+            .initialProperties(() -> Blocks.TNT)
             .properties(p -> p.isValidSpawn((state, level, pos, ent) -> false))
             .blockstate((ctx, prov) -> prov.simpleBlock(ctx.getEntry(),
                     prov.models().cubeBottomTop(

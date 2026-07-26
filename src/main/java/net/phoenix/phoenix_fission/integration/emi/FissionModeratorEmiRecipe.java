@@ -18,7 +18,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Locale;
 
-/** Info card describing a fission moderator's passive reactor bonuses. */
 public class FissionModeratorEmiRecipe implements EmiRecipe {
 
     private static final int W = 200;

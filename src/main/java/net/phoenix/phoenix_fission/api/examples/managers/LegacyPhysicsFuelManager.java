@@ -13,79 +13,16 @@ import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
 
 import java.util.List;
 
-/**
- * EXAMPLE -- LEGACY PHYSICS: Pre-refactor Heat and Parallel Model
- *
- * Ports the original Phoenix Core fission math into the new manager API.
- * Uses three formula differences that make it feel quite distinct from the
- * current default:
- *
- * 1. ADDITIVE MODERATOR HEAT (not multiplicative EU boost)
- * Old: heatMult = 0.1 + sum(mod.getHeatMultiplier()) / 10.0
- * Uses getHeatMultiplier() (= tier * 0.5) rather than getEUBoost().
- * This rewards stacking high-tier moderators differently.
- *
- * 2. NO THERMAL RUNAWAY
- * Heat and fuel consumption do not scale with current reactor temperature.
- * Output is flat until burnup bonus kicks in.
- *
- * 3. BURN BONUS (long-run reward)
- * Running continuously ramps a multiplier from 1.0 to 1+maxBonus over
- * burnBonusRampSeconds. Shutting down resets continuousBurnTicks to 0.
- * The new config already has burnBonusMaxPercent / burnBonusRampSeconds.
- *
- * 4. HEAT-BASED AND MODERATOR-BASED PARALLELS
- * Parallels scale with rod count, moderator parallel bonus, AND
- * optionally with current heat (more heat = more parallels up to the cap).
- * heatPerParallel = 0 disables heat-based parallel scaling.
- *
- * Optional constructor parameters expose the old config fields that do not
- * exist in PhoenixFissionConfigs. Pass them from your machine's
- * createFuelManager() factory, or use the defaults() convenience constructor.
- *
- * Usage (in your machine subclass):
- * 
- * <pre>{@code
- * 
- * @Override
- * protected FissionFuelManager createFuelManager() {
- *     return new LegacyPhysicsFuelManager(this,
- *             0.0,    // baseHeatPerTick: flat heat added regardless of rods
- *             1000.0, // heatPerParallel: every 1000 HU adds one extra parallel
- *             true,   // fuelScalesWithRodCount
- *             false   // fuelScalesWithParallels
- *     );
- * }
- * }</pre>
- *
- * Usage with all defaults:
- * 
- * <pre>{@code
- * 
- * @Override
- * protected FissionFuelManager createFuelManager() {
- *     return new LegacyPhysicsFuelManager(this);
- * }
- * }</pre>
- */
 public class LegacyPhysicsFuelManager extends FissionFuelManager {
 
-    /** Flat heat contribution per tick independent of rods (from old cfg.baseHeatPerTick). */
     private final double baseHeatPerTick;
 
-    /**
-     * Every this-many HU of current heat grants +1 parallel.
-     * Set to 0 to disable heat-based parallel scaling.
-     */
     private final double heatPerParallel;
 
-    /** Whether fuel consumption scales with the number of installed fuel rods. */
     private final boolean fuelScalesWithRodCount;
 
-    /** Whether fuel consumption scales with computed parallels. */
     private final boolean fuelScalesWithParallels;
 
-    /** All-defaults constructor. Mirrors the old PhoenixConfigs defaults. */
     public LegacyPhysicsFuelManager(FissionWorkableElectricMultiblockMachine machine) {
         this(machine, 0.0, 0.0, true, false);
     }
@@ -100,13 +37,6 @@ public class LegacyPhysicsFuelManager extends FissionFuelManager {
         this.fuelScalesWithParallels = fuelScalesWithParallels;
     }
 
-    /**
-     * Old formula:
-     * base = parallelsPerFuelRod * rodCount
-     * modBonus = sum(mod.getParallelBonus())
-     * heatBonus = floor(heat / heatPerParallel) [if heatPerParallel > 0]
-     * result = clamp(base + modBonus + heatBonus, 1, maxParallels)
-     */
     @Override
     public void recalcRuntimeParallels() {
         var cfg = PhoenixFissionConfigs.INSTANCE.fission;
@@ -127,16 +57,6 @@ public class LegacyPhysicsFuelManager extends FissionFuelManager {
         machine.lastParallels = Math.max(1, Math.min(total, cfg.maxParallels));
     }
 
-    /**
-     * Old formula replaces the whole tick-heat method because the structure is
-     * fundamentally different (additive moderator heat, no per-group thermal
-     * scalar, parallels multiplied in directly).
-     *
-     * modMult = 0.1 + sum(mod.getHeatMultiplier()) / 10.0
-     * rodHeat = sum(rod.getBaseHeatProduction())
-     * burnMult = from continuousBurnTicks ramp
-     * result = (baseHeatPerTick + rodHeat * modMult) * parallels * burnMult
-     */
     @Override
     public double calculateTickHeat(int machineParallels) {
         List<IFissionFuelRodType> rods = machine.getComponentManager().getActiveFuelRods();
@@ -158,13 +78,6 @@ public class LegacyPhysicsFuelManager extends FissionFuelManager {
         return (baseHeatPerTick + totalRodHeat * moderatorMult) * parallels * burnMult * reactivity;
     }
 
-    /**
-     * Old fuel consumption uses the primary fuel rod type only, with optional
-     * rod-count and parallel scaling instead of the new per-group approach.
-     *
-     * The hooks computeHeatThermalScalar / computeFuelConsumptionThermalScalar
-     * are left at 1.0 (no thermal runaway) by the overrides below.
-     */
     @Override
     public void consumeFuelTick(int machineParallels) {
         var comp = machine.getComponentManager();
@@ -222,10 +135,6 @@ public class LegacyPhysicsFuelManager extends FissionFuelManager {
         }
     }
 
-    /**
-     * Adds burn bonus on top of the standard power curve, mirroring old behavior
-     * where EU output also scaled with continuousBurnTicks.
-     */
     @Override
     protected double computePowerOutput(double activity, double currentHeat, double minHeat,
                                         double maxSafeHeat, double euPerHeatUnit, double powerStart,
@@ -245,10 +154,6 @@ public class LegacyPhysicsFuelManager extends FissionFuelManager {
         return 1.0;
     }
 
-    /**
-     * Ramps from 1.0 to 1 + (burnBonusMaxPercent/100) over burnBonusRampSeconds
-     * of continuous running. Resets when the reactor shuts down.
-     */
     protected double computeBurnMultiplier() {
         var cfg = PhoenixFissionConfigs.INSTANCE.fission;
         double maxPct = Math.max(0.0, cfg.burnBonusMaxPercent);

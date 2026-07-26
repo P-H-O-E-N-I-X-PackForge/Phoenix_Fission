@@ -44,7 +44,7 @@ public interface IFissionCoolerType extends StringRepresentable {
     }
 
     default boolean isPassive() {
-        return getFlatCoolingHUt() > 0.0;
+        return getFlatCoolingHUt() != 0.0;
     }
 
     default int getTintColor() {

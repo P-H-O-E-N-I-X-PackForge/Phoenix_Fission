@@ -151,17 +151,14 @@ public class FissionWorkableElectricMultiblockMachine extends WorkableElectricMu
         this.reactorTickHandler = new ConditionalSubscriptionHandler(this, this::reactorTick, this::isFormed);
     }
 
-    /** Override to supply a custom component manager subclass. */
     protected FissionComponentManager createComponentManager() {
         return new FissionComponentManager(this);
     }
 
-    /** Override to supply a custom thermal manager subclass. */
     protected FissionThermalManager createThermalManager() {
         return new FissionThermalManager(this);
     }
 
-    /** Override to supply a custom fuel manager subclass. */
     protected FissionFuelManager createFuelManager() {
         return new FissionFuelManager(this);
     }
@@ -180,12 +177,10 @@ public class FissionWorkableElectricMultiblockMachine extends WorkableElectricMu
         return PhoenixFissionConfigs.INSTANCE.fission.heatModel.maxSafeTempK * getHeatCapacity();
     }
 
-    /** Absolute heat clamp in HU — scales with multi size. */
     public double getMaxHeatClampHU() {
         return PhoenixFissionConfigs.INSTANCE.fission.heatModel.maxHeatClampTempK * getHeatCapacity();
     }
 
-    /** Current core temperature in Kelvin — what players should actually see, not raw HU. */
     public double getHeatKelvin() {
         return heat / getHeatCapacity();
     }
