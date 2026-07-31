@@ -1,4 +1,4 @@
-package net.phoenix.phoenix_fission.common.data.multiblock.fission;
+package net.phoenix.phoenix_fission.api.machine.multiblock;
 
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
@@ -23,10 +23,9 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraftforge.registries.ForgeRegistries;
-import net.phoenix.phoenix_fission.PhoenixAPI;
-import net.phoenix.phoenix_fission.api.block.IFissionBlanketType;
-import net.phoenix.phoenix_fission.api.block.IFissionFuelRodType;
-import net.phoenix.phoenix_fission.common.data.multiblock.fission.managers.FissionFuelManager;
+import net.phoenix.phoenix_fission.api.PhoenixAPI;
+import net.phoenix.phoenix_fission.api.block.iface.IFissionBlanketType;
+import net.phoenix.phoenix_fission.api.block.iface.IFissionFuelRodType;
 import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
 
 import lombok.Getter;
@@ -34,6 +33,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @MethodsReturnNonnullByDefault
 public class BreederWorkableElectricMultiblockMachine extends DynamicFissionReactorMachine {
@@ -111,8 +112,13 @@ public class BreederWorkableElectricMultiblockMachine extends DynamicFissionReac
     }
 
     private void selectPrimaryBlanket() {
+        // Same "most common type wins" convention FissionComponentManager uses for
+        // primaryCoolerType/primaryModeratorType/primaryFuelRodType — no tier involved.
         this.primaryBlanket = activeBlankets.stream()
-                .max(Comparator.comparingInt(IFissionBlanketType::getTier))
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
+                .entrySet().stream()
+                .max(Comparator.comparingLong(Map.Entry::getValue))
+                .map(Map.Entry::getKey)
                 .orElse(null);
     }
 
@@ -195,10 +201,7 @@ public class BreederWorkableElectricMultiblockMachine extends DynamicFissionReac
     }
 
     public static ModifierFunction recipeModifier(MetaMachine machine, GTRecipe recipe) {
-        if (!(machine instanceof BreederWorkableElectricMultiblockMachine m) || !m.isFormed()) {
-            return ModifierFunction.IDENTITY;
-        }
-        return FissionFuelManager.buildRecipeModifier(m);
+        return DynamicFissionReactorMachine.recipeModifier(machine, recipe);
     }
 
     @Nullable
@@ -268,17 +271,12 @@ public class BreederWorkableElectricMultiblockMachine extends DynamicFissionReac
     private record WeightedKey(String key, double weight, int instability) {}
 
     private int getReactorSpectrumBias() {
-        int bias = 0;
+        // Reuse the component manager's already-resolved primary fuel rod (most common
+        // type wins — see FissionComponentManager.calcPrimary) instead of ranking by tier.
+        IFissionFuelRodType rod = getComponentManager().getPrimaryFuelRodType();
+        if (rod == null) return 0;
 
-        List<IFissionFuelRodType> activeRods = getComponentManager().getActiveFuelRods();
-        if (!activeRods.isEmpty()) {
-            IFissionFuelRodType rod = activeRods.stream()
-                    .max(Comparator.comparingInt(IFissionFuelRodType::getTier))
-                    .orElse(null);
-            bias += rod.getNeutronBias();
-        }
-
-        return Math.max(-100, Math.min(100, bias));
+        return Math.max(-100, Math.min(100, rod.getNeutronBias()));
     }
 
     private List<WeightedKey> buildAdjustedDistribution(IFissionBlanketType blanket, int spectrumBias) {

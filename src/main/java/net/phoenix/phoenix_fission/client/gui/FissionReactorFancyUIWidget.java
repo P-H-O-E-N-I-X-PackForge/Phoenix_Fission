@@ -17,15 +17,15 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.phoenix.phoenix_fission.PhoenixAPI;
-import net.phoenix.phoenix_fission.api.block.IFissionBlanketType;
-import net.phoenix.phoenix_fission.api.block.IFissionCoolerType;
-import net.phoenix.phoenix_fission.api.block.IFissionFuelRodType;
-import net.phoenix.phoenix_fission.api.block.IFissionModeratorType;
-import net.phoenix.phoenix_fission.api.block.IFissionSensorHatchType;
-import net.phoenix.phoenix_fission.api.block.IFissionStabilityHatchType;
-import net.phoenix.phoenix_fission.common.data.multiblock.fission.BreederWorkableElectricMultiblockMachine;
-import net.phoenix.phoenix_fission.common.data.multiblock.fission.FissionWorkableElectricMultiblockMachine;
+import net.phoenix.phoenix_fission.api.PhoenixAPI;
+import net.phoenix.phoenix_fission.api.block.iface.IFissionBlanketType;
+import net.phoenix.phoenix_fission.api.block.iface.IFissionCoolerType;
+import net.phoenix.phoenix_fission.api.block.iface.IFissionFuelRodType;
+import net.phoenix.phoenix_fission.api.block.iface.IFissionModeratorType;
+import net.phoenix.phoenix_fission.api.block.iface.IFissionSensorHatchType;
+import net.phoenix.phoenix_fission.api.block.iface.IFissionStabilityHatchType;
+import net.phoenix.phoenix_fission.api.machine.multiblock.BreederWorkableElectricMultiblockMachine;
+import net.phoenix.phoenix_fission.api.machine.multiblock.FissionWorkableElectricMultiblockMachine;
 import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
 
 import java.util.*;
@@ -378,17 +378,6 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
             if (fillW > half)
                 DrawerHelper.drawGradientRect(g, x + half, y, fillW - half, barH, C_GOLD, C_RED, true);
         }
-        if (pct > 0.70 && fillW > 0) {
-            long t = System.currentTimeMillis();
-            int sw = 18;
-            int sOff = (int) ((t / 18) % (fillW + sw));
-            int sx1 = Math.max(x + sOff - sw, x), sx2 = Math.min(x + sOff, x + fillW);
-            if (sx2 > sx1) {
-                int mid = (sx1 + sx2) / 2;
-                DrawerHelper.drawGradientRect(g, sx1, y, mid - sx1, barH, 0x00_FFFFFF, 0x33_FFFFFF, true);
-                DrawerHelper.drawGradientRect(g, mid, y, sx2 - mid, barH, 0x33_FFFFFF, 0x00_FFFFFF, true);
-            }
-        }
 
         int meltdownX = x + (int) ((meltdownHeat / displayScale) * W);
         g.fill(meltdownX, y - 1, meltdownX + 1, y + barH + 1, 0xAA_FFFFFF);
@@ -398,7 +387,7 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
         y += 10;
 
         String pctStr = String.format("%.1f%%", pctOfMeltdown * 100);
-        String absStr = String.format("%.0f K", reactor.getHeatKelvin());
+        String absStr = String.format("%.0f K", heat + 273.0);
         int pctColor = pctOfMeltdown > 0.85 ? C_RED : pctOfMeltdown > 0.5 ? C_ORANGE : C_GREEN;
         g.drawString(font, pctStr, x, y, pctColor, false);
         g.drawString(font, absStr, x + W - font.width(absStr), y, pctColor, false);
@@ -537,8 +526,8 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
     private int drawStatsSection(GuiGraphics g, Font font, int x, int y, int W) {
         boolean hasCoolant = reactor.lastHasCoolant;
 
-        int boostPct = reactor.getFuelManager().getModeratorEUBoostClamped();
-        int discPct = reactor.getFuelManager().getModeratorFuelDiscountClamped();
+        int boostPct = reactor.getFuelManager().calcEUBoost();
+        int discPct = reactor.getFuelManager().calcFuelDiscount();
 
         int boxH = 28;
         g.fill(x, y, x + W, y + boxH, 0x22_00AABB);
@@ -573,8 +562,8 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
     @OnlyIn(Dist.CLIENT)
     private int drawStatsNoEU(GuiGraphics g, Font font, int x, int y, int W) {
         boolean hasCoolant = reactor.lastHasCoolant;
-        int boostPct = reactor.getFuelManager().getModeratorEUBoostClamped();
-        int discPct = reactor.getFuelManager().getModeratorFuelDiscountClamped();
+        int boostPct = reactor.getFuelManager().calcEUBoost();
+        int discPct = reactor.getFuelManager().calcFuelDiscount();
 
         String parStr = "x" + reactor.lastParallels + " parallels";
         String boostStr = "+" + boostPct + "% heat";
@@ -765,8 +754,15 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
             List<IFissionBlanketType> blankets = resolveTypes(
                     reactor.getPersistedBlanketIDs(), PhoenixAPI.FISSION_BLANKETS.keySet(),
                     IFissionBlanketType::getName);
+
             IFissionBlanketType pb = blankets.stream()
-                    .max(Comparator.comparingInt(IFissionBlanketType::getTier)).orElse(null);
+                    .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
+                    .entrySet().stream()
+                    .max(Map.Entry.<IFissionBlanketType, Long>comparingByValue()
+                            .thenComparing(e -> e.getKey().getName()))
+                    .map(Map.Entry::getKey)
+                    .orElse(null);
+
             if (pb == null) {
                 g.drawString(font, "  No blanket installed", x, y, C_DIM, false);
             } else {
@@ -828,7 +824,7 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
             if (iy + cardH > contentStart && iy < contentStart + H - 4) {
                 g.fill(x, iy, x + 2, iy + cardH - 2, f.getTintColor() | 0xFF000000);
 
-                String right1 = "T" + f.getTier() + "  x" + card.count();
+                String right1 = "x" + card.count();
                 int r1w = font.width(right1);
                 g.drawString(font, truncate(font, f.getName(), W - r1w - 14), x + 5, iy + 2, C_WHITE, false);
                 g.drawString(font, right1, x + W - r1w - 6, iy + 2, C_GOLD, false);
@@ -886,7 +882,7 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
             if (iy + CARD > contentStart && iy < contentStart + H - 4) {
                 g.fill(x, iy, x + 2, iy + CARD - 2, m.getTintColor() | 0xFF000000);
 
-                String right1 = "T" + m.getTier() + "  x" + e.getValue();
+                String right1 = "x" + e.getValue();
                 int right1W = font.width(right1);
                 g.drawString(font, truncate(font, m.getName(), W - right1W - 14), x + 5, iy + 2, C_WHITE, false);
                 g.drawString(font, right1, x + W - right1W - 6, iy + 2, C_GOLD, false);
@@ -899,11 +895,12 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
                 g.drawString(font, discStr, x + W - font.width(discStr) - 6, iy + 12, disc > 0 ? C_GOLD : C_DIM, false);
 
                 int parB = m.getParallelBonus();
-                double heatMult = m.getHeatMultiplier();
+                double heatMulti = m.getHeatMultiplier();
                 String parStr = parB > 0 ? "+" + parB + " parallel" : "no par bonus";
-                String heatStr = String.format(java.util.Locale.ROOT, "x%.1f heat", heatMult);
+                String heatStr = String.format(java.util.Locale.ROOT, "x%.1f heat", heatMulti);
                 g.drawString(font, parStr, x + 5, iy + 21, parB > 0 ? A_MODS : C_DIM, false);
-                g.drawString(font, heatStr, x + W - font.width(heatStr) - 6, iy + 21, heatMult > 1.0 ? C_ORANGE : C_MID,
+                g.drawString(font, heatStr, x + W - font.width(heatStr) - 6, iy + 21,
+                        heatMulti > 1.0 ? C_ORANGE : C_MID,
                         false);
 
                 g.fill(x, iy + CARD - 2, x + W - 6, iy + CARD - 1, 0x22_FFFFFF);
@@ -976,7 +973,7 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
                     g.drawString(font, "Always active - no coolant needed", x + 5, iy + 21, C_DIM, false);
                 } else {
 
-                    String right1 = "T" + c.getTier() + "  x" + card.count();
+                    String right1 = " x" + card.count();
                     int r1w = font.width(right1);
                     g.drawString(font, truncate(font, c.getName(), W - r1w - 14), x + 5, iy + 2, C_WHITE, false);
                     g.drawString(font, right1, x + W - r1w - 6, iy + 2, C_GOLD, false);
@@ -1050,7 +1047,7 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
             g.fill(x + 2, iy, x + 9, iy + 1, 0x55_FFFFFF);
 
             String bName = prettyName(b.getName());
-            String tierStr = "T" + b.getTier() + "  x" + count;
+            String tierStr = " x" + count;
             g.drawString(font, bName, x + 12, iy, C_PURPLE, false);
             g.drawString(font, tierStr, x + W - font.width(tierStr), iy, C_MID, false);
             iy += 11;
@@ -1063,10 +1060,9 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
             g.drawString(font, rateStr, x + W - font.width(rateStr), iy, C_GOLD, false);
             iy += 10;
 
-            int reqTier = b.getRequiredFuelTier();
-            boolean tierOk = hasSufficientFuelTier(reqTier);
-            String reqStr = "  Req. fuel: T" + reqTier + "+  " + (tierOk ? "OK" : "MISSING");
-            g.drawString(font, reqStr, x, iy, tierOk ? C_GREEN : C_RED, false);
+            String reqFuelKey = b.getRequiredFuelKey();
+            String reqStr = reqFuelKey.isEmpty() ? "  Req. fuel: None" : "  Req. fuel: " + reqFuelKey;
+            g.drawString(font, reqStr, x, iy, reqFuelKey.isEmpty() ? C_DIM : C_WHITE, false);
             iy += 10;
 
             List<IFissionBlanketType.BlanketOutput> outputs = b.getOutputs();
@@ -1212,12 +1208,6 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
         if (instability < 25) return 0xFF_AAFFCC;
         if (instability < 50) return C_GOLD;
         return C_RED;
-    }
-
-    private boolean hasSufficientFuelTier(int requiredTier) {
-        return resolveTypes(reactor.getPersistedFuelRodIDs(),
-                PhoenixAPI.FISSION_FUEL_RODS.keySet(), IFissionFuelRodType::getName)
-                .stream().anyMatch(f -> f.getTier() >= requiredTier);
     }
 
     private static <T> List<T> resolveTypes(List<String> ids, Set<T> registry, Function<T, String> nameOf) {

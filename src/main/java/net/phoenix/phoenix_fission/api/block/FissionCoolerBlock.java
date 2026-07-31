@@ -1,4 +1,4 @@
-package net.phoenix.phoenix_fission.common.data.block;
+package net.phoenix.phoenix_fission.api.block;
 
 import com.gregtechceu.gtceu.api.block.ActiveBlock;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
@@ -16,7 +16,7 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.phoenix.phoenix_fission.PhoenixFission;
-import net.phoenix.phoenix_fission.api.block.IFissionCoolerType;
+import net.phoenix.phoenix_fission.api.block.iface.IFissionCoolerType;
 
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;

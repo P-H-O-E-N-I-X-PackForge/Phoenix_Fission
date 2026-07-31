@@ -1,4 +1,4 @@
-package net.phoenix.phoenix_fission.api.block;
+package net.phoenix.phoenix_fission.api.block.iface;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.StringRepresentable;
@@ -12,18 +12,15 @@ public interface IFissionBlanketType extends StringRepresentable {
     @NotNull
     String getName();
 
-    int getTier();
-
-    default int getRequiredFuelTier() {
-        return getTier();
-    }
-
     int getDurationTicks();
 
     int getAmountPerCycle();
 
     @NotNull
     String getInputKey();
+
+    @NotNull
+    String getRequiredFuelKey();
 
     default int getTintColor() {
         return 0xFFFFFFFF;

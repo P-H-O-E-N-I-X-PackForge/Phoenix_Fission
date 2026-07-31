@@ -15,7 +15,7 @@ public class PhoenixMachineLangHandler {
         provider.add("phoenix_fission.blanket.input", "Breeding Target Input");
 
         provider.add("phoenix_fission.tooltip.amount", "Yield Batch Size");
-        provider.add("phoenix_fission.tooltip.required_fuel_tier", "Required Driver Fuel");
+        provider.add("phoenix_fission.tooltip.required_fuel", "Required Driver Fuel");
 
         provider.add("phoenix_fission.coolant_usage_value",
                 "§dConsumption Rate: §5%d mB/t");
@@ -231,5 +231,6 @@ public class PhoenixMachineLangHandler {
         provider.add("phoenix_fission.msr_liner.output_salt", "< Yields Waste: §7%s");
 
         provider.add("phoenix_fission.msr_liner.info_header", "--- Molten Salt Core Liner Specifications ---");
+        provider.add("phoenix_fission.msr.structural_type", "MSR Core Material: %s");
     }
 }

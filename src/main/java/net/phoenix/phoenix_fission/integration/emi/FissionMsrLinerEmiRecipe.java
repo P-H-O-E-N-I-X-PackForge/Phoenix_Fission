@@ -4,7 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.resources.ResourceLocation;
 import net.phoenix.phoenix_fission.PhoenixFission;
-import net.phoenix.phoenix_fission.api.block.IMSRCoreLinerType;
+import net.phoenix.phoenix_fission.api.block.iface.IMSRCoreLinerType;
 
 import dev.emi.emi.api.recipe.EmiRecipe;
 import dev.emi.emi.api.recipe.EmiRecipeCategory;
@@ -71,7 +71,7 @@ public class FissionMsrLinerEmiRecipe implements EmiRecipe {
         FissionEmiUtils.drawPanel(widgets, W, H);
 
         String name = FissionEmiUtils.formatName(type.getName());
-        FissionEmiUtils.text(widgets, name, W / 2 - font.width(name) / 2, 8, FissionEmiUtils.tierColor(type.getTier()));
+        FissionEmiUtils.text(widgets, name, W / 2 - font.width(name) / 2, 8, 0xFF_FFFFFF);
 
         EmiStack inFluid = FissionEmiUtils.resolveFluid(type.getInputFluidId(), type.getFluidFlowRate());
         String outFluidId = type.getOutputFluidId();

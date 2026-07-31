@@ -6,8 +6,9 @@ import com.lowdragmc.lowdraglib.utils.BlockInfo;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.Blocks;
-import net.phoenix.phoenix_fission.PhoenixAPI;
+import net.phoenix.phoenix_fission.api.PhoenixAPI;
 import net.phoenix.phoenix_fission.api.block.*;
+import net.phoenix.phoenix_fission.api.block.iface.*;
 import net.phoenix.phoenix_fission.common.data.block.*;
 
 import java.util.*;
@@ -55,7 +56,7 @@ public class PhoenixFissionPredicates {
             return false;
         }, () -> {
             var infos = PhoenixAPI.FISSION_COOLERS.entrySet().stream()
-                    .sorted(Comparator.comparingInt(e -> e.getKey().getTier()))
+                    .sorted(Comparator.comparing(e -> e.getKey().getName()))
                     .map(e -> safeGet(e.getValue()))
                     .filter(Objects::nonNull)
                     .map(b -> BlockInfo.fromBlockState(b.defaultBlockState()))
@@ -87,7 +88,7 @@ public class PhoenixFissionPredicates {
             return false;
         }, () -> {
             var infos = PhoenixAPI.FISSION_BLANKETS.entrySet().stream()
-                    .sorted(Comparator.comparingInt(e -> e.getKey().getTier()))
+                    .sorted(Comparator.comparing(e -> e.getKey().getName()))
                     .map(e -> safeGet(e.getValue()))
                     .filter(Objects::nonNull)
                     .map(b -> BlockInfo.fromBlockState(b.defaultBlockState()))
@@ -119,7 +120,7 @@ public class PhoenixFissionPredicates {
             return false;
         }, () -> {
             var infos = PhoenixAPI.FISSION_FUEL_RODS.entrySet().stream()
-                    .sorted(Comparator.comparingInt(e -> e.getKey().getTier()))
+                    .sorted(Comparator.comparing(e -> e.getKey().getName()))
                     .map(e -> safeGet(e.getValue()))
                     .filter(Objects::nonNull)
                     .map(b -> BlockInfo.fromBlockState(b.defaultBlockState()))
@@ -151,7 +152,7 @@ public class PhoenixFissionPredicates {
             return false;
         }, () -> {
             var infos = PhoenixAPI.FISSION_MODERATORS.entrySet().stream()
-                    .sorted(Comparator.comparingInt(e -> e.getKey().getTier()))
+                    .sorted(Comparator.comparing(e -> e.getKey().getName()))
                     .map(e -> safeGet(e.getValue()))
                     .filter(Objects::nonNull)
                     .map(b -> BlockInfo.fromBlockState(b.defaultBlockState()))
@@ -175,9 +176,6 @@ public class PhoenixFissionPredicates {
                 if (blockState.is(block)) {
                     var type = entry.getKey();
                     blockWorldState.getMatchContext().increment("MSRLinerCount", 1);
-                    int currentMinTier = blockWorldState.getMatchContext().getOrDefault("MSRMinTier",
-                            Integer.MAX_VALUE);
-                    blockWorldState.getMatchContext().set("MSRMinTier", Math.min(currentMinTier, type.getTier()));
                     List<IMSRCoreLinerType> componentList = blockWorldState.getMatchContext().getOrPut("LinerTypes",
                             new ArrayList<>());
                     componentList.add(type);
@@ -187,7 +185,7 @@ public class PhoenixFissionPredicates {
             return false;
         }, () -> {
             var infos = PhoenixAPI.MSR_LINERS.entrySet().stream()
-                    .sorted(Comparator.comparingInt(e -> e.getKey().getTier()))
+                    .sorted(Comparator.comparing(e -> e.getKey().getName()))
                     .map(e -> safeGet(e.getValue()))
                     .filter(Objects::nonNull)
                     .map(b -> BlockInfo.fromBlockState(b.defaultBlockState()))

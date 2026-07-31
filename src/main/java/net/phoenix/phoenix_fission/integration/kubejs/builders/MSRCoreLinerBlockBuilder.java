@@ -2,9 +2,9 @@ package net.phoenix.phoenix_fission.integration.kubejs.builders;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
-import net.phoenix.phoenix_fission.PhoenixAPI;
-import net.phoenix.phoenix_fission.api.block.IMSRCoreLinerType;
-import net.phoenix.phoenix_fission.common.data.block.MSRCoreLinerBlock;
+import net.phoenix.phoenix_fission.api.PhoenixAPI;
+import net.phoenix.phoenix_fission.api.block.MSRCoreLinerBlock;
+import net.phoenix.phoenix_fission.api.block.iface.IMSRCoreLinerType;
 
 import dev.latvian.mods.kubejs.block.BlockBuilder;
 import lombok.Setter;
@@ -39,11 +39,6 @@ public class MSRCoreLinerBlockBuilder extends BlockBuilder {
         @Override
         public @NotNull String getName() {
             return id.getPath();
-        }
-
-        @Override
-        public int getTier() {
-            return Math.max(0, tier);
         }
 
         @Override

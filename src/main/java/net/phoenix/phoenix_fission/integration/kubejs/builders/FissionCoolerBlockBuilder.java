@@ -5,9 +5,9 @@ import com.gregtechceu.gtceu.common.data.GTMaterials;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
-import net.phoenix.phoenix_fission.PhoenixAPI;
-import net.phoenix.phoenix_fission.api.block.IFissionCoolerType;
-import net.phoenix.phoenix_fission.common.data.block.FissionCoolerBlock;
+import net.phoenix.phoenix_fission.api.PhoenixAPI;
+import net.phoenix.phoenix_fission.api.block.FissionCoolerBlock;
+import net.phoenix.phoenix_fission.api.block.iface.IFissionCoolerType;
 
 import dev.latvian.mods.kubejs.block.BlockBuilder;
 import lombok.Setter;
@@ -19,8 +19,6 @@ public class FissionCoolerBlockBuilder extends BlockBuilder {
 
     @Setter
     public transient int coolerTemperature = 1000;
-    @Setter
-    public transient int tier = 1;
     @Setter
     public transient int coolantUsagePerTick = 10;
     @Setter
@@ -35,9 +33,7 @@ public class FissionCoolerBlockBuilder extends BlockBuilder {
     public transient String requiredCoolantMaterialId = "gtceu:distilled_water";
     @Setter
     @NotNull
-    public transient String outputCoolantFluidId = "gtceu:hot_distilled_water";
-    @Setter
-    public transient int tintColor = -1;
+    public transient String outputCoolantFluidId = "gtceu:steam";
     @Setter
     public transient String texture = "phoenix_fission:block/fission/cooler_base";
 
@@ -94,27 +90,10 @@ public class FissionCoolerBlockBuilder extends BlockBuilder {
         }
 
         @Override
-        public int getTier() {
-            return Math.max(0, tier);
-        }
-
-        @Override
         public @NotNull ResourceLocation getTexture() {
             ResourceLocation rl = ResourceLocation.tryParse(texture);
             return rl != null ? rl :
                     ResourceLocation.fromNamespaceAndPath("phoenix_fission", "block/fission/cooler_base");
-        }
-
-        @Override
-        public int getTintColor() {
-            if (tintColor != -1) return tintColor;
-            return switch (getTier()) {
-                case 1 -> 0xFF7DE7FF;
-                case 2 -> 0xFFB07CFF;
-                case 3 -> 0xFFFFD27D;
-                case 4 -> 0xFFFF7DAA;
-                default -> 0xFFFFFFFF;
-            };
         }
 
         @Override

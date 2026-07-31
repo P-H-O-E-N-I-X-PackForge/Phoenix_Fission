@@ -1,4 +1,4 @@
-package net.phoenix.phoenix_fission.common.data.block;
+package net.phoenix.phoenix_fission.api.block;
 
 import com.gregtechceu.gtceu.api.block.ActiveBlock;
 import com.gregtechceu.gtceu.utils.GTUtil;
@@ -10,7 +10,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.BlockGetter;
 import net.phoenix.phoenix_fission.PhoenixFission;
-import net.phoenix.phoenix_fission.api.block.IFissionBlanketType;
+import net.phoenix.phoenix_fission.api.block.iface.IFissionBlanketType;
 
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
@@ -45,9 +45,10 @@ public class FissionBlanketBlock extends ActiveBlock {
                 .withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD));
 
         tooltip.add(Component.literal(" - ")
-                .append(Component.translatable("phoenix_fission.tooltip.required_fuel_tier"))
-                .append(Component.literal(": Tier " + blanketType.getRequiredFuelTier() + "+")
-                        .withStyle(ChatFormatting.DARK_RED)));
+                .append(Component.translatable("phoenix_fission.tooltip.required_fuel"))
+                .append(Component.literal(": "))
+                .append(FissionFuelRodBlock.getRegistryDisplayName(blanketType.getRequiredFuelKey())
+                        .copy().withStyle(ChatFormatting.DARK_RED)));
 
         double seconds = blanketType.getDurationTicks() / 20.0;
 
@@ -105,13 +106,13 @@ public class FissionBlanketBlock extends ActiveBlock {
         @NotNull
         private final List<BlanketOutput> outputs;
 
-        private final Supplier<Integer> requiredFuelTierSupplier;
+        private final Supplier<String> requiredFuelKeySupplier;
         private final Supplier<Integer> durationSupplier;
         private final Supplier<Integer> amountSupplier;
         private final Supplier<String> inputKeySupplier;
 
         public BindableBlanketType(String name, int tier, int tintColor, List<BlanketOutput> outputs,
-                                   Supplier<Integer> requiredFuelTierSupplier,
+                                   Supplier<String> requiredFuelKeySupplier,
                                    Supplier<Integer> durationSupplier,
                                    Supplier<Integer> amountSupplier,
                                    Supplier<String> inputKeySupplier) {
@@ -119,15 +120,15 @@ public class FissionBlanketBlock extends ActiveBlock {
             this.tier = tier;
             this.tintColor = tintColor;
             this.outputs = outputs;
-            this.requiredFuelTierSupplier = requiredFuelTierSupplier;
+            this.requiredFuelKeySupplier = requiredFuelKeySupplier;
             this.durationSupplier = durationSupplier;
             this.amountSupplier = amountSupplier;
             this.inputKeySupplier = inputKeySupplier;
         }
 
         @Override
-        public int getRequiredFuelTier() {
-            return requiredFuelTierSupplier.get();
+        public @NotNull String getRequiredFuelKey() {
+            return requiredFuelKeySupplier.get();
         }
 
         @Override

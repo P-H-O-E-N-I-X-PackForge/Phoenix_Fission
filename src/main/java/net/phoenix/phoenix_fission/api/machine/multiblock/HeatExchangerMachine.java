@@ -1,4 +1,4 @@
-package net.phoenix.phoenix_fission.common.data.multiblock.fission;
+package net.phoenix.phoenix_fission.api.machine.multiblock;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;

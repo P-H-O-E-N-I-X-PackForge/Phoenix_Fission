@@ -1,8 +1,7 @@
 package net.phoenix.phoenix_fission.api.examples.managers;
 
-import net.phoenix.phoenix_fission.api.block.IFissionFuelRodType;
-import net.phoenix.phoenix_fission.common.data.multiblock.fission.FissionWorkableElectricMultiblockMachine;
-import net.phoenix.phoenix_fission.common.data.multiblock.fission.managers.FissionFuelManager;
+import net.phoenix.phoenix_fission.api.machine.multiblock.FissionWorkableElectricMultiblockMachine;
+import net.phoenix.phoenix_fission.api.machine.multiblock.managers.FissionFuelManager;
 
 public class NeutronModeratedFuelManager extends FissionFuelManager {
 
@@ -23,15 +22,5 @@ public class NeutronModeratedFuelManager extends FissionFuelManager {
         double moderatorBonus = moderatorRatio / maxModeratorRatio;
 
         return Math.sqrt((totalRods + 1.0) / 2.0) * (1.0 + moderatorBonus);
-    }
-
-    @Override
-    protected double computeHeatDeltaForRodGroup(IFissionFuelRodType rod, long count,
-                                                 double rodInteraction, double thermalScalar,
-                                                 double moderatorMultiplier,
-                                                 double reactivity, double fuelConductivity) {
-        double tierFactor = 1.0 + (rod.getTier() - 1) * 0.25;
-        return super.computeHeatDeltaForRodGroup(rod, count, rodInteraction, thermalScalar,
-                moderatorMultiplier, reactivity, fuelConductivity) * tierFactor;
     }
 }

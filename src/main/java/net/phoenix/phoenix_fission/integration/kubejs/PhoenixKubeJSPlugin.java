@@ -3,14 +3,14 @@ package net.phoenix.phoenix_fission.integration.kubejs;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 
 import net.phoenix.phoenix_fission.PhoenixFission;
+import net.phoenix.phoenix_fission.api.machine.multiblock.BreederWorkableElectricMultiblockMachine;
+import net.phoenix.phoenix_fission.api.machine.multiblock.DynamicFissionReactorMachine;
+import net.phoenix.phoenix_fission.api.machine.multiblock.FissionWorkableElectricMultiblockMachine;
+import net.phoenix.phoenix_fission.api.machine.multiblock.MoltenSaltReactorMultiblockMachine;
 import net.phoenix.phoenix_fission.api.pattern.PhoenixFissionPredicates;
 import net.phoenix.phoenix_fission.common.PhoenixFissionMachines;
 import net.phoenix.phoenix_fission.common.data.PhoenixRecipeTypes;
 import net.phoenix.phoenix_fission.common.data.block.PhoenixFissionBlocks;
-import net.phoenix.phoenix_fission.common.data.multiblock.fission.BreederWorkableElectricMultiblockMachine;
-import net.phoenix.phoenix_fission.common.data.multiblock.fission.DynamicFissionReactorMachine;
-import net.phoenix.phoenix_fission.common.data.multiblock.fission.FissionWorkableElectricMultiblockMachine;
-import net.phoenix.phoenix_fission.common.data.multiblock.fission.MoltenSaltReactorMultiblockMachine;
 import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
 import net.phoenix.phoenix_fission.integration.kubejs.builders.*;
 import net.phoenix.phoenix_fission.integration.kubejs.recipe.PhoenixRecipeSchema;
@@ -43,7 +43,6 @@ public class PhoenixKubeJSPlugin extends dev.latvian.mods.kubejs.KubeJSPlugin {
         event.add("PhoenixFissionBlocks", PhoenixFissionBlocks.class);
         event.add("PhoenixFissionMachines", PhoenixFissionMachines.class);
         event.add("PhoenixFissionRecipeTypes", PhoenixRecipeTypes.class);
-
         event.add("FissionWorkableElectricMultiblockMachine", FissionWorkableElectricMultiblockMachine.class);
         event.add("BreederWorkableElectricMultiblockMachine", BreederWorkableElectricMultiblockMachine.class);
         event.add("DynamicFissionReactorMachine", DynamicFissionReactorMachine.class);
@@ -55,7 +54,6 @@ public class PhoenixKubeJSPlugin extends dev.latvian.mods.kubejs.KubeJSPlugin {
     @Override
     public void init() {
         super.init();
-
         RegistryInfo.BLOCK.addType("fission_fuel_rod", FissionFuelRodBlockBuilder.class,
                 FissionFuelRodBlockBuilder::new);
         RegistryInfo.BLOCK.addType("fission_cooler", FissionCoolerBlockBuilder.class,

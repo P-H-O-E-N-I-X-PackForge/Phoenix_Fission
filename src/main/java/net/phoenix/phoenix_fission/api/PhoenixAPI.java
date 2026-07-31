@@ -1,13 +1,13 @@
-package net.phoenix.phoenix_fission;
+package net.phoenix.phoenix_fission.api;
 
-import net.phoenix.phoenix_fission.api.block.*;
-import net.phoenix.phoenix_fission.common.data.block.FissionBlanketBlock;
-import net.phoenix.phoenix_fission.common.data.block.FissionCoolerBlock;
-import net.phoenix.phoenix_fission.common.data.block.FissionFuelRodBlock;
-import net.phoenix.phoenix_fission.common.data.block.FissionModeratorBlock;
-import net.phoenix.phoenix_fission.common.data.block.MSRCoreLinerBlock;
-import net.phoenix.phoenix_fission.common.data.multiblock.part.fission.FissionScramHatchPart;
-import net.phoenix.phoenix_fission.common.data.multiblock.part.fission.FissionStabilitySensorPart;
+import net.phoenix.phoenix_fission.api.block.FissionBlanketBlock;
+import net.phoenix.phoenix_fission.api.block.FissionCoolerBlock;
+import net.phoenix.phoenix_fission.api.block.FissionFuelRodBlock;
+import net.phoenix.phoenix_fission.api.block.FissionModeratorBlock;
+import net.phoenix.phoenix_fission.api.block.MSRCoreLinerBlock;
+import net.phoenix.phoenix_fission.api.block.iface.*;
+import net.phoenix.phoenix_fission.api.machine.multiblock.part.FissionScramHatchPart;
+import net.phoenix.phoenix_fission.api.machine.multiblock.part.FissionStabilitySensorPart;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -16,6 +16,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
+/**
+ *
+ *
+ */
 public class PhoenixAPI {
 
     public static final Logger LOGGER = LogManager.getLogger("phoenix_fission");

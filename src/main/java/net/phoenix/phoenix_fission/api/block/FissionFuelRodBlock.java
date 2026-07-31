@@ -1,6 +1,5 @@
-package net.phoenix.phoenix_fission.common.data.block;
+package net.phoenix.phoenix_fission.api.block;
 
-import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.block.ActiveBlock;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
@@ -16,7 +15,7 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.phoenix.phoenix_fission.PhoenixFission;
-import net.phoenix.phoenix_fission.api.block.IFissionFuelRodType;
+import net.phoenix.phoenix_fission.api.block.iface.IFissionFuelRodType;
 
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
@@ -76,11 +75,6 @@ public class FissionFuelRodBlock extends ActiveBlock {
                 Component.literal((bias >= 0 ? "+" : "") + bias + "%")
                         .withStyle(bias >= 0 ? ChatFormatting.LIGHT_PURPLE : ChatFormatting.BLUE))
                 .withStyle(ChatFormatting.GRAY));
-
-        int tierIdx = Math.max(0, Math.min(fuelRodType.getTier(), GTValues.VNF.length - 1));
-        tooltip.add(Component.translatable("gtceu.tooltip.tier",
-                Component.literal(GTValues.VNF[tierIdx])
-                        .withStyle(ChatFormatting.DARK_PURPLE)));
     }
 
     public static Component getRegistryDisplayName(String key) {
@@ -108,8 +102,6 @@ public class FissionFuelRodBlock extends ActiveBlock {
         @NotNull
         private final String name;
         @Getter
-        private final int tier;
-        @Getter
         private final int tintColor;
 
         private final Supplier<Integer> heatSupplier;
@@ -119,7 +111,7 @@ public class FissionFuelRodBlock extends ActiveBlock {
         private final Supplier<String> fuelKeySupplier;
         private final Supplier<String> outputKeySupplier;
 
-        public BindableFuelRodType(String name, int tier, int tintColor,
+        public BindableFuelRodType(String name, int tintColor,
                                    Supplier<Integer> heatSupplier,
                                    Supplier<Integer> durationSupplier,
                                    Supplier<Integer> amountSupplier,
@@ -127,7 +119,6 @@ public class FissionFuelRodBlock extends ActiveBlock {
                                    Supplier<String> fuelKeySupplier,
                                    Supplier<String> outputKeySupplier) {
             this.name = name;
-            this.tier = tier;
             this.tintColor = tintColor;
             this.heatSupplier = heatSupplier;
             this.durationSupplier = durationSupplier;

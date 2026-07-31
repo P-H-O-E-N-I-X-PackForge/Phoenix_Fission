@@ -2,12 +2,12 @@ package net.phoenix.phoenix_fission.integration.emi;
 
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.phoenix.phoenix_fission.PhoenixAPI;
 import net.phoenix.phoenix_fission.PhoenixFission;
+import net.phoenix.phoenix_fission.api.PhoenixAPI;
+import net.phoenix.phoenix_fission.api.machine.multiblock.DynamicFissionReactorMachine;
+import net.phoenix.phoenix_fission.api.machine.multiblock.FissionWorkableElectricMultiblockMachine;
+import net.phoenix.phoenix_fission.api.machine.multiblock.MoltenSaltReactorMultiblockMachine;
 import net.phoenix.phoenix_fission.common.PhoenixFissionMachines;
-import net.phoenix.phoenix_fission.common.data.multiblock.fission.DynamicFissionReactorMachine;
-import net.phoenix.phoenix_fission.common.data.multiblock.fission.FissionWorkableElectricMultiblockMachine;
-import net.phoenix.phoenix_fission.common.data.multiblock.fission.MoltenSaltReactorMultiblockMachine;
 
 import dev.emi.emi.api.EmiEntrypoint;
 import dev.emi.emi.api.EmiPlugin;

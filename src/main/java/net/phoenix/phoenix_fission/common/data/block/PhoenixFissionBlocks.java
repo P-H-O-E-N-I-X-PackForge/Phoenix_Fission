@@ -7,7 +7,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.phoenix.phoenix_fission.PhoenixFission;
-import net.phoenix.phoenix_fission.api.block.*;
+import net.phoenix.phoenix_fission.api.block.MSRCoreLinerBlock;
+import net.phoenix.phoenix_fission.api.block.iface.IMSRCoreLinerType;
 import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
 
 import com.tterrag.registrate.util.entry.BlockEntry;

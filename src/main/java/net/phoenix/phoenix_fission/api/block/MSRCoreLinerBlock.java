@@ -1,4 +1,4 @@
-package net.phoenix.phoenix_fission.common.data.block;
+package net.phoenix.phoenix_fission.api.block;
 
 import com.gregtechceu.gtceu.api.block.ActiveBlock;
 import com.gregtechceu.gtceu.utils.GTUtil;
@@ -9,7 +9,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.BlockGetter;
-import net.phoenix.phoenix_fission.api.block.IMSRCoreLinerType;
+import net.phoenix.phoenix_fission.api.block.iface.IMSRCoreLinerType;
 
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
@@ -42,9 +42,6 @@ public class MSRCoreLinerBlock extends ActiveBlock {
 
         tooltip.add(Component.translatable("block.phoenix_fission.msr_liner.info_header")
                 .withStyle(ChatFormatting.GREEN, ChatFormatting.BOLD));
-
-        tooltip.add(Component.translatable("phoenix_fission.msr_liner.tier", linerType.getTier())
-                .withStyle(ChatFormatting.WHITE));
 
         tooltip.add(Component.translatable("phoenix_fission.msr_liner.flow_rate", linerType.getFluidFlowRate())
                 .withStyle(ChatFormatting.YELLOW));

@@ -4,7 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.resources.ResourceLocation;
 import net.phoenix.phoenix_fission.PhoenixFission;
-import net.phoenix.phoenix_fission.api.block.IFissionFuelRodType;
+import net.phoenix.phoenix_fission.api.block.iface.IFissionFuelRodType;
 
 import dev.emi.emi.api.recipe.EmiRecipe;
 import dev.emi.emi.api.recipe.EmiRecipeCategory;
@@ -80,7 +80,7 @@ public class FissionFuelBurnEmiRecipe implements EmiRecipe {
 
         String name = FissionEmiUtils.formatName(type.getName());
         int nameX = W / 2 - font.width(name) / 2;
-        FissionEmiUtils.text(widgets, name, nameX, 34, FissionEmiUtils.tierColor(type.getTier()));
+        FissionEmiUtils.text(widgets, name, nameX, 34, 0xFFFFFFFF);
 
         String hut = type.getBaseHeatProduction() + " HU/t";
         double sec = type.getDurationTicks() / 20.0;

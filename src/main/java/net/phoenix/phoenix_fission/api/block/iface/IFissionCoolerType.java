@@ -1,4 +1,4 @@
-package net.phoenix.phoenix_fission.api.block;
+package net.phoenix.phoenix_fission.api.block.iface;
 
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 
@@ -11,8 +11,6 @@ public interface IFissionCoolerType extends StringRepresentable {
 
     @NotNull
     String getName();
-
-    int getTier();
 
     int getCoolerTemperature();
 

@@ -14,9 +14,7 @@ plugins {
 
 
 configurations {
-    // Defines a new configuration called 'shadow'
     shadow {
-        // Dependencies added to 'shadow' will also be used for compilation
         extendsFrom implementation
     }
 }
@@ -66,7 +64,6 @@ repositories {
     maven { // Registrate
         url = "https://maven.tterrag.com/"
         content {
-// need to be specific here due to version overlaps
             includeGroup("com.tterrag.registrate")
         }
     }
@@ -79,7 +76,6 @@ repositories {
         url = "https://maven.theillusivec4.top/"
     }
     maven {
-// Curse Forge File
         url "https://cursemaven.com/"
         content {
             includeGroup "curse.maven"
@@ -102,7 +98,6 @@ repositories {
         url "https://maven.blamejared.com"
     }
     maven {
-// Geckolib
         url "https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/"
     }
     maven {
@@ -129,16 +124,8 @@ legacyForge {
 
     runs {
         configureEach {
-// Recommended logging data for a userdev environment
-// The markers can be added/remove as needed separated by commas.
-// "SCAN": For mods scan.
-// "REGISTRIES": For firing of registry events.
-// "REGISTRYDUMP": For getting the contents of all registries.
             systemProperty 'forge.logging.markers', 'REGISTRIES'
 
-// Recommended logging level for the console
-// You can set various levels here.
-// Please read: https://stackoverflow.com/questions/2031163/when-to-use-the-different-log-levels
             logLevel = org.slf4j.event.Level.DEBUG
             sourceSet = sourceSets.main
         }
@@ -156,9 +143,6 @@ legacyForge {
 
         data {
             data()
-
-
-// Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
             programArguments.addAll('--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath())
             programArguments.addAll('--existing-mod', 'gtceu')
         }
@@ -166,10 +150,6 @@ legacyForge {
 
 
     mods {
-// define mod <-> source bindings
-// these are used to tell the game which sources are for which mod
-// mostly optional in a single mod project
-// but multi mod projects should define one per mod
         "${mod_id}" {
             sourceSet(sourceSets.main)
         }
@@ -240,7 +220,7 @@ tasks.named('processResources', ProcessResources).configure {
             "mod_name": mod_name,
             "mod_url": mod_url,
             "mod_author": mod_author,
-            "forge_version": forge_version.split("\\.")[0], // only specify major version of forge
+            "forge_version": forge_version.split("\\.")[0],
             "minecraft_version": minecraft_version,
             "gtceu_version": gtceu_version,
     ]
@@ -252,37 +232,23 @@ tasks.named('processResources', ProcessResources).configure {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-// ----------------------------------------------------
-// FIX: Manually define the reobfuscation task for the shaded JAR
-// ----------------------------------------------------
-// --- Reobfuscate the shaded (Shadow) JAR using NeoForge's RemapJar task ---
+
 
 
 tasks.named('jar', Jar).configure {
-    // You should use a classifier for the un-shaded jar (e.g., 'slim')
     archiveClassifier.set('slim')
-    // Existing manifest attributes...
     finalizedBy 'reobfJar'
 }
 
-// Configuration for the Shadow plugin
+
 shadowJar {
-    // We use an empty classifier here to create an intermediate file name,
-    // which will be consumed by reobfShadowJar.
+
     archiveClassifier.set('unreobf-shadow')
     configurations = [project.configurations.shadow]
-
-    // CRITICAL: Relocate the package names
     relocate 'appeng', "${project.maven_group}.relocated.ae2"
-
-    // This makes the reobfuscation step run immediately after shadowing
-    // The final artifact is produced by the manual task defined above
     finalizedBy 'reobfShadowJar'
 }
 
-
-// Update the build task to depend on the final, reobfuscated, and shaded JAR
 tasks.named("build") {
-    // Ensure that the final product task is what the build relies on
     dependsOn("spotlessApply")
 }

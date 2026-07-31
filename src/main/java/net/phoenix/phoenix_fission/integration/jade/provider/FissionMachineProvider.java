@@ -11,14 +11,15 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.phoenix.phoenix_fission.PhoenixFission;
-import net.phoenix.phoenix_fission.api.block.IFissionBlanketType;
-import net.phoenix.phoenix_fission.common.data.multiblock.fission.BreederWorkableElectricMultiblockMachine;
-import net.phoenix.phoenix_fission.common.data.multiblock.fission.FissionWorkableElectricMultiblockMachine;
-import net.phoenix.phoenix_fission.common.data.multiblock.fission.MoltenSaltReactorMultiblockMachine;
+import net.phoenix.phoenix_fission.api.block.iface.IFissionBlanketType;
+import net.phoenix.phoenix_fission.api.machine.multiblock.BreederWorkableElectricMultiblockMachine;
+import net.phoenix.phoenix_fission.api.machine.multiblock.FissionWorkableElectricMultiblockMachine;
+import net.phoenix.phoenix_fission.api.machine.multiblock.MoltenSaltReactorMultiblockMachine;
 import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
 
 import snownee.jade.api.BlockAccessor;
@@ -277,19 +278,18 @@ public class FissionMachineProvider implements IBlockComponentProvider, IServerD
 
         Material mat = GTMaterials.get(key);
         if (mat != GTMaterials.NULL) {
-            try {
-                String transKey = mat.getDefaultTranslation();
-                if (transKey != null && !transKey.isEmpty()) {
-                    return Component.translatable(transKey);
-                }
-            } catch (Throwable ignored) {}
+            // Idk what the proper method is lol.
+            String transKey = mat.getDefaultTranslation();
+            if (transKey != null && !transKey.isEmpty()) {
+                return Component.translatable(transKey);
+            }
             return Component.literal(key);
         }
 
         ResourceLocation rl = ResourceLocation.tryParse(key);
         if (rl != null) {
             var item = ForgeRegistries.ITEMS.getValue(rl);
-            if (item != null && item != net.minecraft.world.item.Items.AIR) {
+            if (item != null && item != Items.AIR) {
                 return new ItemStack(item, 1).getHoverName();
             }
 

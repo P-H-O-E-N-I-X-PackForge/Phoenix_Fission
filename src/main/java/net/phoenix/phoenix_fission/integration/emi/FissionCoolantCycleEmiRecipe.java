@@ -4,7 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.resources.ResourceLocation;
 import net.phoenix.phoenix_fission.PhoenixFission;
-import net.phoenix.phoenix_fission.api.block.IFissionCoolerType;
+import net.phoenix.phoenix_fission.api.block.iface.IFissionCoolerType;
 
 import dev.emi.emi.api.recipe.EmiRecipe;
 import dev.emi.emi.api.recipe.EmiRecipeCategory;
@@ -73,8 +73,7 @@ public class FissionCoolantCycleEmiRecipe implements EmiRecipe {
         FissionEmiUtils.drawPanel(widgets, W, h);
 
         String name = FissionEmiUtils.formatName(type.getName());
-        FissionEmiUtils.text(widgets, name, W / 2 - font.width(name) / 2, 8, FissionEmiUtils.tierColor(type.getTier()));
-
+        FissionEmiUtils.text(widgets, name, W / 2 - font.width(name) / 2, 8, 0xFFFFFFFF);
         if (type.isPassive()) {
             String label = "Passive Cooler — no coolant needed";
             FissionEmiUtils.text(widgets, label, W / 2 - font.width(label) / 2, 22, 0xFF_88FF88);

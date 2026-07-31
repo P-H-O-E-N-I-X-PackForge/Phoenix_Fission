@@ -1,4 +1,4 @@
-package net.phoenix.phoenix_fission.common.data.multiblock.fission;
+package net.phoenix.phoenix_fission.api.machine.multiblock;
 
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
@@ -9,7 +9,7 @@ import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
 import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
-import net.phoenix.phoenix_fission.common.data.multiblock.fission.managers.FissionFuelManager;
+import net.phoenix.phoenix_fission.api.machine.multiblock.managers.FissionFuelManager;
 
 @MethodsReturnNonnullByDefault
 public class DynamicFissionReactorMachine extends FissionWorkableElectricMultiblockMachine {

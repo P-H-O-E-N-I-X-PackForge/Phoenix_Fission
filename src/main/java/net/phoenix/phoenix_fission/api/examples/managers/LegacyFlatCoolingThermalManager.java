@@ -10,12 +10,12 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.registries.ForgeRegistries;
-import net.phoenix.phoenix_fission.api.block.IFissionCoolerType;
-import net.phoenix.phoenix_fission.common.data.block.FissionFuelRodBlock;
-import net.phoenix.phoenix_fission.common.data.block.FissionModeratorBlock;
+import net.phoenix.phoenix_fission.api.block.FissionFuelRodBlock;
+import net.phoenix.phoenix_fission.api.block.FissionModeratorBlock;
+import net.phoenix.phoenix_fission.api.block.iface.IFissionCoolerType;
+import net.phoenix.phoenix_fission.api.machine.multiblock.FissionWorkableElectricMultiblockMachine;
+import net.phoenix.phoenix_fission.api.machine.multiblock.managers.FissionThermalManager;
 import net.phoenix.phoenix_fission.common.data.block.PhoenixFissionBlocks;
-import net.phoenix.phoenix_fission.common.data.multiblock.fission.FissionWorkableElectricMultiblockMachine;
-import net.phoenix.phoenix_fission.common.data.multiblock.fission.managers.FissionThermalManager;
 import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
 
 public class LegacyFlatCoolingThermalManager extends FissionThermalManager {
@@ -96,7 +96,7 @@ public class LegacyFlatCoolingThermalManager extends FissionThermalManager {
 
         machine.lastHeatRemovedPerTick = removed;
 
-        clampHeat();
+        limitHeat();
         machine.getFuelManager().processPowerGeneration(running);
         processMeltdownTimer();
     }

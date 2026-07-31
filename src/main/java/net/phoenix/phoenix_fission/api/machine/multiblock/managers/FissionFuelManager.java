@@ -1,6 +1,8 @@
-package net.phoenix.phoenix_fission.common.data.multiblock.fission.managers;
+package net.phoenix.phoenix_fission.api.machine.multiblock.managers;
 
+import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
+import com.gregtechceu.gtceu.api.recipe.content.ContentModifier;
 import com.gregtechceu.gtceu.api.recipe.modifier.ModifierFunction;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
@@ -9,9 +11,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.registries.ForgeRegistries;
-import net.phoenix.phoenix_fission.api.block.IFissionFuelRodType;
-import net.phoenix.phoenix_fission.api.block.IFissionModeratorType;
-import net.phoenix.phoenix_fission.common.data.multiblock.fission.FissionWorkableElectricMultiblockMachine;
+import net.phoenix.phoenix_fission.api.block.iface.IFissionFuelRodType;
+import net.phoenix.phoenix_fission.api.block.iface.IFissionModeratorType;
+import net.phoenix.phoenix_fission.api.machine.multiblock.FissionWorkableElectricMultiblockMachine;
 import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
 
 import java.util.*;
@@ -24,6 +26,23 @@ public class FissionFuelManager {
 
     public FissionFuelManager(FissionWorkableElectricMultiblockMachine machine) {
         this.machine = machine;
+    }
+
+    private static double clamp(double val, double max) {
+        return Math.max(0.0, Math.min(max, val));
+    }
+
+    public static ModifierFunction buildRecipeModifier(FissionWorkableElectricMultiblockMachine m) {
+        int parallels = Math.max(1, m.getFuelManager().machine.lastParallels);
+        double eutMulti = 1.0 + (m.getFuelManager().calcEUBoost() / 100.0);
+        double durMulti = Math.max(0.01, 1.0 - (m.getFuelManager().calcFuelDiscount() / 100.0));
+
+        var builder = ModifierFunction.builder().eutMultiplier(eutMulti).durationMultiplier(durMulti);
+        if (parallels > 1) {
+            var contentMultiplier = ContentModifier.multiplier(parallels);
+            builder.inputModifier(contentMultiplier).outputModifier(contentMultiplier).parallels(parallels);
+        }
+        return builder.build();
     }
 
     public void onStructureFormed() {
@@ -53,66 +72,78 @@ public class FissionFuelManager {
     }
 
     protected double computeModeratorHeatMultiplier() {
-        return 1.0 + (getModeratorEUBoostClamped() / 100.0);
+        return 1.0 + (calcEUBoost() / 100.0);
     }
 
     protected double computeModeratorFuelDiscountMultiplier() {
-        return Math.max(0.0, 1.0 - (getModeratorFuelDiscountClamped() / 100.0));
+        return Math.max(0.0, 1.0 - (calcFuelDiscount() / 100.0));
     }
 
-    protected double computeHeatDeltaForRodGroup(IFissionFuelRodType rod, long count,
-                                                 double rodInteraction, double thermalScalar,
-                                                 double moderatorMultiplier,
-                                                 double reactivity, double fuelConductivity) {
-        return rod.getBaseHeatProduction() * rodInteraction * thermalScalar * count * moderatorMultiplier * reactivity *
-                fuelConductivity;
+    protected double computeHeatDeltaForRodGroup(IFissionFuelRodType rod,
+                                                 long count,
+                                                 HeatContext context) {
+        return rod.getBaseHeatProduction() * count * context.rodInteraction() * context.thermalFactor() *
+                context.modBonus() * context.reactivity() * context.fuelConductivity();
     }
 
     protected double computeFuelConsumptionForRodGroup(IFissionFuelRodType rod, long count,
-                                                       double rodInteraction, double thermalScalar, double discountMult,
+                                                       double rodInteraction,
+                                                       double thermalScalar,
+                                                       double discountMulti,
                                                        double reactivity) {
         double baseRate = (double) rod.getAmountPerCycle() / Math.max(1, rod.getDurationTicks());
-        return baseRate * rodInteraction * thermalScalar * count * discountMult * reactivity;
+        return baseRate * rodInteraction * thermalScalar * count * discountMulti * reactivity;
     }
 
-    protected double computePowerOutput(double activity, double currentHeat, double minHeat,
-                                        double maxSafeHeat, double euPerHeatUnit, double powerStart,
-                                        double curveExponent) {
-        double baseEU = activity * euPerHeatUnit;
+    public record PowerOutputConfig(
+                                    double minHeat,
+                                    double maxSafeHeat,
+                                    double euPerHeatUnit,
+                                    double powerStart,
+                                    double curveExponent) {}
 
-        double range = Math.max(1.0, maxSafeHeat - minHeat);
-        double fraction = Math.max(0.0, Math.min(1.5, (currentHeat - minHeat) / range));
-        double start = Math.max(0.0, Math.min(0.99, powerStart));
-        double targetCurve = Math.max(0.0, Math.min(1.0, (fraction - start) / Math.max(1e-9, 1.0 - start)));
-        double bonus = 1.0 + Math.pow(targetCurve, Math.max(0.01, curveExponent)) * 1.5;
-        return baseEU * bonus;
+    protected double computePowerOutput(double activity, double currentHeat, PowerOutputConfig config) {
+        double baseEU = activity * config.euPerHeatUnit();
+
+        double heatRange = Math.max(1.0, config.maxSafeHeat() - config.minHeat());
+        double heatFraction = clamp((currentHeat - config.minHeat()) / heatRange, 1.5);
+
+        double startThreshold = clamp(config.powerStart(), 0.99);
+        double curveProgress = clamp((heatFraction - startThreshold) / (1.0 - startThreshold), 1.0);
+
+        double exponent = Math.max(0.01, config.curveExponent());
+        double bonusMultiplier = 1.0 + Math.pow(curveProgress, exponent) * 1.5;
+
+        return baseEU * bonusMultiplier;
     }
+
+    protected record HeatContext(
+                                 double rodInteraction,
+                                 double thermalFactor,
+                                 double modBonus,
+                                 double reactivity,
+                                 double fuelConductivity) {}
 
     public double calculateTickHeat(int ignoredMachineParallels) {
         var comp = machine.getComponentManager();
-        if (comp.getActiveFuelRods().isEmpty() || machine.getReactivityFactor() <= 0.0) return 0.0;
-        var hm = PhoenixFissionConfigs.INSTANCE.fission.heatModel;
-
-        int totalRods = comp.getActiveFuelRods().size();
-        double rodInteractionFactor = computeRodInteractionFactor(totalRods);
-        double thermalFactor = computeHeatThermalScalar(machine.getHeat(), machine.getMaxSafeHeatHU(),
-                hm.heatGenerationExponent);
+        var activeRods = comp.getActiveFuelRods();
         double reactivity = machine.getReactivityFactor();
-        double modBonus = computeModeratorHeatMultiplier();
 
-        Map<IFissionFuelRodType, Long> fuelRodThreads = comp.getActiveFuelRods().stream()
-                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+        if (activeRods.isEmpty() || reactivity <= 0.0) return 0.0;
 
-        double aggregateReactorHeatDelta = 0.0;
+        var hm = PhoenixFissionConfigs.INSTANCE.fission.heatModel;
+        HeatContext context = new HeatContext(
+                computeRodInteractionFactor(activeRods.size()),
+                computeHeatThermalScalar(machine.getHeat(), machine.getMaxSafeHeatHU(), hm.heatGenerationExponent),
+                computeModeratorHeatMultiplier(),
+                reactivity,
+                hm.fuelConductivity);
 
-        for (var threadGroup : fuelRodThreads.entrySet()) {
-            aggregateReactorHeatDelta += computeHeatDeltaForRodGroup(
-                    threadGroup.getKey(), threadGroup.getValue(),
-                    rodInteractionFactor, thermalFactor, modBonus,
-                    reactivity, hm.fuelConductivity);
-        }
-
-        return aggregateReactorHeatDelta;
+        return activeRods.stream()
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
+                .entrySet().stream()
+                .mapToDouble(e -> computeHeatDeltaForRodGroup(e.getKey(), e.getValue(), context))
+                .sum();
     }
 
     public void consumeFuelTick(int ignoredMachineParallels) {
@@ -125,7 +156,7 @@ public class FissionFuelManager {
         double heatScalar = computeFuelConsumptionThermalScalar(machine.getHeat(), machine.getMaxSafeHeatHU(),
                 hm.fuelConsumptionExponent);
         double reactivity = machine.getReactivityFactor();
-        double discountMult = computeModeratorFuelDiscountMultiplier();
+        double discountMulti = computeModeratorFuelDiscountMultiplier();
 
         Map<IFissionFuelRodType, Long> fuelRodThreads = comp.getActiveFuelRods().stream()
                 .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
@@ -139,7 +170,7 @@ public class FissionFuelManager {
             double perTickConsumption = computeFuelConsumptionForRodGroup(
                     fuelType, countOfThisType,
                     rodInteractionFactor, heatScalar,
-                    discountMult, reactivity);
+                    discountMulti, reactivity);
 
             String key = fuelType.getName();
             double remainder = machine.fuelRemainderPerType.getOrDefault(key, 0.0) + perTickConsumption;
@@ -186,72 +217,78 @@ public class FissionFuelManager {
     private boolean processItemConsumption(String id, int count) {
         ResourceLocation rl = ResourceLocation.tryParse(id);
         if (rl == null || !ForgeRegistries.ITEMS.containsKey(rl)) return false;
-        return machine.executeItemIO(new ItemStack(Objects.requireNonNull(ForgeRegistries.ITEMS.getValue(rl)), count),
-                IO.IN, false);
+        return machine.executeItemIO(new ItemStack(Objects.requireNonNull(
+                ForgeRegistries.ITEMS.getValue(rl)), count), IO.IN, false);
     }
 
     public void processPowerGeneration(boolean running) {
-        var eu = PhoenixFissionConfigs.INSTANCE.fission.euOutput;
-        if (!PhoenixFissionConfigs.INSTANCE.fission.enableDirectEUOutput) return;
-        if (machine.isOverCooled) return;
+        var fissionConfig = PhoenixFissionConfigs.INSTANCE.fission;
 
-        double ambientHU = PhoenixFissionConfigs.INSTANCE.fission.heatModel.ambientTemperatureHU;
-        double activity = (running && machine.lastHeatGainedPerTick > 0.0) ? machine.lastHeatGainedPerTick :
-                Math.max(0.0, machine.getHeat() - ambientHU);
-        if (activity <= 0.0001) return;
+        if (!fissionConfig.enableDirectEUOutput || machine.isOverCooled || !running || machine.isScramActive()) {
+            machine.lastGeneratedEUt = 0;
+            return;
+        }
 
-        double finalEUt = computePowerOutput(activity, machine.getHeat(),
-                PhoenixFissionConfigs.INSTANCE.fission.heatModel.ambientTemperatureHU,
+        double activity = machine.lastHeatGainedPerTick;
+        if (activity <= 0.0001) {
+            machine.lastGeneratedEUt = 0;
+            return;
+        }
+
+        var euConfig = fissionConfig.euOutput;
+
+        PowerOutputConfig powerConfig = new PowerOutputConfig(
+                0.0,
                 machine.getMaxSafeHeatHU(),
-                eu.euPerHeatUnit, eu.powerStartFraction, eu.powerCurveExponent);
+                euConfig.euPerHeatUnit,
+                euConfig.powerStartFraction,
+                euConfig.powerCurveExponent);
 
-        if (eu.maxGeneratedEUt > 0) finalEUt = Math.min(finalEUt, eu.maxGeneratedEUt);
+        double finalEUt = computePowerOutput(activity, machine.getHeat(), powerConfig);
+
+        if (euConfig.maxGeneratedEUt > 0) {
+            finalEUt = Math.min(finalEUt, euConfig.maxGeneratedEUt);
+        }
+
         long outputEU = (long) Math.floor(finalEUt);
-        if (running && eu.minGeneratedEUt > 0) outputEU = Math.max(outputEU, eu.minGeneratedEUt);
+        if (euConfig.minGeneratedEUt > 0) {
+            outputEU = Math.max(outputEU, euConfig.minGeneratedEUt);
+        }
 
         if (outputEU > 0) {
             machine.lastGeneratedEUt = outputEU;
-            machine.getEnergyContainer();
             machine.getEnergyContainer().addEnergy(outputEU);
+        } else {
+            machine.lastGeneratedEUt = 0;
         }
     }
 
-    public static ModifierFunction buildRecipeModifier(FissionWorkableElectricMultiblockMachine m) {
-        int parallels = Math.max(1, m.getFuelManager().machine.lastParallels);
-        double eutMult = 1.0 + (m.getFuelManager().getModeratorEUBoostClamped() / 100.0);
-        double durMult = Math.max(0.01, 1.0 - (m.getFuelManager().getModeratorFuelDiscountClamped() / 100.0));
-
-        var builder = ModifierFunction.builder().eutMultiplier(eutMult).durationMultiplier(durMult);
-        if (parallels > 1) {
-            var contentMultiplier = com.gregtechceu.gtceu.api.recipe.content.ContentModifier.multiplier(parallels);
-            builder.inputModifier(contentMultiplier).outputModifier(contentMultiplier).parallels(parallels);
-        }
-        return builder.build();
-    }
-
-    public int getModeratorEUBoostClamped() {
-        return Math.min(machine.getComponentManager().getActiveModerators().stream()
-                .mapToInt(IFissionModeratorType::getEUBoost).sum(),
-                PhoenixFissionConfigs.INSTANCE.fission.maxEUBoostPercent);
-    }
-
-    public int getModeratorFuelDiscountClamped() {
+    public int calcEUBoost() {
         return Math.min(
+                PhoenixFissionConfigs.INSTANCE.fission.maxEUBoostPercent,
                 machine.getComponentManager().getActiveModerators().stream()
-                        .mapToInt(IFissionModeratorType::getFuelDiscount).sum(),
-                PhoenixFissionConfigs.INSTANCE.fission.maxFuelDiscountPercent);
+                        .mapToInt(IFissionModeratorType::getEUBoost)
+                        .sum());
+    }
+
+    public int calcFuelDiscount() {
+        return Math.min(
+                PhoenixFissionConfigs.INSTANCE.fission.maxFuelDiscountPercent,
+                machine.getComponentManager().getActiveModerators().stream()
+                        .mapToInt(IFissionModeratorType::getFuelDiscount)
+                        .sum());
     }
 
     public void addDisplayText(List<Component> textList) {
         long currentEUt = machine.lastGeneratedEUt;
         int tier = GTUtil.getTierByVoltage(currentEUt);
-        String tierName = com.gregtechceu.gtceu.api.GTValues.VNF[tier];
+        String tierName = GTValues.VNF[tier];
         textList.add(Component.translatable("gtceu.multiblock.max_energy_per_tick",
                 FormattingUtil.formatNumbers(currentEUt), tierName));
         textList.add(Component.translatable("phoenix_fission.parallels", machine.lastParallels));
         textList.add(Component.translatable("block.phoenix_fission.fission_moderator.boost",
-                getModeratorEUBoostClamped() + "%"));
+                calcEUBoost() + "%"));
         textList.add(Component.translatable("block.phoenix_fission.fission_moderator.fuel_discount",
-                getModeratorFuelDiscountClamped() + "%"));
+                calcFuelDiscount() + "%"));
     }
 }

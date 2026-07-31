@@ -1,4 +1,4 @@
-package net.phoenix.phoenix_fission.common.data.multiblock.part.fission;
+package net.phoenix.phoenix_fission.api.machine.multiblock.part;
 
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.widget.IntInputWidget;
@@ -13,17 +13,17 @@ import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
-import net.phoenix.phoenix_fission.common.data.multiblock.fission.FissionWorkableElectricMultiblockMachine;
+import net.phoenix.phoenix_fission.api.machine.multiblock.FissionWorkableElectricMultiblockMachine;
 
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class FissionStabilitySensorPart extends SensorHatchPartMachine {
+public class AdvancedFissionStabilitySensorPart extends SensorHatchPartMachine {
 
     public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(
-            FissionStabilitySensorPart.class, SensorHatchPartMachine.MANAGED_FIELD_HOLDER);
+            AdvancedFissionStabilitySensorPart.class, SensorHatchPartMachine.MANAGED_FIELD_HOLDER);
 
     @Persisted
     @Getter
@@ -38,7 +38,12 @@ public class FissionStabilitySensorPart extends SensorHatchPartMachine {
     @Setter
     private boolean inverted = false;
 
-    public FissionStabilitySensorPart(IMachineBlockEntity holder, int tier) {
+    @Persisted
+    @Getter
+    @Setter
+    private int emitStrength = 15;
+
+    public AdvancedFissionStabilitySensorPart(IMachineBlockEntity holder, int tier) {
         super(holder, tier);
     }
 
@@ -49,33 +54,22 @@ public class FissionStabilitySensorPart extends SensorHatchPartMachine {
 
     @Override
     public Widget createUIWidget() {
-        WidgetGroup group = new WidgetGroup(0, 0, 200, 160);
+        WidgetGroup group = new WidgetGroup(0, 0, 200, 185);
 
-        group.addWidget(new LabelWidget(10, 8, "§6Fission Stability Sensor"));
+        group.addWidget(new LabelWidget(10, 8, "§bAdvanced Fission Stability Sensor"));
 
-        group.addWidget(new LabelWidget(10, 24, "§7Heat: --   §7Signal: --") {
+        group.addWidget(new LabelWidget(10, 24, () -> {
+            var controller = getController();
+            if (controller instanceof FissionWorkableElectricMultiblockMachine fission) {
+                double maxSafe = fission.getMaxSafeHeatHU();
+                double pct = maxSafe > 0 ? (fission.getHeat() / maxSafe) * 100.0 : 0.0;
 
-            @Override
-            public void updateScreen() {
-                super.updateScreen();
-                var controller = getController();
-                String text;
-                if (controller instanceof FissionWorkableElectricMultiblockMachine fission) {
-                    double maxSafe = fission.getMaxSafeHeatHU();
-                    double pct = maxSafe > 0 ? (fission.getHeat() / maxSafe) * 100.0 : 0.0;
-
-                    int sig = getOutputSignal(null);
-                    String sigColor = sig > 0 ? "§a" : "§c";
-
-                    String formattedPct = String.format(java.util.Locale.ROOT, "%.1f", pct);
-                    text = "§7Heat: §f" + formattedPct + "%   §7Signal: " + sigColor + sig;
-                } else {
-                    text = "§7Heat: §8N/A   §7Signal: §80";
-                }
-
-                this.setComponent(net.minecraft.network.chat.Component.literal(text));
+                int sig = getOutputSignal(null);
+                String sigColor = sig > 0 ? "§a" : "§c";
+                return String.format("§7Heat: §f%.1f%%  §7Signal: %s%d", pct, sigColor, sig);
             }
-        });
+            return "§7Heat: §8N/A  §7Signal: §80";
+        }));
 
         group.addWidget(new Widget(10, 43, 180, 1).setBackground(GuiTextures.BLANK));
 
@@ -89,17 +83,23 @@ public class FissionStabilitySensorPart extends SensorHatchPartMachine {
                 () -> maxPercent,
                 val -> maxPercent = Mth.clamp(val, 0, 200)));
 
-        group.addWidget(new LabelWidget(10, 102, "§fInvert output:"));
+        group.addWidget(new LabelWidget(10, 102, "§fEmit Strength §7(1-15):"));
+        group.addWidget(new IntInputWidget(115, 97, 75, 20,
+                () -> emitStrength,
+                val -> emitStrength = Mth.clamp(val, 1, 15)));
+
+        group.addWidget(new LabelWidget(10, 126, "§fInvert output:"));
         group.addWidget(new ToggleButtonWidget(
-                115, 98, 18, 18,
+                115, 122, 18, 18,
                 GuiTextures.INVERT_REDSTONE_BUTTON,
                 this::isInverted,
                 this::setInverted)
                 .setTooltipText("Invert Signal Output"));
 
-        group.addWidget(new Widget(10, 127, 180, 1).setBackground(GuiTextures.BLANK));
+        group.addWidget(new Widget(10, 151, 180, 1).setBackground(GuiTextures.BLANK));
 
-        group.addWidget(new LabelWidget(10, 138, "Emits signal on all block faces."));
+        group.addWidget(new LabelWidget(10, 162, "Emits fixed strength on all block faces."));
+        group.addWidget(new LabelWidget(10, 172, "Pair with an Advanced SCRAM Hatch."));
 
         return group;
     }
@@ -113,13 +113,9 @@ public class FissionStabilitySensorPart extends SensorHatchPartMachine {
         if (maxSafe <= 0) return 0;
 
         double heatPct = (fission.getHeat() / maxSafe) * 100.0;
-
-        int strength = (int) Math.round((heatPct / 200.0) * 15.0);
-        strength = Mth.clamp(strength, 0, 15);
-
         boolean inRange = heatPct >= minPercent && heatPct <= maxPercent;
         boolean emit = inverted != inRange;
 
-        return emit ? strength : 0;
+        return emit ? Mth.clamp(emitStrength, 1, 15) : 0;
     }
 }

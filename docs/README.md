@@ -1,4 +1,4 @@
-#  PhoenixCore Documentation
+#  Phoenix's Fission Documentation
 
 This documentation project is built using [MkDocs](https://www.mkdocs.org/#).  
 This page is directly lifted from [GregTech Modern](https://github.com/GregTechCEu/GregTech-Modern)

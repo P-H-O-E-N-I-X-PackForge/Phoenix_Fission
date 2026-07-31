@@ -1,11 +1,13 @@
-package net.phoenix.phoenix_fission.api.block;
+package net.phoenix.phoenix_fission.api.block.iface;
+
+import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.StringRepresentable;
 
 import org.jetbrains.annotations.NotNull;
 
-public interface IFissionFuelRodType extends StringRepresentable {
+public interface IFissionModeratorType extends StringRepresentable {
 
     @NotNull
     String getName();
@@ -14,23 +16,15 @@ public interface IFissionFuelRodType extends StringRepresentable {
         return 0xFFFFFFFF;
     }
 
-    default int getNeutronBias() {
-        return 0;
-    }
+    int getEUBoost();
 
-    int getBaseHeatProduction();
+    int getFuelDiscount();
 
-    @NotNull
-    String getFuelKey();
+    double getHeatMultiplier();
 
-    @NotNull
-    String getOutputKey();
+    int getParallelBonus();
 
-    int getDurationTicks();
-
-    int getAmountPerCycle();
-
-    int getTier();
+    Material getMaterial();
 
     ResourceLocation getTexture();
 

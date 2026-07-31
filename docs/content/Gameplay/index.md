@@ -1,3 +1,3 @@
-# Getting comfortable with PhoenixCore
+# Getting comfortable with Phoenix's Fission
 
 Start

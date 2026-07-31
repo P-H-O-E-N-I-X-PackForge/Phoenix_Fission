@@ -1,8 +1,8 @@
 package net.phoenix.phoenix_fission.api.examples.managers;
 
-import net.phoenix.phoenix_fission.api.block.IFissionCoolerType;
-import net.phoenix.phoenix_fission.common.data.multiblock.fission.FissionWorkableElectricMultiblockMachine;
-import net.phoenix.phoenix_fission.common.data.multiblock.fission.managers.FissionThermalManager;
+import net.phoenix.phoenix_fission.api.block.iface.IFissionCoolerType;
+import net.phoenix.phoenix_fission.api.machine.multiblock.FissionWorkableElectricMultiblockMachine;
+import net.phoenix.phoenix_fission.api.machine.multiblock.managers.FissionThermalManager;
 
 public class ZonedCoolingThermalManager extends FissionThermalManager {
 

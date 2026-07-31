@@ -5,7 +5,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.phoenix.phoenix_fission.PhoenixFission;
-import net.phoenix.phoenix_fission.api.block.IFissionBlanketType;
+import net.phoenix.phoenix_fission.api.block.iface.IFissionBlanketType;
 
 import dev.emi.emi.api.recipe.EmiRecipe;
 import dev.emi.emi.api.recipe.EmiRecipeCategory;
@@ -77,7 +77,7 @@ public class FissionBlanketEmiRecipe implements EmiRecipe {
         FissionEmiUtils.drawPanel(widgets, W, h);
 
         String name = FissionEmiUtils.formatName(type.getName());
-        FissionEmiUtils.text(widgets, name, W / 2 - font.width(name) / 2, 6, FissionEmiUtils.tierColor(type.getTier()));
+        FissionEmiUtils.text(widgets, name, W / 2 - font.width(name) / 2, 6, 0xFFFFFFFF);
 
         int inputY = 20;
         widgets.addSlot(FissionEmiUtils.resolveItem(type.getInputKey(), type.getAmountPerCycle()), 8, inputY);

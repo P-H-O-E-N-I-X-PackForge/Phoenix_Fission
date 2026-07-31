@@ -1,4 +1,4 @@
-package net.phoenix.phoenix_fission.common.data.multiblock.fission;
+package net.phoenix.phoenix_fission.api.machine.multiblock;
 
 import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
@@ -30,15 +30,15 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fluids.FluidStack;
+import net.phoenix.phoenix_fission.api.machine.multiblock.managers.FissionComponentManager;
+import net.phoenix.phoenix_fission.api.machine.multiblock.managers.FissionFuelManager;
+import net.phoenix.phoenix_fission.api.machine.multiblock.managers.FissionThermalManager;
+import net.phoenix.phoenix_fission.api.machine.multiblock.part.AdvancedFissionScramHatchPart;
+import net.phoenix.phoenix_fission.api.machine.multiblock.part.FissionScramHatchPart;
+import net.phoenix.phoenix_fission.api.machine.multiblock.part.SensorHatchPartMachine;
 import net.phoenix.phoenix_fission.client.gui.FissionGraphsPage;
 import net.phoenix.phoenix_fission.client.gui.FissionMathPage;
 import net.phoenix.phoenix_fission.client.gui.FissionReactorFancyUIWidget;
-import net.phoenix.phoenix_fission.common.data.multiblock.fission.managers.FissionComponentManager;
-import net.phoenix.phoenix_fission.common.data.multiblock.fission.managers.FissionFuelManager;
-import net.phoenix.phoenix_fission.common.data.multiblock.fission.managers.FissionThermalManager;
-import net.phoenix.phoenix_fission.common.data.multiblock.part.fission.AdvancedFissionScramHatchPart;
-import net.phoenix.phoenix_fission.common.data.multiblock.part.fission.FissionScramHatchPart;
-import net.phoenix.phoenix_fission.common.data.multiblock.part.fission.SensorHatchPartMachine;
 import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
 
 import lombok.Getter;
@@ -189,7 +189,7 @@ public class FissionWorkableElectricMultiblockMachine extends WorkableElectricMu
     public void onLoad() {
         super.onLoad();
         componentManager.resolvePersistedComponents();
-        thermalManager.clampHeat();
+        thermalManager.limitHeat();
         reactorTickHandler.updateSubscription();
     }
 
@@ -202,7 +202,7 @@ public class FissionWorkableElectricMultiblockMachine extends WorkableElectricMu
         fuelManager.onStructureFormed();
 
         if (!ambientHeatInitialized) {
-            heat = PhoenixFissionConfigs.INSTANCE.fission.heatModel.ambientTemperatureHU;
+            heat = 0.0;
             ambientHeatInitialized = true;
         }
 
@@ -247,7 +247,7 @@ public class FissionWorkableElectricMultiblockMachine extends WorkableElectricMu
     }
 
     protected boolean shouldRunReactor() {
-        if (!isFormed() || !getRecipeLogic().isWorkingEnabled() ||
+        if (!isFormed() || !getRecipeLogic().isWorkingEnabled() || !getRecipeLogic().isWorking() ||
                 componentManager.getActiveFuelRods().isEmpty() || isScramActive())
             return false;
 

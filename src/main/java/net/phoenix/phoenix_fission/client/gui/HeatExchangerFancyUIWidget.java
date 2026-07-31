@@ -12,7 +12,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.phoenix.phoenix_fission.common.data.multiblock.fission.HeatExchangerMachine;
+import net.phoenix.phoenix_fission.api.machine.multiblock.HeatExchangerMachine;
 
 import javax.annotation.Nonnull;
 

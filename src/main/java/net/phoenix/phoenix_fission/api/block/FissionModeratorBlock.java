@@ -1,4 +1,4 @@
-package net.phoenix.phoenix_fission.common.data.block;
+package net.phoenix.phoenix_fission.api.block;
 
 import com.gregtechceu.gtceu.api.block.ActiveBlock;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
@@ -12,7 +12,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.BlockGetter;
 import net.phoenix.phoenix_fission.PhoenixFission;
-import net.phoenix.phoenix_fission.api.block.IFissionModeratorType;
+import net.phoenix.phoenix_fission.api.block.iface.IFissionModeratorType;
 
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
@@ -51,6 +51,12 @@ public class FissionModeratorBlock extends ActiveBlock {
 
         tooltip.add(Component.translatable("block.phoenix_fission.fission_moderator.fuel_discount",
                 moderatorType.getFuelDiscount()).withStyle(ChatFormatting.YELLOW));
+
+        tooltip.add(Component.translatable("block.phoenix_fission.fission_moderator.multiplier",
+                String.format("%.2f", moderatorType.getHeatMultiplier())).withStyle(ChatFormatting.GOLD));
+
+        tooltip.add(Component.translatable("block.phoenix_fission.fission_moderator.parallel",
+                moderatorType.getParallelBonus()).withStyle(ChatFormatting.LIGHT_PURPLE));
     }
 
     public static class BindableModeratorType implements IFissionModeratorType {
@@ -59,21 +65,24 @@ public class FissionModeratorBlock extends ActiveBlock {
         @NotNull
         private final String name;
         @Getter
-        private final int tier;
-        @Getter
         private final int tintColor;
 
         private final Supplier<Integer> euBoostSupplier;
         private final Supplier<Integer> fuelDiscountSupplier;
+        private final Supplier<Double> heatMultiplierSupplier;
+        private final Supplier<Integer> parallelBonusSupplier;
 
-        public BindableModeratorType(String name, int tier, int tintColor,
+        public BindableModeratorType(String name, int tintColor,
                                      Supplier<Integer> euBoostSupplier,
-                                     Supplier<Integer> fuelDiscountSupplier) {
+                                     Supplier<Integer> fuelDiscountSupplier,
+                                     Supplier<Double> heatMultiplierSupplier,
+                                     Supplier<Integer> parallelBonusSupplier) {
             this.name = name;
-            this.tier = tier;
             this.tintColor = tintColor;
-            this.euBoostSupplier = euBoostSupplier != null ? euBoostSupplier : () -> 0;
-            this.fuelDiscountSupplier = fuelDiscountSupplier != null ? fuelDiscountSupplier : () -> 0;
+            this.euBoostSupplier = euBoostSupplier;
+            this.fuelDiscountSupplier = fuelDiscountSupplier;
+            this.heatMultiplierSupplier = heatMultiplierSupplier;
+            this.parallelBonusSupplier = parallelBonusSupplier;
         }
 
         @Override
@@ -84,6 +93,16 @@ public class FissionModeratorBlock extends ActiveBlock {
         @Override
         public int getFuelDiscount() {
             return fuelDiscountSupplier.get();
+        }
+
+        @Override
+        public double getHeatMultiplier() {
+            return heatMultiplierSupplier.get();
+        }
+
+        @Override
+        public int getParallelBonus() {
+            return parallelBonusSupplier.get();
         }
 
         @Override

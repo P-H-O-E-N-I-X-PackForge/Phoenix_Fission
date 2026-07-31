@@ -1,4 +1,4 @@
-package net.phoenix.phoenix_fission.common.data.multiblock.part.fission;
+package net.phoenix.phoenix_fission.api.machine.multiblock.part;
 
 import com.gregtechceu.gtceu.api.machine.ConditionalSubscriptionHandler;
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;

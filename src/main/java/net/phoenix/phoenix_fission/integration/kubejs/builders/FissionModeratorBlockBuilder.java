@@ -5,9 +5,9 @@ import com.gregtechceu.gtceu.common.data.GTMaterials;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
-import net.phoenix.phoenix_fission.PhoenixAPI;
-import net.phoenix.phoenix_fission.api.block.IFissionModeratorType;
-import net.phoenix.phoenix_fission.common.data.block.FissionModeratorBlock;
+import net.phoenix.phoenix_fission.api.PhoenixAPI;
+import net.phoenix.phoenix_fission.api.block.FissionModeratorBlock;
+import net.phoenix.phoenix_fission.api.block.iface.IFissionModeratorType;
 
 import dev.latvian.mods.kubejs.block.BlockBuilder;
 import lombok.Setter;
@@ -22,13 +22,7 @@ public class FissionModeratorBlockBuilder extends BlockBuilder {
     @Setter
     public transient int fuelDiscount = 1;
     @Setter
-    public transient int tier = 1;
-    @Setter
-    public transient int tintColor = -1;
-    @Setter
     public transient String texture = "phoenix_fission:block/fission/moderator_base";
-    @Setter
-    public transient String maskTexture = "phoenix_fission:block/fission/moderator_mask";
 
     public FissionModeratorBlockBuilder(ResourceLocation i) {
         super(i);
@@ -53,8 +47,13 @@ public class FissionModeratorBlockBuilder extends BlockBuilder {
         }
 
         @Override
-        public int getTier() {
-            return Math.max(0, tier);
+        public double getHeatMultiplier() {
+            return 0;
+        }
+
+        @Override
+        public int getParallelBonus() {
+            return 0;
         }
 
         @Override
@@ -65,18 +64,6 @@ public class FissionModeratorBlockBuilder extends BlockBuilder {
         }
 
         @Override
-        public int getTintColor() {
-            if (tintColor != -1) return tintColor;
-            return switch (getTier()) {
-                case 1 -> 0xFFB07CFF;
-                case 2 -> 0xFFE7FF7D;
-                case 3 -> 0xFF7DFFB0;
-                case 4 -> 0xFFFF7D7D;
-                default -> 0xFFFFFFFF;
-            };
-        }
-
-        @Override
         public @NotNull String getSerializedName() {
             return getName();
         }
@@ -84,12 +71,6 @@ public class FissionModeratorBlockBuilder extends BlockBuilder {
         @Override
         public Material getMaterial() {
             return GTMaterials.NULL;
-        }
-
-        public @NotNull ResourceLocation getMaskTexture() {
-            ResourceLocation rl = ResourceLocation.tryParse(maskTexture);
-            return rl != null ? rl :
-                    ResourceLocation.fromNamespaceAndPath("phoenix_fission", "block/fission/moderator_mask");
         }
     }
 

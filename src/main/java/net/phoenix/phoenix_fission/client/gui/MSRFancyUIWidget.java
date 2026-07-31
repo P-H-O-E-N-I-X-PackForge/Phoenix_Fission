@@ -11,7 +11,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.phoenix.phoenix_fission.common.data.multiblock.fission.MoltenSaltReactorMultiblockMachine;
+import net.phoenix.phoenix_fission.api.machine.multiblock.MoltenSaltReactorMultiblockMachine;
 
 import java.util.Locale;
 
@@ -257,10 +257,11 @@ public class MSRFancyUIWidget extends FancyMachineUIWidget {
         g.drawString(font, "SALT LOOP", x, y, C_MID, false);
         y += 11;
 
-        String linerLabel = msr.linerTier > 0 ? String.format("MK%d  %s", msr.linerTier, msr.linerName.toUpperCase()) :
-                "No liner";
+        boolean hasLiner = msr.linerName != null && !msr.linerName.isEmpty();
+        String linerLabel = hasLiner ? msr.linerName.toUpperCase() : "No liner";
+
         y = row(g, font, x, y, W, "Liner", linerLabel,
-                msr.linerTier > 0 ? C_CYAN : C_DIM);
+                hasLiner ? C_CYAN : C_DIM);
 
         int flowTotal = Math.max(1, msr.structuralLinerCount) * msr.linerFlowRate;
         y = row(g, font, x, y, W, "Flow",

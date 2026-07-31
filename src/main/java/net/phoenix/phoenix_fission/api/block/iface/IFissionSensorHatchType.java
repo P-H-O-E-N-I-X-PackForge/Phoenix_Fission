@@ -1,4 +1,4 @@
-package net.phoenix.phoenix_fission.api.block;
+package net.phoenix.phoenix_fission.api.block.iface;
 
 public interface IFissionSensorHatchType {
 

@@ -1,4 +1,4 @@
-package net.phoenix.phoenix_fission.common.data.multiblock.part.fission;
+package net.phoenix.phoenix_fission.api.machine.multiblock.part;
 
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.widget.IntInputWidget;
@@ -17,7 +17,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.phoenix.phoenix_fission.common.data.multiblock.fission.FissionWorkableElectricMultiblockMachine;
+import net.phoenix.phoenix_fission.api.machine.multiblock.FissionWorkableElectricMultiblockMachine;
 
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;

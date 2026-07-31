@@ -1,8 +1,8 @@
 package net.phoenix.phoenix_fission.api.examples.managers;
 
-import net.phoenix.phoenix_fission.api.block.IFissionFuelRodType;
-import net.phoenix.phoenix_fission.common.data.multiblock.fission.FissionWorkableElectricMultiblockMachine;
-import net.phoenix.phoenix_fission.common.data.multiblock.fission.managers.FissionFuelManager;
+import net.phoenix.phoenix_fission.api.block.iface.IFissionFuelRodType;
+import net.phoenix.phoenix_fission.api.machine.multiblock.FissionWorkableElectricMultiblockMachine;
+import net.phoenix.phoenix_fission.api.machine.multiblock.managers.FissionFuelManager;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,12 +35,8 @@ public class BurnupTrackingFuelManager extends FissionFuelManager {
     }
 
     @Override
-    protected double computeHeatDeltaForRodGroup(IFissionFuelRodType rod, long count,
-                                                 double rodInteraction, double thermalScalar,
-                                                 double moderatorMultiplier,
-                                                 double reactivity, double fuelConductivity) {
-        double base = super.computeHeatDeltaForRodGroup(rod, count, rodInteraction,
-                thermalScalar, moderatorMultiplier, reactivity, fuelConductivity);
+    protected double computeHeatDeltaForRodGroup(IFissionFuelRodType rod, long count, HeatContext context) {
+        double base = super.computeHeatDeltaForRodGroup(rod, count, context);
         return base * getOutputFraction(rod, count);
     }
 

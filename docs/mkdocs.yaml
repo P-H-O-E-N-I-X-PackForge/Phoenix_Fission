@@ -1,7 +1,7 @@
-site_name: PhoenixCore Docs
-site_url: https://Phoenixvine.github.io/PhoenixCore/
-repo_name: PhoenixCore
-repo_url: https://github.com/Phoenixvine32908/PhoenixCore
+site_name: Phoenix's Fission Wiki
+site_url: https://omicron-industries.github.io/Phoenix_Fission/Development/
+repo_name: PhoenixFission
+repo_url: https://omicron-industries.github.io/Phoenix_Fission/Development/
 edit_uri: blob/main/docs/content/
 docs_dir: content
 site_dir: site

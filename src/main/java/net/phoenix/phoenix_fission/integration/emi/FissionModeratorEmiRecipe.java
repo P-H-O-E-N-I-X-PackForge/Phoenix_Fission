@@ -4,9 +4,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import net.phoenix.phoenix_fission.PhoenixAPI;
 import net.phoenix.phoenix_fission.PhoenixFission;
-import net.phoenix.phoenix_fission.api.block.IFissionModeratorType;
+import net.phoenix.phoenix_fission.api.PhoenixAPI;
+import net.phoenix.phoenix_fission.api.block.iface.IFissionModeratorType;
 
 import dev.emi.emi.api.recipe.EmiRecipe;
 import dev.emi.emi.api.recipe.EmiRecipeCategory;
@@ -73,8 +73,7 @@ public class FissionModeratorEmiRecipe implements EmiRecipe {
         widgets.addSlot(stack, 8, 8);
 
         String name = FissionEmiUtils.formatName(type.getName());
-        FissionEmiUtils.text(widgets, name, 30, 8, FissionEmiUtils.tierColor(type.getTier()));
-        FissionEmiUtils.text(widgets, "Tier " + type.getTier(), 30, 18, 0xFF_FFFFFF);
+        FissionEmiUtils.text(widgets, name, 30, 8, 0xFF_FFFFFF);
 
         String eu = "+" + type.getEUBoost() + "% EU output";
         String fuel = "-" + type.getFuelDiscount() + "% fuel usage";

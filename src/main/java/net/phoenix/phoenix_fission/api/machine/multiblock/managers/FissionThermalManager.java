@@ -1,4 +1,4 @@
-package net.phoenix.phoenix_fission.common.data.multiblock.fission.managers;
+package net.phoenix.phoenix_fission.api.machine.multiblock.managers;
 
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 
@@ -9,14 +9,15 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.registries.ForgeRegistries;
-import net.phoenix.phoenix_fission.api.block.IFissionCoolerType;
-import net.phoenix.phoenix_fission.api.block.IFissionFuelRodType;
-import net.phoenix.phoenix_fission.common.data.block.FissionFuelRodBlock;
-import net.phoenix.phoenix_fission.common.data.block.FissionModeratorBlock;
+import net.phoenix.phoenix_fission.api.block.FissionFuelRodBlock;
+import net.phoenix.phoenix_fission.api.block.FissionModeratorBlock;
+import net.phoenix.phoenix_fission.api.block.iface.IFissionCoolerType;
+import net.phoenix.phoenix_fission.api.block.iface.IFissionFuelRodType;
+import net.phoenix.phoenix_fission.api.machine.multiblock.FissionWorkableElectricMultiblockMachine;
 import net.phoenix.phoenix_fission.common.data.block.PhoenixFissionBlocks;
-import net.phoenix.phoenix_fission.common.data.multiblock.fission.FissionWorkableElectricMultiblockMachine;
 import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
 
 import java.util.*;
@@ -90,8 +91,9 @@ public class FissionThermalManager {
 
         var hm = PhoenixFissionConfigs.INSTANCE.fission.heatModel;
         var comp = machine.getComponentManager();
+        boolean hasActiveRods = !comp.getActiveFuelRods().isEmpty();
 
-        if (running && !comp.getActiveFuelRods().isEmpty() && !machine.isScramActive()) {
+        if (running && hasActiveRods && !machine.isScramActive()) {
             machine.setReactivityFactor(Math.min(1.0, machine.getReactivityFactor() + hm.reactivityRampRatePerTick));
             machine.continuousBurnTicks++;
         } else {
@@ -99,19 +101,24 @@ public class FissionThermalManager {
             machine.continuousBurnTicks = 0;
         }
 
-        if (running && !comp.getActiveFuelRods().isEmpty()) {
+        if (running && hasActiveRods) {
             double heatProduced = machine.getFuelManager().calculateTickHeat(machine.lastParallels);
             machine.setHeat(machine.getHeat() + heatProduced);
-            machine.lastHeatGainedPerTick = heatProduced;
+            machine.lastHeatGainedPerTick += heatProduced;
 
             machine.getFuelManager().consumeFuelTick(machine.lastParallels);
         }
 
         double coolingFloorHU = computeCoolingFloorHU(comp.getActiveCoolers(), hm.ambientTemperatureHU);
-
         double passiveDelta = computePassiveCoolingDelta(machine.getHeat(), coolingFloorHU,
                 hm.passiveCoolingConductivity);
+
         machine.setHeat(machine.getHeat() + passiveDelta);
+        if (passiveDelta < 0) {
+            machine.lastHeatRemovedPerTick += -passiveDelta;
+        } else {
+            machine.lastHeatGainedPerTick += passiveDelta;
+        }
 
         double activeCoolingRemoved = 0.0;
         double activeHeatingAdded = 0.0;
@@ -120,14 +127,13 @@ public class FissionThermalManager {
             for (IFissionCoolerType cooler : comp.getActiveCoolers()) {
                 if (!cooler.isPassive()) continue;
                 double flat = cooler.getFlatCoolingHUt();
-                if (flat > 0.0) {
 
+                if (flat > 0.0) {
                     if (machine.getHeat() <= coolingFloorHU) continue;
                     double applied = Math.min(flat, machine.getHeat() - coolingFloorHU);
                     machine.setHeat(machine.getHeat() - applied);
                     activeCoolingRemoved += applied;
                 } else if (flat < 0.0) {
-
                     double added = -flat;
                     machine.setHeat(machine.getHeat() + added);
                     activeHeatingAdded += added;
@@ -135,8 +141,7 @@ public class FissionThermalManager {
             }
         }
 
-        overcooledThisTick = running && !comp.getActiveFuelRods().isEmpty() &&
-                machine.getHeat() <= coolingFloorHU;
+        overcooledThisTick = running && hasActiveRods && machine.getHeat() <= coolingFloorHU;
         machine.isOverCooled = overcooledThisTick;
 
         machine.lastHasCoolant = true;
@@ -164,11 +169,17 @@ public class FissionThermalManager {
         }
 
         machine.lastHeatGainedPerTick += activeHeatingAdded;
-        machine.lastHeatRemovedPerTick = activeCoolingRemoved + (passiveDelta < 0 ? -passiveDelta : 0.0);
-        machine.lastProvidedCooling = (int) Math.round(calculateTheoreticalMaxCooling(machine.getMaxSafeHeatHU()));
+        machine.lastHeatRemovedPerTick += activeCoolingRemoved;
+        machine.lastProvidedCooling = (int) Math.round(calculateMaxCooling(machine.getMaxSafeHeatHU()));
 
-        clampHeat();
-        machine.getFuelManager().processPowerGeneration(running);
+        limitHeat();
+
+        if (machine.getHeat() > 0.0) {
+            machine.getFuelManager().processPowerGeneration(running);
+        } else {
+            machine.lastGeneratedEUt = 0;
+        }
+
         processMeltdownTimer();
     }
 
@@ -225,39 +236,48 @@ public class FissionThermalManager {
     }
 
     private boolean handleFluidConversion(String inId, String outId, int inAmount, int outAmount, boolean execute) {
-        if (inAmount <= 0 || inId.isEmpty() || "none".equalsIgnoreCase(inId)) return true;
-        ResourceLocation inRl = ResourceLocation.tryParse(inId);
-        if (inRl == null || !ForgeRegistries.FLUIDS.containsKey(inRl)) return false;
+        if (inAmount <= 0) return true;
 
-        FluidStack inStack = new FluidStack(Objects.requireNonNull(ForgeRegistries.FLUIDS.getValue(inRl)), inAmount);
+        ResourceLocation inRl = ResourceLocation.tryParse(inId);
+        if (inRl == null) return false;
+
+        Fluid inFluid = ForgeRegistries.FLUIDS.getValue(inRl);
+        if (inFluid == null) return false;
+
+        FluidStack inStack = new FluidStack(inFluid, inAmount);
         if (!machine.executeFluidIO(inStack, IO.IN, !execute)) return false;
 
         if (execute) {
             if (overcooledThisTick) {
-
-                int refund = (int) Math.floor(inAmount * 0.9);
-                if (refund > 0) {
-                    machine.executeFluidIO(
-                            new FluidStack(Objects.requireNonNull(ForgeRegistries.FLUIDS.getValue(inRl)), refund),
-                            IO.OUT,
-                            false);
-                }
-            } else if (outAmount > 0 && !outId.isEmpty() && !"none".equalsIgnoreCase(outId) &&
-                    !outId.equalsIgnoreCase(inId)) {
-                        ResourceLocation outRl = ResourceLocation.tryParse(outId);
-                        if (outRl != null && ForgeRegistries.FLUIDS.containsKey(outRl)) {
-                            machine.executeFluidIO(
-                                    new FluidStack(Objects.requireNonNull(ForgeRegistries.FLUIDS.getValue(outRl)),
-                                            outAmount),
-                                    IO.OUT,
-                                    false);
-                        }
-                    }
+                handleOvercooledRefund(inFluid, inAmount);
+            } else {
+                handleFluidOutput(inId, outId, outAmount);
+            }
         }
+
         return true;
     }
 
-    private double calculateTheoreticalMaxCooling(double maxSafe) {
+    private void handleOvercooledRefund(Fluid inFluid, int inAmount) {
+        int refund = (int) Math.floor(inAmount * 0.9);
+        if (refund > 0) {
+            machine.executeFluidIO(new FluidStack(inFluid, refund), IO.OUT, false);
+        }
+    }
+
+    private void handleFluidOutput(String inId, String outId, int outAmount) {
+        if (outAmount <= 0 || outId.equalsIgnoreCase(inId)) return;
+
+        ResourceLocation outRl = ResourceLocation.tryParse(outId);
+        if (outRl == null) return;
+
+        Fluid outFluid = ForgeRegistries.FLUIDS.getValue(outRl);
+        if (outFluid != null) {
+            machine.executeFluidIO(new FluidStack(outFluid, outAmount), IO.OUT, false);
+        }
+    }
+
+    private double calculateMaxCooling(double maxSafe) {
         var hm = PhoenixFissionConfigs.INSTANCE.fission.heatModel;
         double maxCooling = Math.max(0.0, (maxSafe - hm.ambientTemperatureHU) * hm.passiveCoolingConductivity);
         for (IFissionCoolerType c : machine.getComponentManager().getActiveCoolers()) {
@@ -267,7 +287,7 @@ public class FissionThermalManager {
         return maxCooling;
     }
 
-    public void clampHeat() {
+    public void limitHeat() {
         if (machine.getHeat() < PhoenixFissionConfigs.INSTANCE.fission.heatModel.minHeat) {
             machine.setHeat(PhoenixFissionConfigs.INSTANCE.fission.heatModel.minHeat);
         }
@@ -352,15 +372,21 @@ public class FissionThermalManager {
     }
 
     public void addDisplayText(List<Component> textList) {
-        double maxSafeHU = machine.getMaxSafeHeatHU();
+        double displayHeat = machine.getHeat() + 273.0;
+        double displayMaxSafe = machine.getMaxSafeHeatHU() + 273.0;
+
         textList.add(Component
-                .translatable("phoenix_fission.current_heat_display", String.format("%.1f", machine.getHeat()),
-                        String.format("%.1f", maxSafeHU))
-                .withStyle(s -> s.withColor(machine.getHeat() > maxSafeHU ? 0xFF3333 : 0x33FF33)));
+                .translatable("phoenix_fission.current_heat_display",
+                        String.format("%.1f", displayHeat),
+                        String.format("%.1f", displayMaxSafe))
+                .withStyle(s -> s.withColor(machine.getHeat() > machine.getMaxSafeHeatHU() ? 0xFF3333 : 0x33FF33)));
+
         textList.add(Component.translatable("phoenix_fission.cooling_power", machine.lastProvidedCooling)
                 .withStyle(s -> s.withColor(0x55FFFF)));
+
         textList.add(Component.translatable(
                 machine.lastHasCoolant ? "phoenix_fission.coolant_status.ok" : "phoenix_fission.coolant_status.empty"));
+
         if (machine.meltdownTimerTicks > 0) {
             textList.add(
                     Component

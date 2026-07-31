@@ -1,4 +1,4 @@
-package net.phoenix.phoenix_fission.common.data.multiblock.fission;
+package net.phoenix.phoenix_fission.api.machine.multiblock;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
@@ -18,7 +18,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.registries.ForgeRegistries;
-import net.phoenix.phoenix_fission.api.block.IMSRCoreLinerType;
+import net.phoenix.phoenix_fission.api.block.iface.IMSRCoreLinerType;
 import net.phoenix.phoenix_fission.client.gui.MSRFancyUIWidget;
 import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
 
@@ -27,6 +27,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @MethodsReturnNonnullByDefault
 public class MoltenSaltReactorMultiblockMachine extends FissionWorkableElectricMultiblockMachine {
@@ -34,8 +37,6 @@ public class MoltenSaltReactorMultiblockMachine extends FissionWorkableElectricM
     protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(
             MoltenSaltReactorMultiblockMachine.class,
             FissionWorkableElectricMultiblockMachine.MANAGED_FIELD_HOLDER);
-
-    private static final long[] EU_PER_MB_BY_TIER = { 219L, 349L, 699L, 1398L };
 
     @Persisted
     @DescSynced
@@ -50,9 +51,6 @@ public class MoltenSaltReactorMultiblockMachine extends FissionWorkableElectricM
     @Persisted
     @DescSynced
     public String linerName = "";
-    @Persisted
-    @DescSynced
-    public int linerTier = 0;
     @Persisted
     @DescSynced
     public int linerFlowRate = 0;
@@ -90,19 +88,22 @@ public class MoltenSaltReactorMultiblockMachine extends FissionWorkableElectricM
                 }
             }
             this.structuralLinerCount = liners.size();
+
             this.coreLinerSpec = liners.stream()
-                    .min(java.util.Comparator.comparingInt(IMSRCoreLinerType::getTier))
+                    .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
+                    .entrySet().stream()
+                    .max(Map.Entry.<IMSRCoreLinerType, Long>comparingByValue()
+                            .thenComparing(e -> e.getKey().getName()))
+                    .map(Map.Entry::getKey)
                     .orElse(null);
         }
 
         if (this.coreLinerSpec != null) {
             this.linerName = this.coreLinerSpec.getName();
-            this.linerTier = this.coreLinerSpec.getTier();
             this.linerFlowRate = this.coreLinerSpec.getFluidFlowRate();
             this.linerHeatPerMb = this.coreLinerSpec.getHeatPerMb();
         } else {
             this.linerName = "";
-            this.linerTier = 0;
             this.linerFlowRate = 0;
             this.linerHeatPerMb = 0.0;
         }
@@ -120,7 +121,6 @@ public class MoltenSaltReactorMultiblockMachine extends FissionWorkableElectricM
         this.structuralLinerCount = 0;
         this.coreLinerSpec = null;
         this.linerName = "";
-        this.linerTier = 0;
         this.linerFlowRate = 0;
         this.linerHeatPerMb = 0.0;
         this.lastCatalystActive = false;
@@ -186,11 +186,10 @@ public class MoltenSaltReactorMultiblockMachine extends FissionWorkableElectricM
                 running = false;
             }
         } else {
-
             var hm = PhoenixFissionConfigs.INSTANCE.fission.heatModel;
-            double tierFactor = 1.0 / coreLinerSpec.getTier();
+            double structureFactor = 1.0 / Math.max(1, this.structuralLinerCount);
             double passiveDelta = (hm.ambientTemperatureHU - this.getHeat()) * hm.passiveCoolingConductivity * 2.0 *
-                    tierFactor;
+                    structureFactor;
             if (passiveDelta < 0) this.setHeat(this.getHeat() + passiveDelta);
         }
 
@@ -208,9 +207,8 @@ public class MoltenSaltReactorMultiblockMachine extends FissionWorkableElectricM
                 xenonPoisonLevel = Math.min(0.50, xenonPoisonLevel + 0.0004);
             }
 
-            int tierIdx = Math.max(0, Math.min(EU_PER_MB_BY_TIER.length - 1, coreLinerSpec.getTier() - 1));
-            long euPerMb = EU_PER_MB_BY_TIER[tierIdx];
-            long baseEU = (long) saltToProcess * euPerMb;
+            double euPerHeatUnit = PhoenixFissionConfigs.INSTANCE.fission.euOutput.euPerHeatUnit;
+            long baseEU = (long) (this.lastHeatGainedPerTick * euPerHeatUnit);
 
             double structuralDamping = 1.0 - xenonPoisonLevel;
 
@@ -291,8 +289,8 @@ public class MoltenSaltReactorMultiblockMachine extends FissionWorkableElectricM
         textList.add(getVoltageFormattedOutputMSR(lastGeneratedEUt));
 
         textList.add(Component.translatable("phoenix_fission.parallels", lastParallels));
-        textList.add(Component.translatable("phoenix_fission.msr.structural_tier",
-                String.format("MK%d (%s)", coreLinerSpec.getTier(), coreLinerSpec.getName().toUpperCase()))
+        textList.add(Component.translatable("phoenix_fission.msr.structural_type",
+                coreLinerSpec.getName().toUpperCase())
                 .withStyle(s -> s.withColor(0x55FF55)));
         textList.add(Component.translatable("phoenix_fission.msr.active_liners", this.structuralLinerCount)
                 .withStyle(s -> s.withColor(0x55AAFF)));

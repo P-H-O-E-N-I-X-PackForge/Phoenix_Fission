@@ -5,13 +5,14 @@ import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.registries.ForgeRegistries;
-import net.phoenix.phoenix_fission.api.block.IFissionFuelRodType;
-import net.phoenix.phoenix_fission.api.block.IFissionModeratorType;
-import net.phoenix.phoenix_fission.common.data.multiblock.fission.FissionWorkableElectricMultiblockMachine;
-import net.phoenix.phoenix_fission.common.data.multiblock.fission.managers.FissionFuelManager;
+import net.phoenix.phoenix_fission.api.block.iface.IFissionFuelRodType;
+import net.phoenix.phoenix_fission.api.block.iface.IFissionModeratorType;
+import net.phoenix.phoenix_fission.api.machine.multiblock.FissionWorkableElectricMultiblockMachine;
+import net.phoenix.phoenix_fission.api.machine.multiblock.managers.FissionFuelManager;
 import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
 
 import java.util.List;
+import java.util.Objects;
 
 public class LegacyPhysicsFuelManager extends FissionFuelManager {
 
@@ -42,7 +43,7 @@ public class LegacyPhysicsFuelManager extends FissionFuelManager {
         var cfg = PhoenixFissionConfigs.INSTANCE.fission;
         int rodCount = machine.getComponentManager().getActiveFuelRods().size();
 
-        int base = cfg.parallelsPerFuelRod * Math.max(0, rodCount);
+        int base = cfg.parallelsPerFuelRod * rodCount;
 
         int modBonus = machine.getComponentManager().getActiveModerators().stream()
                 .mapToInt(IFissionModeratorType::getParallelBonus)
@@ -69,13 +70,13 @@ public class LegacyPhysicsFuelManager extends FissionFuelManager {
         double modAdd = machine.getComponentManager().getActiveModerators().stream()
                 .mapToDouble(IFissionModeratorType::getHeatMultiplier)
                 .sum();
-        double moderatorMult = 0.1 + (modAdd / 10.0);
+        double moderatorMulti = 0.1 + (modAdd / 10.0);
 
         double parallels = Math.max(1.0, machine.lastParallels);
-        double burnMult = computeBurnMultiplier();
+        double burnMulti = computeBurnMultiplier();
         double reactivity = machine.getReactivityFactor();
 
-        return (baseHeatPerTick + totalRodHeat * moderatorMult) * parallels * burnMult * reactivity;
+        return (baseHeatPerTick + totalRodHeat * moderatorMulti) * parallels * burnMulti * reactivity;
     }
 
     @Override
@@ -87,7 +88,7 @@ public class LegacyPhysicsFuelManager extends FissionFuelManager {
         if (fuelType == null) fuelType = comp.getActiveFuelRods().get(0);
 
         int amountPerCycle = Math.max(0, fuelType.getAmountPerCycle());
-        if (amountPerCycle <= 0) return;
+        if (amountPerCycle == 0) return;
 
         double totalPerCycle = amountPerCycle;
         if (fuelScalesWithRodCount) totalPerCycle *= Math.max(1, comp.getActiveFuelRods().size());
@@ -115,7 +116,7 @@ public class LegacyPhysicsFuelManager extends FissionFuelManager {
         if (inRl == null || !ForgeRegistries.ITEMS.containsKey(inRl)) return;
 
         ItemStack inStack = new ItemStack(
-                ForgeRegistries.ITEMS.getValue(inRl), toConsume);
+                Objects.requireNonNull(ForgeRegistries.ITEMS.getValue(inRl)), toConsume);
 
         if (!machine.executeItemIO(inStack, IO.IN, false)) {
             machine.setHeat(Math.max(machine.getHeat(),
@@ -129,28 +130,25 @@ public class LegacyPhysicsFuelManager extends FissionFuelManager {
             if (outRl != null && ForgeRegistries.ITEMS.containsKey(outRl)) {
                 machine.executeItemIO(
                         new ItemStack(
-                                ForgeRegistries.ITEMS.getValue(outRl), toConsume),
+                                Objects.requireNonNull(ForgeRegistries.ITEMS.getValue(outRl)), toConsume),
                         IO.OUT);
             }
         }
     }
 
     @Override
-    protected double computePowerOutput(double activity, double currentHeat, double minHeat,
-                                        double maxSafeHeat, double euPerHeatUnit, double powerStart,
-                                        double curveExponent) {
-        double base = super.computePowerOutput(activity, currentHeat, minHeat, maxSafeHeat,
-                euPerHeatUnit, powerStart, curveExponent);
+    protected double computePowerOutput(double activity, double currentHeat, PowerOutputConfig config) {
+        double base = super.computePowerOutput(activity, currentHeat, config);
         return base * computeBurnMultiplier();
     }
 
     @Override
-    protected double computeHeatThermalScalar(double heat, double maxSafeHeat) {
+    protected double computeHeatThermalScalar(double heat, double maxSafeHeat, double exponent) {
         return 1.0;
     }
 
     @Override
-    protected double computeFuelConsumptionThermalScalar(double heat, double maxSafeHeat) {
+    protected double computeFuelConsumptionThermalScalar(double heat, double maxSafeHeat, double exponent) {
         return 1.0;
     }
 
