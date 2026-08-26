@@ -16,10 +16,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
-/**
- *
- *
- */
 public class PhoenixAPI {
 
     public static final Logger LOGGER = LogManager.getLogger("phoenix_fission");

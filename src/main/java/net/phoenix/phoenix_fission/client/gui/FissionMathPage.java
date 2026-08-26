@@ -81,7 +81,6 @@ public class FissionMathPage implements IFancyUIProvider {
 
         private static final int BG = 0xEE_010810;
         private static final int C_CYAN = 0xFF_00E5CC;
-        private static final int C_TEAL = 0xFF_00AAA0;
         private static final int C_DIM = 0xFF_3A5E6A;
         private static final int C_MID = 0xFF_6A9BAA;
         private static final int C_WHITE = 0xFF_DCF0F4;
@@ -127,7 +126,8 @@ public class FissionMathPage implements IFancyUIProvider {
             double cond = fcfg.heatModel.activeCoolingConductivity;
             y = formula(g, font, x, y, W,
                     "passive: sum(flatHU/t)",
-                    "active: sum((heat - coolerTemp) * " + fmt2(cond) + ")");
+                    "active: sum((heat - coolerTemp) * conductivity)");
+            y = note(g, font, x, y, W, "Default conductivity: " + fmt2(cond) + " (per-cooler types may override)");
             y = note(g, font, x, y, W, "Live: " + fmt1(reactor.lastHeatRemovedPerTick) + " HU/t removed");
             y += 3;
 
@@ -179,14 +179,6 @@ public class FissionMathPage implements IFancyUIProvider {
                 y = note(g, font, x, y, W, "Live: " + formattedEU + " EU/t");
                 y += 3;
             }
-
-            y = section(g, font, x, y, W, "HEAT EXCHANGER", C_TEAL);
-
-            y = formula(g, font, x, y, W,
-                    "mult = (1.5 + (len - 1) * 0.25)^2",
-                    " *2 if helium active");
-            y = note(g, font, x, y, W, "len = number of gearbox casing layers");
-            y += 3;
 
             y = section(g, font, x, y, W, "PARALLELS", C_GOLD);
             y = formula(g, font, x, y, W,

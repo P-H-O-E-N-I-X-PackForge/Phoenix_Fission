@@ -51,7 +51,7 @@ public class FissionCoolerBlock extends ActiveBlock {
                 .withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD));
 
         if (coolerType.isPassive()) {
-            tooltip.add(Component.literal("Passive — no coolant required").withStyle(ChatFormatting.GREEN));
+            tooltip.add(Component.literal("Passive: no coolant required").withStyle(ChatFormatting.GREEN));
             tooltip.add(Component.literal("Flat cooling: ")
                     .append(Component.literal(String.format("%.0f HU/t", coolerType.getFlatCoolingHUt()))
                             .withStyle(ChatFormatting.AQUA)));

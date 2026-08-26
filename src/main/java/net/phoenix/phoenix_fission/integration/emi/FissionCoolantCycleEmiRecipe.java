@@ -75,7 +75,7 @@ public class FissionCoolantCycleEmiRecipe implements EmiRecipe {
         String name = FissionEmiUtils.formatName(type.getName());
         FissionEmiUtils.text(widgets, name, W / 2 - font.width(name) / 2, 8, 0xFFFFFFFF);
         if (type.isPassive()) {
-            String label = "Passive Cooler — no coolant needed";
+            String label = "Passive Cooler: no coolant needed";
             FissionEmiUtils.text(widgets, label, W / 2 - font.width(label) / 2, 22, 0xFF_88FF88);
 
             String flat = String.format(Locale.ROOT, "%.0f HU/t (always active)", type.getFlatCoolingHUt());

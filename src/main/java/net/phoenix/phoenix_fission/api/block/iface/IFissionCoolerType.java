@@ -41,6 +41,10 @@ public interface IFissionCoolerType extends StringRepresentable {
         return 0.0;
     }
 
+    default double getConductivity() {
+        return -1.0;
+    }
+
     default boolean isPassive() {
         return getFlatCoolingHUt() != 0.0;
     }

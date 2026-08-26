@@ -18,7 +18,7 @@ public class PhoenixRecipeTypes {
     public static GTRecipeType HIGH_PERFORMANCE_BREEDER_REACTOR_RECIPES;
     public static GTRecipeType ADVANCED_PRESSURIZED_FISSION_REACTOR_RECIPES;
     public static GTRecipeType PRESSURIZED_FISSION_REACTOR_RECIPES;
-    public static GTRecipeType HEAT_EXCHANGER_RECIPES;
+    public static GTRecipeType THERMOELECTRIC_GENERATOR_RECIPES;
 
     public static void init() {
         HIGH_PERFORMANCE_BREEDER_REACTOR_RECIPES = register("high_performance_breeder_reactor", MULTIBLOCK)
@@ -63,7 +63,7 @@ public class PhoenixRecipeTypes {
                     }
                     return "";
                 });
-        HEAT_EXCHANGER_RECIPES = register("heat_exchanging", MULTIBLOCK)
+        THERMOELECTRIC_GENERATOR_RECIPES = register("thermoelectric_generating", MULTIBLOCK)
                 .setMaxIOSize(1, 0, 1, 1)
                 .setSlotOverlay(false, true, GuiTextures.BOX_OVERLAY)
                 .setProgressBar(PhoenixGuiTextures.PROGRESS_BAR_FISSION, ProgressTexture.FillDirection.LEFT_TO_RIGHT)

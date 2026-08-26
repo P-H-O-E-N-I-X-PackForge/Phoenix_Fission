@@ -27,8 +27,8 @@ import net.phoenix.phoenix_fission.api.machine.PhoenixPartAbility;
 import net.phoenix.phoenix_fission.api.machine.multiblock.BreederWorkableElectricMultiblockMachine;
 import net.phoenix.phoenix_fission.api.machine.multiblock.DynamicFissionReactorMachine;
 import net.phoenix.phoenix_fission.api.machine.multiblock.FissionWorkableElectricMultiblockMachine;
-import net.phoenix.phoenix_fission.api.machine.multiblock.HeatExchangerMachine;
 import net.phoenix.phoenix_fission.api.machine.multiblock.MoltenSaltReactorMultiblockMachine;
+import net.phoenix.phoenix_fission.api.machine.multiblock.ThermoelectricGeneratorMachine;
 import net.phoenix.phoenix_fission.api.machine.multiblock.part.AdvancedFissionScramHatchPart;
 import net.phoenix.phoenix_fission.api.machine.multiblock.part.AdvancedFissionStabilitySensorPart;
 import net.phoenix.phoenix_fission.api.machine.multiblock.part.FissionScramHatchPart;
@@ -357,13 +357,13 @@ public class PhoenixFissionMachines {
 
     }
 
-    public static final MultiblockMachineDefinition HEAT_EXCHANGER = PHOENIX_REGISTRATE
-            .multiblock("heat_exchanger", HeatExchangerMachine::new)
-            .langValue("§bHeat Exchanger")
+    public static final MultiblockMachineDefinition THERMOELECTRIC_GENERATOR = PHOENIX_REGISTRATE
+            .multiblock("thermoelectric_generator", ThermoelectricGeneratorMachine::new)
+            .langValue("§bThermoelectric Generator")
             .rotationState(RotationState.ALL)
             .allowExtendedFacing(true)
-            .recipeType(PhoenixRecipeTypes.HEAT_EXCHANGER_RECIPES)
-            .recipeModifiers(HeatExchangerMachine::recipeModifier)
+            .recipeType(PhoenixRecipeTypes.THERMOELECTRIC_GENERATOR_RECIPES)
+            .recipeModifiers(ThermoelectricGeneratorMachine::recipeModifier)
             .appearanceBlock(PhoenixFissionBlocks.FISSILE_HEAT_SAFE_CASING)
             .pattern(definition -> FactoryBlockPattern.start(LEFT, UP, BACK)
                     .aisle("ABBBBBA", "BBBCBBB", "BBCCCBB", "BCCGCCB", "BBCCCBB", "BBBCBBB", "ABBBBBA")

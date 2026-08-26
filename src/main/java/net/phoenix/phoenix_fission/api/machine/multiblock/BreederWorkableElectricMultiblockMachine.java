@@ -112,8 +112,6 @@ public class BreederWorkableElectricMultiblockMachine extends DynamicFissionReac
     }
 
     private void selectPrimaryBlanket() {
-        // Same "most common type wins" convention FissionComponentManager uses for
-        // primaryCoolerType/primaryModeratorType/primaryFuelRodType — no tier involved.
         this.primaryBlanket = activeBlankets.stream()
                 .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
                 .entrySet().stream()
@@ -271,8 +269,6 @@ public class BreederWorkableElectricMultiblockMachine extends DynamicFissionReac
     private record WeightedKey(String key, double weight, int instability) {}
 
     private int getReactorSpectrumBias() {
-        // Reuse the component manager's already-resolved primary fuel rod (most common
-        // type wins — see FissionComponentManager.calcPrimary) instead of ranking by tier.
         IFissionFuelRodType rod = getComponentManager().getPrimaryFuelRodType();
         if (rod == null) return 0;
 

@@ -101,6 +101,9 @@ public class PhoenixFissionConfigs {
         public ExplosionConfigs explosion = new ExplosionConfigs();
 
         @Configurable
+        public ThermoelectricGeneratorConfigs thermoelectricGenerator = new ThermoelectricGeneratorConfigs();
+
+        @Configurable
         @Configurable.Comment("Cube radius in blocks. Total affected volume is (2r+1)^3.")
         public int nukeCubeRadius = 16;
 
@@ -173,7 +176,8 @@ public class PhoenixFissionConfigs {
         @Configurable.Comment({
                 "Fuel heat conductivity constant (C_fuel).",
                 "Scales how effectively your fuel rods emit thermal energy.",
-                "Formula: baseHeatRate * ((totalRods+1)/2) * (1 + temp/maxSafeTemp)^2 * parallels * moderatorBonus * reactivity * C_fuel"
+                "Formula: baseHeatRate * ((totalRods+1)/2) * (1 + temp/maxSafeTemp)^2 * parallels *" +
+                        " moderatorBonus * reactivity * C_fuel"
         })
         public double fuelConductivity = 1.0;
 
@@ -203,10 +207,22 @@ public class PhoenixFissionConfigs {
 
         @Configurable
         @Configurable.Comment({
-                "How quickly the reactor ramps reactivity up or down when control state changes, as a fraction per tick.",
+                "How quickly the reactor ramps reactivity up or down when control state changes, " +
+                        "as a fraction per tick.",
                 "1.0 = instant transition, 0.02 = ~1-second ramp, 0.005 = ~4-second ramp."
         })
         public double reactivityRampRatePerTick = 1.0;
+
+        @Configurable
+        @Configurable.Comment({
+                "Reference active-cooling heat removal (HU/t) that corresponds to 100% of an active cooler's",
+                "configured coolant usage per tick (both input coolant consumed and hot coolant produced).",
+                "Coolant usage scales linearly with how much heat a cooler is actually removing this tick:",
+                "coolantConsumed = coolantUsagePerTick * (actualHeatRemoved / coolantReferenceHeatRemovalHUt).",
+                "Lower this to make coolers burn through coolant faster as load increases; " +
+                        "raise it to soften the scaling."
+        })
+        public double coolantReferenceHeatRemovalHUt = 100.0;
     }
 
     public static class EUOutputConfigs {
@@ -254,7 +270,8 @@ public class PhoenixFissionConfigs {
     public static class ExplosionConfigs {
 
         @Configurable
-        @Configurable.Comment("If true, replaces blocks with air/fire. If false, uses standard GT explosion (drops items).")
+        @Configurable.Comment("If true, replaces blocks with air/fire. " +
+                "If false, uses standard GT explosion (drops items).")
         public boolean destructiveExplosion = false;
 
         @Configurable
@@ -271,5 +288,25 @@ public class PhoenixFissionConfigs {
         @Configurable
         @Configurable.Comment("Additional explosion power per unit of average fuel rod base heat production.")
         public double explosionPowerPerHeatUnit = 0.001;
+    }
+
+    public static class ThermoelectricGeneratorConfigs {
+
+        @Configurable
+        @Configurable.Comment("Cold coolant fluid the Thermoelectric Generator consumes " +
+                "(when not running on the helium cryo-boost loop).")
+        public String coldCoolantFluidId = "gtceu:distilled_water";
+
+        @Configurable
+        @Configurable.Comment("Hot coolant fluid produced from the cold coolant.")
+        public String hotCoolantFluidId = "gtceu:steam";
+
+        @Configurable
+        @Configurable.Comment({
+                "Base mB/s of cold coolant consumed (and hot coolant produced) at 1 exchange column.",
+                "Actual usage scales with column count the same way it always has: " +
+                        "base * (1 + (columns - 1) * 0.2)."
+        })
+        public int baseCoolantAmount = 100;
     }
 }

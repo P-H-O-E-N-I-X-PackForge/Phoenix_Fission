@@ -61,6 +61,29 @@ public class FissionThermalManager {
         return delta < 0 ? -delta : 0.0;
     }
 
+    protected static double resolveConductivity(IFissionCoolerType cooler, PhoenixFissionConfigs.HeatModelConfigs hm) {
+        double c = cooler.getConductivity();
+        return c >= 0 ? c : hm.activeCoolingConductivity;
+    }
+
+    protected CoolerLoad computeCoolerLoad() {
+        var hm = PhoenixFissionConfigs.INSTANCE.fission.heatModel;
+        var comp = machine.getComponentManager();
+        Map<IFissionCoolerType, Long> counts = comp.getActiveCoolers().stream()
+                .filter(c -> !c.isPassive())
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+
+        Map<IFissionCoolerType, Double> removal = new HashMap<>();
+        for (var entry : counts.entrySet()) {
+            double conductivity = resolveConductivity(entry.getKey(), hm);
+            removal.put(entry.getKey(),
+                    computeActiveCoolerHeatRemoval(entry.getKey(), machine.getHeat(), entry.getValue(), conductivity));
+        }
+        return new CoolerLoad(counts, removal);
+    }
+
+    protected record CoolerLoad(Map<IFissionCoolerType, Long> counts, Map<IFissionCoolerType, Double> removal) {}
+
     protected int computeMeltdownGracePeriodTicks(double heat, double maxSafeHeat,
                                                   double minGrace, double baseGrace, double severity) {
         double scale = ((heat - maxSafeHeat) / Math.max(1.0, maxSafeHeat)) * Math.max(0.0001, severity);
@@ -148,19 +171,16 @@ public class FissionThermalManager {
         boolean requiresActiveCooling = comp.getActiveCoolers().stream()
                 .anyMatch(c -> !c.isPassive() && c.getCoolerTemperature() < machine.getHeat());
 
+        CoolerLoad load = computeCoolerLoad();
+
         if (requiresActiveCooling && PhoenixFissionConfigs.INSTANCE.fission.coolingRequiresCoolant) {
-            machine.lastHasCoolant = canConsumeCoolantForThisTick() && processCoolantConsumption();
+            machine.lastHasCoolant = processCoolantAction(false, load) && processCoolantAction(true, load);
         }
 
         if (requiresActiveCooling &&
                 (!PhoenixFissionConfigs.INSTANCE.fission.coolingRequiresCoolant || machine.lastHasCoolant)) {
-            Map<IFissionCoolerType, Long> activeMap = comp.getActiveCoolers().stream()
-                    .filter(c -> !c.isPassive())
-                    .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
-
-            for (var entry : activeMap.entrySet()) {
-                double removed = computeActiveCoolerHeatRemoval(
-                        entry.getKey(), machine.getHeat(), entry.getValue(), hm.activeCoolingConductivity);
+            for (var entry : load.counts().entrySet()) {
+                double removed = load.removal().getOrDefault(entry.getKey(), 0.0);
                 if (removed > 0) {
                     machine.setHeat(machine.getHeat() - removed);
                     activeCoolingRemoved += removed;
@@ -184,23 +204,32 @@ public class FissionThermalManager {
     }
 
     public boolean canConsumeCoolantForThisTick() {
-        return processCoolantAction(false);
+        return processCoolantAction(false, computeCoolerLoad());
     }
 
-    private boolean processCoolantConsumption() {
-        return processCoolantAction(true);
+    private static int scaledCoolantAmount(int baseAmountPerBlock, long count, double removalForType,
+                                           PhoenixFissionConfigs.HeatModelConfigs hm) {
+        if (baseAmountPerBlock <= 0 || count <= 0 || removalForType <= 0) return 0;
+        double refHU = Math.max(0.0001, hm.coolantReferenceHeatRemovalHUt);
+        double scaled = (baseAmountPerBlock * (double) count) * (removalForType / refHU);
+        return (int) Math.round(Math.max(0.0, scaled));
     }
 
-    private boolean processCoolantAction(boolean execute) {
+    private boolean processCoolantAction(boolean execute, CoolerLoad load) {
         var cfg = PhoenixFissionConfigs.INSTANCE.fission;
+        var hm = cfg.heatModel;
         var comp = machine.getComponentManager();
         if (comp.getActiveCoolers().isEmpty()) return true;
 
         if (!cfg.coolantUsageAdditive) {
             IFissionCoolerType primary = comp.getPrimaryCoolerType();
             if (primary == null) return true;
+            long count = Math.max(1, load.counts().getOrDefault(primary, 1L));
+            double removalPerBlock = load.removal().getOrDefault(primary, 0.0) / count;
+            int scaledIn = scaledCoolantAmount(primary.getCoolantPerTick(), 1, removalPerBlock, hm);
+            int scaledOut = scaledCoolantAmount(primary.getOutputCoolantPerTick(), 1, removalPerBlock, hm);
             return handleFluidConversion(primary.getInputCoolantFluidId(), primary.getOutputCoolantFluidId(),
-                    primary.getCoolantPerTick(), primary.getOutputCoolantPerTick(), execute);
+                    scaledIn, scaledOut, execute);
         }
 
         record ConversionGroup(String inId, String outId) {}
@@ -209,14 +238,20 @@ public class FissionThermalManager {
         Map<ConversionGroup, Integer> groupInput = new HashMap<>();
         Map<ConversionGroup, Integer> groupOutput = new HashMap<>();
 
-        for (IFissionCoolerType c : comp.getActiveCoolers()) {
+        for (var entry : load.counts().entrySet()) {
+            IFissionCoolerType c = entry.getKey();
             if (c.getCoolantPerTick() <= 0 || c.getInputCoolantFluidId().isEmpty() ||
                     "none".equalsIgnoreCase(c.getInputCoolantFluidId()))
                 continue;
-            totalPerInput.merge(c.getInputCoolantFluidId(), c.getCoolantPerTick(), Integer::sum);
+            double removalForType = load.removal().getOrDefault(c, 0.0);
+            int scaledIn = scaledCoolantAmount(c.getCoolantPerTick(), entry.getValue(), removalForType, hm);
+            int scaledOut = scaledCoolantAmount(c.getOutputCoolantPerTick(), entry.getValue(), removalForType, hm);
+            if (scaledIn <= 0) continue;
+
+            totalPerInput.merge(c.getInputCoolantFluidId(), scaledIn, Integer::sum);
             ConversionGroup key = new ConversionGroup(c.getInputCoolantFluidId(), c.getOutputCoolantFluidId());
-            groupInput.merge(key, c.getCoolantPerTick(), Integer::sum);
-            groupOutput.merge(key, c.getOutputCoolantPerTick(), Integer::sum);
+            groupInput.merge(key, scaledIn, Integer::sum);
+            groupOutput.merge(key, scaledOut, Integer::sum);
         }
 
         if (!execute) {
@@ -282,7 +317,7 @@ public class FissionThermalManager {
         double maxCooling = Math.max(0.0, (maxSafe - hm.ambientTemperatureHU) * hm.passiveCoolingConductivity);
         for (IFissionCoolerType c : machine.getComponentManager().getActiveCoolers()) {
             maxCooling += c.isPassive() ? c.getFlatCoolingHUt() :
-                    Math.max(0.0, (maxSafe - c.getCoolerTemperature()) * hm.activeCoolingConductivity);
+                    Math.max(0.0, (maxSafe - c.getCoolerTemperature()) * resolveConductivity(c, hm));
         }
         return maxCooling;
     }

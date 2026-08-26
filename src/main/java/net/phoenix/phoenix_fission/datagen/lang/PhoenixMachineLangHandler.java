@@ -34,8 +34,9 @@ public class PhoenixMachineLangHandler {
         provider.add("tech.phoenix_fission.laser.output.mid", "Tesla Photonic Coalescence Array");
         provider.add("tech.phoenix_fission.laser.output.high", "Tesla Photonic Coalescence Matrix");
 
-        provider.add("gui.phoenix_fission.heat_exchanger.heat_exchange_surface", "Exchange Columns: %d");
-        provider.add("gui.phoenix_fission.heat_exchanger.current_efficiency", "Thermal Conductivity: Tier %d");
+        provider.add("gui.phoenix_fission.thermoelectric_generator.heat_exchange_surface", "Exchange Columns: %d");
+        provider.add("gui.phoenix_fission.thermoelectric_generator.current_efficiency",
+                "Thermal Conductivity: Tier %d");
         provider.add("gui.phoenix_fission.missing_spring", "Missing Heat Exchange Spring!");
 
         provider.add("tooltip.phoenix.empty_component.0", "This is an empty component, provides no stats.");
@@ -152,8 +153,8 @@ public class PhoenixMachineLangHandler {
 
         provider.add("gtceu.high_performance_breeder_reactor",
                 "High-Performance Breeder Reactor");
-        provider.add("gtceu.heat_exchanging",
-                "Heat Exchanging");
+        provider.add("gtceu.thermoelectric_generating",
+                "Thermoelectric Generating");
         provider.add("gtceu.source_extraction",
                 "Source Extraction");
         provider.add("gtceu.source_imbuement",

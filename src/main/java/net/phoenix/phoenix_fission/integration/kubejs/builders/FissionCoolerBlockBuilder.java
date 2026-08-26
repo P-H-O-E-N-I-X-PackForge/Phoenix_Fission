@@ -27,6 +27,8 @@ public class FissionCoolerBlockBuilder extends BlockBuilder {
     public transient double flatCoolingHUt = 0.0;
     @Setter
     public transient boolean isPassive = false;
+    @Setter
+    public transient double conductivity = -1.0;
 
     @Setter
     @NotNull
@@ -82,6 +84,11 @@ public class FissionCoolerBlockBuilder extends BlockBuilder {
         @Override
         public double getFlatCoolingHUt() {
             return flatCoolingHUt;
+        }
+
+        @Override
+        public double getConductivity() {
+            return conductivity;
         }
 
         @Override

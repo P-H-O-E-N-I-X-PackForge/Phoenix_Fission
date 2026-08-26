@@ -278,7 +278,7 @@ public class FissionMachineProvider implements IBlockComponentProvider, IServerD
 
         Material mat = GTMaterials.get(key);
         if (mat != GTMaterials.NULL) {
-            // Idk what the proper method is lol.
+
             String transKey = mat.getDefaultTranslation();
             if (transKey != null && !transKey.isEmpty()) {
                 return Component.translatable(transKey);

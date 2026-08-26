@@ -17,7 +17,6 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.phoenix.phoenix_fission.api.PhoenixAPI;
 import net.phoenix.phoenix_fission.api.block.iface.IFissionCoolerType;
 import net.phoenix.phoenix_fission.api.block.iface.IFissionFuelRodType;
 import net.phoenix.phoenix_fission.api.block.iface.IFissionModeratorType;
@@ -131,12 +130,10 @@ public class FissionGraphsPage implements IFancyUIProvider {
                 return;
             }
 
-            List<IFissionFuelRodType> rods = resolveTypes(reactor.getPersistedFuelRodIDs(),
-                    PhoenixAPI.FISSION_FUEL_RODS.keySet(), IFissionFuelRodType::getName);
-            List<IFissionModeratorType> mods = resolveTypes(reactor.getPersistedModeratorIDs(),
-                    PhoenixAPI.FISSION_MODERATORS.keySet(), IFissionModeratorType::getName);
-            List<IFissionCoolerType> coolers = resolveTypes(reactor.getPersistedCoolerIDs(),
-                    PhoenixAPI.FISSION_COOLERS.keySet(), IFissionCoolerType::getName);
+            var comp = reactor.getComponentManager();
+            List<IFissionFuelRodType> rods = comp.getActiveFuelRods();
+            List<IFissionModeratorType> mods = comp.getActiveModerators();
+            List<IFissionCoolerType> coolers = comp.getActiveCoolers();
 
             var hm = PhoenixFissionConfigs.INSTANCE.fission.heatModel;
             double modBonus = 1.0 + (computeModBonus(mods) / 100.0);
@@ -437,7 +434,8 @@ public class FissionGraphsPage implements IFancyUIProvider {
                 if (c.isPassive()) {
                     if (T > floor) cooling += c.getFlatCoolingHUt() * e.getValue();
                 } else {
-                    double delta = (T - c.getCoolerTemperature()) * e.getValue() * hm.activeCoolingConductivity;
+                    double conductivity = c.getConductivity() >= 0 ? c.getConductivity() : hm.activeCoolingConductivity;
+                    double delta = (T - c.getCoolerTemperature()) * e.getValue() * conductivity;
                     if (delta > 0) cooling += delta;
                 }
             }
@@ -465,19 +463,6 @@ public class FissionGraphsPage implements IFancyUIProvider {
         private static int computeModBonus(List<IFissionModeratorType> mods) {
             int raw = mods.stream().mapToInt(IFissionModeratorType::getEUBoost).sum();
             return Math.min(raw, PhoenixFissionConfigs.INSTANCE.fission.maxEUBoostPercent);
-        }
-
-        private static <T> List<T> resolveTypes(List<String> ids, Set<T> registry,
-                                                Function<T, String> nameOf) {
-            if (ids == null || ids.isEmpty()) return Collections.emptyList();
-            Map<String, T> byName = new LinkedHashMap<>();
-            for (T t : registry) byName.put(nameOf.apply(t), t);
-            List<T> result = new ArrayList<>();
-            for (String id : ids) {
-                T t = byName.get(id);
-                if (t != null) result.add(t);
-            }
-            return result;
         }
 
         private static String formatK(double v) {
