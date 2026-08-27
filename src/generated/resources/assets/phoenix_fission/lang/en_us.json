@@ -116,6 +116,7 @@
   "phoenix_fission.blanket_input": "§7Target Material: §f%s",
   "phoenix_fission.blanket_output": "§7Breeding Product: §f%s",
   "phoenix_fission.blanket_outputs": "§7Possible Products:",
+  "phoenix_fission.conductivity": "Thermal Conductivity: %s",
   "phoenix_fission.coolant": "Coolant: %s",
   "phoenix_fission.coolant_output": "Hot Coolant Produced: %s",
   "phoenix_fission.coolant_rate": "Coolant Flow: %s mb/t",

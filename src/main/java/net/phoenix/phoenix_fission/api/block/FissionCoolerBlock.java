@@ -82,6 +82,10 @@ public class FissionCoolerBlock extends ActiveBlock {
                     Component.literal(String.valueOf(coolerType.getCoolerTemperature()))
                             .withStyle(ChatFormatting.BLUE))
                     .append(Component.literal(" K threshold").withStyle(ChatFormatting.GRAY)));
+
+            tooltip.add(Component.translatable("phoenix_fission.conductivity",
+                    Component.literal(String.format("%.2f W/m·K", coolerType.getConductivity()))
+                            .withStyle(ChatFormatting.GOLD)));
         }
     }
 

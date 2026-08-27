@@ -233,5 +233,6 @@ public class PhoenixMachineLangHandler {
 
         provider.add("phoenix_fission.msr_liner.info_header", "--- Molten Salt Core Liner Specifications ---");
         provider.add("phoenix_fission.msr.structural_type", "MSR Core Material: %s");
+        provider.add("phoenix_fission.conductivity", "Thermal Conductivity: %s");
     }
 }
