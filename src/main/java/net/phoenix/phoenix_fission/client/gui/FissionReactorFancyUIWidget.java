@@ -17,7 +17,6 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.phoenix.phoenix_fission.api.PhoenixAPI;
 import net.phoenix.phoenix_fission.api.block.iface.IFissionBlanketType;
 import net.phoenix.phoenix_fission.api.block.iface.IFissionCoolerType;
 import net.phoenix.phoenix_fission.api.block.iface.IFissionFuelRodType;
@@ -131,7 +130,7 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
 
     @Override
     public boolean mouseWheelMove(double mouseX, double mouseY, double amount) {
-        if (currentPage == currentHomePage) {
+        if (currentPage == mainPage) {
             if (activePanel > 0) {
                 panelScroll[activePanel - 1] = Math.max(0,
                         panelScroll[activePanel - 1] - (int) (amount * 10));
@@ -146,7 +145,7 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (button == 0 && currentPage == currentHomePage) {
+        if (button == 0 && currentPage == mainPage) {
             if (activePanel > 0 && inBounds(backBtnBounds, mouseX, mouseY)) {
                 activePanel = 0;
                 return true;
@@ -186,7 +185,13 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
 
         super.drawInBackground(g, mouseX, mouseY, dt);
 
-        if (pageContainer != null) {
+        // Both the custom title bar and the HUD content below belong only to the reactor's own
+        // main page. currentHomePage is *not* a stable "is this our page" check: GTCEu reassigns
+        // it to whatever was just navigated to (the page switcher flyout, a hatch/bus's own page,
+        // etc.) on every navigation, so `currentPage == currentHomePage` is true again as soon as
+        // you're looking at any other page's own top level - not just ours. `mainPage` is the one
+        // reference FancyMachineUIWidget never reassigns after construction.
+        if (currentPage == mainPage && pageContainer != null) {
             int contentY = pageContainer.getPosition().y;
             int titleH = contentY - y;
             if (titleH > 4) {
@@ -209,7 +214,7 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
 
     @OnlyIn(Dist.CLIENT)
     private void drawHudIfHome(GuiGraphics g) {
-        if (currentPage != currentHomePage) return;
+        if (currentPage != mainPage) return;
         if (pageContainer == null || pageContainer.widgets.isEmpty()) return;
 
         var page = pageContainer.widgets.get(0);
@@ -387,7 +392,7 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
         y += 10;
 
         String pctStr = String.format("%.1f%%", pctOfMeltdown * 100);
-        String absStr = String.format("%.0f K", heat + 273.0);
+        String absStr = String.format("%.0f K", reactor.getHeatKelvin());
         int pctColor = pctOfMeltdown > 0.85 ? C_RED : pctOfMeltdown > 0.5 ? C_ORANGE : C_GREEN;
         g.drawString(font, pctStr, x, y, pctColor, false);
         g.drawString(font, absStr, x + W - font.width(absStr), y, pctColor, false);
@@ -591,14 +596,11 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
 
     @OnlyIn(Dist.CLIENT)
     private int drawTabBar(GuiGraphics g, Font font, int x, int y, int W) {
-        List<IFissionFuelRodType> fuels = resolveTypes(reactor.getPersistedFuelRodIDs(),
-                PhoenixAPI.FISSION_FUEL_RODS.keySet(), IFissionFuelRodType::getName);
-        List<IFissionModeratorType> mods = resolveTypes(reactor.getPersistedModeratorIDs(),
-                PhoenixAPI.FISSION_MODERATORS.keySet(), IFissionModeratorType::getName);
-        List<IFissionCoolerType> coolers = resolveTypes(reactor.getPersistedCoolerIDs(),
-                PhoenixAPI.FISSION_COOLERS.keySet(), IFissionCoolerType::getName);
-        List<IFissionBlanketType> blankets = resolveTypes(reactor.getPersistedBlanketIDs(),
-                PhoenixAPI.FISSION_BLANKETS.keySet(), IFissionBlanketType::getName);
+        var comp = reactor.getComponentManager();
+        List<IFissionFuelRodType> fuels = comp.getActiveFuelRods();
+        List<IFissionModeratorType> mods = comp.getActiveModerators();
+        List<IFissionCoolerType> coolers = comp.getActiveCoolers();
+        List<IFissionBlanketType> blankets = comp.getActiveBlankets();
 
         record Tab(String label, int accentColor, int count, boolean show) {}
         List<Tab> tabs = new ArrayList<>();
@@ -648,12 +650,8 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
 
     @OnlyIn(Dist.CLIENT)
     private int drawStabilityBar(GuiGraphics g, Font font, int x, int y, int W) {
-        List<IFissionStabilityHatchType> stabHatches = resolveTypes(
-                reactor.getPersistedStabilityIDs(), PhoenixAPI.FISSION_STABILITY_HATCHES.keySet(),
-                IFissionStabilityHatchType::getName);
-        List<IFissionSensorHatchType> sensorHatches = resolveTypes(
-                reactor.getPersistedSensorIDs(), PhoenixAPI.FISSION_SENSOR_HATCHES.keySet(),
-                IFissionSensorHatchType::getName);
+        List<IFissionStabilityHatchType> stabHatches = reactor.getComponentManager().getActiveStabilityHatches();
+        List<IFissionSensorHatchType> sensorHatches = reactor.getComponentManager().getActiveSensorHatches();
 
         int totalStability = stabHatches.stream().mapToInt(IFissionStabilityHatchType::getStability).sum();
         int maxStability = 100;
@@ -751,9 +749,7 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
             drawWrappedFooterLine(g, font, x, y, W,
                     "!! COOLANT DEPLETED -- supply coolant fluid", C_GOLD);
         } else if (isBreeder) {
-            List<IFissionBlanketType> blankets = resolveTypes(
-                    reactor.getPersistedBlanketIDs(), PhoenixAPI.FISSION_BLANKETS.keySet(),
-                    IFissionBlanketType::getName);
+            List<IFissionBlanketType> blankets = reactor.getComponentManager().getActiveBlankets();
 
             IFissionBlanketType pb = blankets.stream()
                     .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
@@ -788,8 +784,7 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
     @OnlyIn(Dist.CLIENT)
     private void drawFuelPanel(GuiGraphics g, int x, int y, int W, int H) {
         Font font = Minecraft.getInstance().font;
-        List<IFissionFuelRodType> fuels = resolveTypes(
-                reactor.getPersistedFuelRodIDs(), PhoenixAPI.FISSION_FUEL_RODS.keySet(), IFissionFuelRodType::getName);
+        List<IFissionFuelRodType> fuels = reactor.getComponentManager().getActiveFuelRods();
 
         y = drawSubHeader(g, font, x, y, W, "FUEL RODS", A_FUEL);
 
@@ -857,9 +852,7 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
     @OnlyIn(Dist.CLIENT)
     private void drawModsPanel(GuiGraphics g, int x, int y, int W, int H) {
         Font font = Minecraft.getInstance().font;
-        List<IFissionModeratorType> mods = resolveTypes(
-                reactor.getPersistedModeratorIDs(), PhoenixAPI.FISSION_MODERATORS.keySet(),
-                IFissionModeratorType::getName);
+        List<IFissionModeratorType> mods = reactor.getComponentManager().getActiveModerators();
 
         y = drawSubHeader(g, font, x, y, W, "MODERATORS", A_MODS);
 
@@ -914,8 +907,7 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
     @OnlyIn(Dist.CLIENT)
     private void drawCoolPanel(GuiGraphics g, int x, int y, int W, int H) {
         Font font = Minecraft.getInstance().font;
-        List<IFissionCoolerType> coolers = resolveTypes(
-                reactor.getPersistedCoolerIDs(), PhoenixAPI.FISSION_COOLERS.keySet(), IFissionCoolerType::getName);
+        List<IFissionCoolerType> coolers = reactor.getComponentManager().getActiveCoolers();
 
         y = drawSubHeader(g, font, x, y, W, "COOLERS", A_COOL);
 
@@ -983,7 +975,10 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
                     g.drawString(font, tempStr, x + 5, iy + 12, A_COOL, false);
                     g.drawString(font, mbStr, x + W - font.width(mbStr) - 6, iy + 12, C_MID, false);
 
-                    boolean activeNow = currentHeat > c.getCoolerTemperature();
+                    // c.getCoolerTemperature() is Kelvin, currentHeat is raw HU - convert via
+                    // heatCapacity before comparing, or this shows "Active now" based on a threshold
+                    // orders of magnitude off from what the reactor's own simulation actually uses.
+                    boolean activeNow = currentHeat > c.getCoolerTemperature() * reactor.getHeatCapacity();
                     String activeStr = activeNow ? "Active now" : "Idle (heat < threshold)";
                     g.drawString(font, activeStr, x + 5, iy + 21,
                             activeNow ? C_GREEN : C_DIM, false);
@@ -1007,8 +1002,7 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
         Font font = Minecraft.getInstance().font;
         y = drawSubHeader(g, font, x, y, W, "BREEDING DETAILS", C_PURPLE);
 
-        List<IFissionBlanketType> blankets = resolveTypes(
-                reactor.getPersistedBlanketIDs(), PhoenixAPI.FISSION_BLANKETS.keySet(), IFissionBlanketType::getName);
+        List<IFissionBlanketType> blankets = reactor.getComponentManager().getActiveBlankets();
 
         if (blankets.isEmpty()) {
             g.drawString(font, "No blanket blocks detected.", x, y, C_DIM, false);
@@ -1208,18 +1202,6 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
         if (instability < 25) return 0xFF_AAFFCC;
         if (instability < 50) return C_GOLD;
         return C_RED;
-    }
-
-    private static <T> List<T> resolveTypes(List<String> ids, Set<T> registry, Function<T, String> nameOf) {
-        if (ids == null || ids.isEmpty()) return Collections.emptyList();
-        Map<String, T> byName = new LinkedHashMap<>();
-        for (T t : registry) byName.put(nameOf.apply(t), t);
-        List<T> result = new ArrayList<>();
-        for (String id : ids) {
-            T t = byName.get(id);
-            if (t != null) result.add(t);
-        }
-        return result;
     }
 
     private static void rule(GuiGraphics g, int x, int W, int y) {

@@ -143,6 +143,8 @@ public class MoltenSaltReactorMultiblockMachine extends FissionWorkableElectricM
     public boolean onWorking() {
         boolean wasWorking = super.onWorking();
 
+        ensureAmbientHeatInitialized();
+
         boolean running = shouldRunReactor();
 
         lastHeatGainedPerTick = 0.0;
@@ -188,7 +190,11 @@ public class MoltenSaltReactorMultiblockMachine extends FissionWorkableElectricM
         } else {
             var hm = PhoenixFissionConfigs.INSTANCE.fission.heatModel;
             double structureFactor = 1.0 / Math.max(1, this.structuralLinerCount);
-            double passiveDelta = (hm.ambientTemperatureHU - this.getHeat()) * hm.passiveCoolingConductivity * 2.0 *
+            // ambientTemperatureHU is a Kelvin value (room temperature), not raw HU - convert via
+            // heatCapacity the same way maxSafeTempK/maxHeatClampTempK already do, so this actually
+            // settles at real room temperature instead of a few hundred raw HU.
+            double ambientHU = hm.ambientTemperatureHU * this.getHeatCapacity();
+            double passiveDelta = (ambientHU - this.getHeat()) * hm.passiveCoolingConductivity * 2.0 *
                     structureFactor;
             if (passiveDelta < 0) this.setHeat(this.getHeat() + passiveDelta);
         }
@@ -275,7 +281,7 @@ public class MoltenSaltReactorMultiblockMachine extends FissionWorkableElectricM
         final boolean overheat = this.getHeat() > maxSafeHU;
 
         textList.add(Component.translatable("phoenix_fission.current_heat_display",
-                String.format("%.1f", this.getHeat()), String.format("%.1f", maxSafeHU))
+                        String.format("%.1f", this.getHeat()), String.format("%.1f", maxSafeHU))
                 .withStyle(s -> s.withColor(overheat ? 0xFF3333 : 0x33FF33)));
 
         double maxSafeHeat = Math.max(1.0, maxSafeHU);
@@ -283,19 +289,19 @@ public class MoltenSaltReactorMultiblockMachine extends FissionWorkableElectricM
         double thermalEfficiency = 0.5 + (Math.pow(heatRatio, 2) * 2.0);
         int effColor = thermalEfficiency > 1.8 ? 0x55FF55 : (thermalEfficiency > 1.0 ? 0xFFAA00 : 0xFF5555);
         textList.add(Component.translatable("phoenix_fission.msr.thermal_efficiency",
-                String.format(java.util.Locale.ROOT, "%.1f", thermalEfficiency * 100.0) + "%")
+                        String.format(java.util.Locale.ROOT, "%.1f", thermalEfficiency * 100.0) + "%")
                 .withStyle(s -> s.withColor(effColor)));
 
         textList.add(getVoltageFormattedOutputMSR(lastGeneratedEUt));
 
         textList.add(Component.translatable("phoenix_fission.parallels", lastParallels));
         textList.add(Component.translatable("phoenix_fission.msr.structural_type",
-                coreLinerSpec.getName().toUpperCase())
+                        coreLinerSpec.getName().toUpperCase())
                 .withStyle(s -> s.withColor(0x55FF55)));
         textList.add(Component.translatable("phoenix_fission.msr.active_liners", this.structuralLinerCount)
                 .withStyle(s -> s.withColor(0x55AAFF)));
         textList.add(Component.translatable("phoenix_fission.msr.processing_rate",
-                (Math.max(1, this.structuralLinerCount) * coreLinerSpec.getFluidFlowRate()) + " mb/t")
+                        (Math.max(1, this.structuralLinerCount) * coreLinerSpec.getFluidFlowRate()) + " mb/t")
                 .withStyle(s -> s.withColor(0xFFAA00)));
 
         if (lastCatalystActive) {
@@ -310,7 +316,7 @@ public class MoltenSaltReactorMultiblockMachine extends FissionWorkableElectricM
                     .withStyle(s -> s.withColor(0x55FF55)));
         } else {
             textList.add(Component.translatable("phoenix_fission.msr.xenon_poisoning",
-                    String.format(java.util.Locale.ROOT, "%.1f", xenonPct) + "%")
+                            String.format(java.util.Locale.ROOT, "%.1f", xenonPct) + "%")
                     .withStyle(s -> s.withColor(xenonColor)));
         }
 

@@ -146,6 +146,14 @@ legacyForge {
             programArguments.addAll('--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath())
             programArguments.addAll('--existing-mod', 'gtceu')
         }
+
+        gameTestServer {
+            // No client()/server()/data()-style convenience method for this exists in this MDG
+            // version, but the run "type" is a plain FML-defined string, same as the others.
+            type = 'gameTestServer'
+            systemProperty('forge.enabledGameTestNamespaces', project.mod_id)
+            programArguments.addAll('--nogui')
+        }
     }
 
 
@@ -156,6 +164,14 @@ legacyForge {
     }
 }
 
+// Gives the `test` source set access to Minecraft/GTCEu/etc. so unit tests can reference
+// mod types. The legacyforge plugin doesn't expose the newer `unitTest { }` DSL (that's
+// NeoForge-only), so this is the manual equivalent.
+legacyForge.addModdingDependenciesTo(sourceSets.test)
+
+test {
+    useJUnitPlatform()
+}
 
 jar {
     manifest.attributes([
@@ -203,6 +219,12 @@ dependencies {
 // lombok
     compileOnly 'org.projectlombok:lombok:1.18.24'
     annotationProcessor 'org.projectlombok:lombok:1.18.24'
+
+// tests
+    testCompileOnly("org.jetbrains:annotations:26.0.1")
+    testImplementation platform('org.junit:junit-bom:5.10.2')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
 }
 

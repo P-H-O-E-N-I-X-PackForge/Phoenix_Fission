@@ -36,9 +36,10 @@ public class ZonedCoolingThermalManager extends FissionThermalManager {
 
     @Override
     protected double computeActiveCoolerHeatRemoval(IFissionCoolerType cooler, double heat,
-                                                    long count, double conductivity) {
+                                                    long count, double conductivity, double heatCapacity) {
         double adjusted = conductivity * getActiveZoneMultiplier(heat);
-        double delta = (cooler.getCoolerTemperature() - heat) * count * adjusted;
+        double coolerTempHU = cooler.getCoolerTemperature() * heatCapacity;
+        double delta = (coolerTempHU - heat) * count * adjusted;
         return delta < 0 ? -delta : 0.0;
     }
 

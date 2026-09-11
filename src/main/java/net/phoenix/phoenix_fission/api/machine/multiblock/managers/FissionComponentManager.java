@@ -95,7 +95,23 @@ public class FissionComponentManager {
     }
 
     public void resolvePersistedComponents() {
-        onStructureInvalid();
+        // Rebuilds the active-component lists from the persisted IDs - deliberately does NOT
+        // call onStructureInvalid(), which also clears machine's persisted ID lists themselves.
+        // Doing that here would wipe out real data loaded from NBT (or already synced to the
+        // client) an instant before the loop below tries to read it back, since the lists are
+        // cleared in place rather than replaced - e.g. on a fresh onLoad() for a reactor that was
+        // already formed before a chunk unload/server restart, silently losing every fuel
+        // rod/cooler/moderator until the pattern happens to be re-checked and reformed.
+        activeCoolers.clear();
+        activeModerators.clear();
+        activeFuelRods.clear();
+        activeBlankets.clear();
+        activeStabilityHatches.clear();
+        activeSensorHatches.clear();
+        primaryCoolerType = null;
+        primaryModeratorType = null;
+        primaryFuelRodType = null;
+
         for (String id : machine.getPersistedCoolerIDs()) {
             PhoenixAPI.FISSION_COOLERS.keySet().stream().filter(t -> t.getName().equals(id)).findFirst()
                     .ifPresent(activeCoolers::add);

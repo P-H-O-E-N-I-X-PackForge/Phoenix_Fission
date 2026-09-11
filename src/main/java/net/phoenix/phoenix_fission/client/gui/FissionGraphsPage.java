@@ -345,22 +345,33 @@ public class FissionGraphsPage implements IFancyUIProvider {
                                     double xMax, double maxSafe, double maxClamp) {
             int labelY = y + plotH + 2;
             double heatCap = reactor.getHeatCapacity();
-            g.drawString(font, "0", x, labelY, C_DIM, false);
+            String zeroStr = "0";
+            g.drawString(font, zeroStr, x, labelY, C_DIM, false);
             String xMaxStr = formatK(xMax / heatCap);
-            g.drawString(font, xMaxStr, x + W - font.width(xMaxStr), labelY, C_DIM, false);
+            int endLabelX = x + W - font.width(xMaxStr);
+            g.drawString(font, xMaxStr, endLabelX, labelY, C_DIM, false);
+
+            // xMax is always maxClampHU * 1.15, so meltdownFrac sits at a near-constant ~87% of
+            // the plot width regardless of reactor config - close enough to the right edge that a
+            // fixed fractional cutoff (the old `< 0.92` check) isn't a reliable guard against
+            // overlapping the end-of-axis Kelvin label. Check actual label pixel bounds instead.
+            int zeroLabelRight = x + font.width(zeroStr);
+            int pad = 4;
 
             double criticalFrac = maxSafe / xMax;
-            if (criticalFrac > 0.08 && criticalFrac < 0.92) {
-                String sl = "threshold";
-                int sx = x + (int) (criticalFrac * W);
-                g.drawString(font, sl, sx - font.width(sl) / 2, labelY, 0xCC_FF8833, false);
+            int sx = x + (int) (criticalFrac * W);
+            String sl = "threshold";
+            int sLeft = sx - font.width(sl) / 2;
+            if (sLeft > zeroLabelRight + pad && sLeft + font.width(sl) < endLabelX - pad) {
+                g.drawString(font, sl, sLeft, labelY, 0xCC_FF8833, false);
             }
 
             double meltdownFrac = maxClamp / xMax;
-            if (meltdownFrac > 0.08 && meltdownFrac < 0.92) {
-                String ml = "meltdown";
-                int mx = x + (int) (meltdownFrac * W);
-                g.drawString(font, ml, mx - font.width(ml) / 2, labelY, 0xCC_FF3333, false);
+            int mx = x + (int) (meltdownFrac * W);
+            String ml = "meltdown";
+            int mLeft = mx - font.width(ml) / 2;
+            if (mLeft > zeroLabelRight + pad && mLeft + font.width(ml) < endLabelX - pad) {
+                g.drawString(font, ml, mLeft, labelY, 0xCC_FF3333, false);
             }
             return labelY + font.lineHeight + 3;
         }
@@ -420,10 +431,13 @@ public class FissionGraphsPage implements IFancyUIProvider {
                                       List<IFissionCoolerType> coolers,
                                       PhoenixFissionConfigs.HeatModelConfigs hm) {
             double cooling = 0.0;
-            OptionalDouble minCoolerTemp = coolers.stream()
-                    .mapToDouble(IFissionCoolerType::getCoolerTemperature).min();
-            double floor = minCoolerTemp.isPresent() ?
-                    Math.max(hm.ambientTemperatureHU, minCoolerTemp.getAsDouble()) : hm.ambientTemperatureHU;
+            // Pure ambient floor for passive equilibration - matches FissionThermalManager.
+            // computeCoolingFloorHU: an active cooler's own threshold is already handled below in the
+            // per-cooler branch, so it must not also feed this shared floor, or a normal (non-heater)
+            // cooler configured above ambient would pull an idle reactor UP toward its own operating
+            // temperature instead of down toward real room temperature.
+            double heatCapacity = reactor.getHeatCapacity();
+            double floor = hm.ambientTemperatureHU * heatCapacity;
 
             double amb = (T - floor) * hm.passiveCoolingConductivity;
             if (amb > 0) cooling += amb;
@@ -435,7 +449,8 @@ public class FissionGraphsPage implements IFancyUIProvider {
                     if (T > floor) cooling += c.getFlatCoolingHUt() * e.getValue();
                 } else {
                     double conductivity = c.getConductivity() >= 0 ? c.getConductivity() : hm.activeCoolingConductivity;
-                    double delta = (T - c.getCoolerTemperature()) * e.getValue() * conductivity;
+                    double coolerTempHU = c.getCoolerTemperature() * heatCapacity;
+                    double delta = (T - coolerTempHU) * e.getValue() * conductivity;
                     if (delta > 0) cooling += delta;
                 }
             }

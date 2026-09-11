@@ -18,18 +18,22 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
+import net.minecraftforge.event.RegisterGameTestsEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.phoenix.phoenix_fission.api.block.PhoenixFissionEntities;
 import net.phoenix.phoenix_fission.common.PhoenixFissionMachines;
 import net.phoenix.phoenix_fission.common.data.PhoenixRecipeTypes;
 import net.phoenix.phoenix_fission.common.data.block.PhoenixFissionBlocks;
+import net.phoenix.phoenix_fission.common.data.block.PhoenixFissionGameTestFixtures;
 import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
 import net.phoenix.phoenix_fission.datagen.PhoenixDatagen;
+import net.phoenix.phoenix_fission.gametest.FissionReactorGameTest;
 
 import com.tterrag.registrate.util.entry.RegistryEntry;
 import org.apache.logging.log4j.LogManager;
@@ -58,7 +62,11 @@ public class PhoenixFission {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
         modEventBus.addListener(this::commonSetup);
-        modEventBus.addListener(this::clientSetup);
+        if (FMLEnvironment.dist.isClient()) {
+            // clientSetup is @OnlyIn(Dist.CLIENT) and gets stripped from the server-side class
+            // entirely; referencing it unconditionally throws NoSuchMethodError on a dedicated server.
+            modEventBus.addListener(this::clientSetup);
+        }
         modEventBus.addGenericListener(RecipeConditionType.class, this::registerConditions);
         modEventBus.addGenericListener(GTRecipeType.class, this::registerRecipeTypes);
 
@@ -68,6 +76,7 @@ public class PhoenixFission {
         modEventBus.addListener(this::addMaterialRegistries);
         modEventBus.addListener(this::addMaterials);
         modEventBus.addListener(this::modifyMaterials);
+        modEventBus.addListener(this::registerGameTests);
 
         MinecraftForge.EVENT_BUS.register(this);
     }
@@ -77,6 +86,7 @@ public class PhoenixFission {
         PHOENIX_REGISTRATE.registerRegistrate();
         PhoenixFissionEntities.init();
         PhoenixFissionBlocks.init();
+        PhoenixFissionGameTestFixtures.init();
         PhoenixDatagen.init();
     }
 
@@ -113,6 +123,10 @@ public class PhoenixFission {
 
     private void registerMachines(GTCEuAPI.RegisterEvent<ResourceLocation, MachineDefinition> event) {
         PhoenixFissionMachines.init();
+    }
+
+    private void registerGameTests(RegisterGameTestsEvent event) {
+        event.register(FissionReactorGameTest.class);
     }
 
     public static ResourceLocation id(String path) {

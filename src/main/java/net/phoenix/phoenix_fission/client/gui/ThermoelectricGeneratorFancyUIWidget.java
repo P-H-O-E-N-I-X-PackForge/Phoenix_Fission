@@ -74,7 +74,10 @@ public class ThermoelectricGeneratorFancyUIWidget extends FancyMachineUIWidget {
 
     @OnlyIn(Dist.CLIENT)
     private void drawHudIfHome(GuiGraphics g) {
-        if (currentPage != currentHomePage) return;
+        // currentHomePage is reassigned by GTCEu on every navigation (page switcher flyout, a
+        // hatch/bus's own page, etc.), so it's not a stable "is this our page" check - mainPage
+        // is the one reference FancyMachineUIWidget never reassigns after construction.
+        if (currentPage != mainPage) return;
         if (pageContainer == null || pageContainer.widgets.isEmpty()) return;
 
         var page = pageContainer.widgets.get(0);

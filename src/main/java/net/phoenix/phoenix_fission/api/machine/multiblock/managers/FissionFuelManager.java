@@ -63,12 +63,30 @@ public class FissionFuelManager {
         return (totalRods + 1.0) / 2.0;
     }
 
+    /**
+     * Default (bounded) curve is a polynomial normalized against maxSafeHeat, so it only ranges from 1x
+     * to a modest multiple of baseline across the whole safe range - it's mathematically unbounded as
+     * heat->infinity, but grows too slowly relative to passive cooling's linear rate to ever catch up
+     * within any physically reachable heat level, which is why reactors settle into a stable equilibrium
+     * instead of ever melting down unaided. When exponentialHeatGrowth is enabled, production grows
+     * exponentially with current heat instead - exponential growth eventually outpaces any linear cooling
+     * rate, and does so at a much lower heat than the polynomial does, so a reactor whose cooling falls
+     * behind will actually spiral toward meltdown.
+     */
     protected double computeHeatThermalScalar(double heat, double maxSafeHeat, double exponent) {
-        return Math.pow(1.0 + (heat / Math.max(1.0, maxSafeHeat)), exponent);
+        double ratio = heat / Math.max(1.0, maxSafeHeat);
+        if (PhoenixFissionConfigs.INSTANCE.fission.heatModel.exponentialHeatGrowth) {
+            return Math.exp(ratio * exponent);
+        }
+        return Math.pow(1.0 + ratio, exponent);
     }
 
     protected double computeFuelConsumptionThermalScalar(double heat, double maxSafeHeat, double exponent) {
-        return Math.pow(1.0 + (heat / Math.max(1.0, maxSafeHeat)), exponent);
+        double ratio = heat / Math.max(1.0, maxSafeHeat);
+        if (PhoenixFissionConfigs.INSTANCE.fission.heatModel.exponentialHeatGrowth) {
+            return Math.exp(ratio * exponent);
+        }
+        return Math.pow(1.0 + ratio, exponent);
     }
 
     protected double computeModeratorHeatMultiplier() {
@@ -96,11 +114,11 @@ public class FissionFuelManager {
     }
 
     public record PowerOutputConfig(
-                                    double minHeat,
-                                    double maxSafeHeat,
-                                    double euPerHeatUnit,
-                                    double powerStart,
-                                    double curveExponent) {}
+            double minHeat,
+            double maxSafeHeat,
+            double euPerHeatUnit,
+            double powerStart,
+            double curveExponent) {}
 
     protected double computePowerOutput(double activity, double currentHeat, PowerOutputConfig config) {
         double baseEU = activity * config.euPerHeatUnit();
@@ -118,11 +136,11 @@ public class FissionFuelManager {
     }
 
     protected record HeatContext(
-                                 double rodInteraction,
-                                 double thermalFactor,
-                                 double modBonus,
-                                 double reactivity,
-                                 double fuelConductivity) {}
+            double rodInteraction,
+            double thermalFactor,
+            double modBonus,
+            double reactivity,
+            double fuelConductivity) {}
 
     public double calculateTickHeat(int ignoredMachineParallels) {
         var comp = machine.getComponentManager();
@@ -180,11 +198,28 @@ public class FissionFuelManager {
                 machine.fuelRemainderPerType.put(key, remainder);
                 continue;
             }
-            machine.fuelRemainderPerType.put(key, remainder - directConsume);
 
             String itemIn = fuelType.getFuelKey();
-            if (itemIn.isEmpty() || !processItemConsumption(itemIn, directConsume)) {
-                machine.setHeat(Math.max(machine.getHeat(), machine.getMaxSafeHeatHU() + 1.0));
+            if (itemIn.isEmpty()) {
+                // No consumable item configured for this rod type at all - nothing to withdraw,
+                // and definitely not a reason to force the reactor toward meltdown. Bank the
+                // remainder like the directConsume<=0 case above and try again next tick.
+                machine.fuelRemainderPerType.put(key, remainder);
+                continue;
+            }
+
+            if (!processItemConsumption(itemIn, directConsume)) {
+                // We thought we had enough (hasFuelAvailableForNextTick only confirms *some*
+                // fuel exists, not that this tick's full directConsume amount is in stock), but
+                // the withdrawal came up short. Don't punish this with an artificial heat spike -
+                // that used to slam heat straight to maxSafeHeat+1 regardless of actual fuel/
+                // coolant state, which then kept re-triggering every subsequent tick (higher heat
+                // -> higher consumption thermal scalar -> guaranteed failure again), producing a
+                // runaway that no amount of cooling could ever catch up with. Instead, put the
+                // reserved remainder back so it isn't lost and simply skip this rod group for the
+                // tick; if fuel is genuinely gone, shouldRunReactor() will stop the reactor on the
+                // next check same as if it had never started.
+                machine.fuelRemainderPerType.put(key, remainder);
                 continue;
             }
 

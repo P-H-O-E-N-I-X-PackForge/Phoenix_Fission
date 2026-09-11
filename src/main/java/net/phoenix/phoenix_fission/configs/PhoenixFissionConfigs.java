@@ -207,6 +207,20 @@ public class PhoenixFissionConfigs {
 
         @Configurable
         @Configurable.Comment({
+                "How heat production scales with current heat.",
+                "false (default): production is normalized against maxSafeTempK, so it's bounded to a modest",
+                "  multiple of baseline output across the whole safe range - reactors settle into a stable idle",
+                "  equilibrium well below maxSafeTempK and effectively can't melt down from thermal effects alone,",
+                "  no matter how long they're left running unattended.",
+                "true: production grows exponentially with current heat instead of the normalized/bounded curve",
+                "  above, so once cooling falls behind, the reactor genuinely spirals toward meltdown rather than",
+                "  asymptoting to a safe plateau. Exponential growth is much more sensitive to heatGenerationExponent",
+                "  than the default curve is - tune that down first if reactors melt down too easily."
+        })
+        public boolean exponentialHeatGrowth = false;
+
+        @Configurable
+        @Configurable.Comment({
                 "How quickly the reactor ramps reactivity up or down when control state changes, " +
                         "as a fraction per tick.",
                 "1.0 = instant transition, 0.02 = ~1-second ramp, 0.005 = ~4-second ramp."
