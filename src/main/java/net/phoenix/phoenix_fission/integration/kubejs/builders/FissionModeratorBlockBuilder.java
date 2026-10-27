@@ -9,24 +9,31 @@ import net.phoenix.phoenix_fission.api.PhoenixAPI;
 import net.phoenix.phoenix_fission.api.block.FissionModeratorBlock;
 import net.phoenix.phoenix_fission.api.block.iface.IFissionModeratorType;
 
-import dev.latvian.mods.kubejs.block.BlockBuilder;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.jetbrains.annotations.NotNull;
 
 @Accessors(chain = true, fluent = true)
-public class FissionModeratorBlockBuilder extends BlockBuilder {
+public class FissionModeratorBlockBuilder extends FissionTintedBlockBuilder {
 
     @Setter
     public transient int euBoost = 1;
     @Setter
     public transient int fuelDiscount = 1;
-    @Setter
-    public transient String texture = "phoenix_fission:block/fission/moderator_base";
 
     public FissionModeratorBlockBuilder(ResourceLocation i) {
         super(i);
         noValidSpawns(true);
+    }
+
+    @Override
+    protected String kind() {
+        return "moderator";
+    }
+
+    @Override
+    protected boolean hasActiveState() {
+        return false;
     }
 
     public class KjsModeratorType implements IFissionModeratorType {
@@ -58,9 +65,22 @@ public class FissionModeratorBlockBuilder extends BlockBuilder {
 
         @Override
         public @NotNull ResourceLocation getTexture() {
-            ResourceLocation rl = ResourceLocation.tryParse(texture);
-            return rl != null ? rl :
-                    ResourceLocation.fromNamespaceAndPath("phoenix_fission", "block/fission/moderator_base");
+            return isTextureManual() ? manualTexture(false) : sharedBase();
+        }
+
+        @Override
+        public ResourceLocation getActiveTexture() {
+            return isTextureManual() ? manualTexture(true) : sharedBase();
+        }
+
+        @Override
+        public boolean isTextureManual() {
+            return FissionModeratorBlockBuilder.this.isTextureManual();
+        }
+
+        @Override
+        public int getTintColor() {
+            return tintArgb();
         }
 
         @Override

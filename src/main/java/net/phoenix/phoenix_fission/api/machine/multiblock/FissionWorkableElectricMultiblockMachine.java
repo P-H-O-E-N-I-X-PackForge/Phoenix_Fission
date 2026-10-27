@@ -50,7 +50,7 @@ import java.util.*;
 
 @MethodsReturnNonnullByDefault
 public class FissionWorkableElectricMultiblockMachine extends WorkableElectricMultiblockMachine
-        implements IExplosionMachine {
+                                                      implements IExplosionMachine {
 
     protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(
             FissionWorkableElectricMultiblockMachine.class,
@@ -80,12 +80,7 @@ public class FissionWorkableElectricMultiblockMachine extends WorkableElectricMu
     @Persisted
     @Getter
     protected double reactivityFactor = 0.0;
-    // componentManager's activeXxx lists are resolved from these persisted ID lists (see
-    // FissionComponentManager#resolvePersistedComponents), but that resolution only otherwise
-    // runs once, at onLoad(). onStructureFormed()/onStructureInvalid() - which keep the SERVER's
-    // copy of activeXxx live - are server-only GTCEu callbacks, so without this listener the
-    // client's activeXxx lists would go stale the moment components change after the initial
-    // load, even though these persisted ID lists themselves keep syncing correctly.
+
     @Persisted
     @DescSynced
     @UpdateListener(methodName = "onComponentIDsUpdated")
@@ -198,11 +193,6 @@ public class FissionWorkableElectricMultiblockMachine extends WorkableElectricMu
         return heat / getHeatCapacity();
     }
 
-    /**
-     * Seeds heat to ambient on first tick after formation, rather than in onStructureFormed() - see the
-     * comment there for why. Idempotent (guarded by ambientHeatInitialized) - cheap to call unconditionally
-     * at the top of every tickThermalLogic() call.
-     */
     public void ensureAmbientHeatInitialized() {
         if (!ambientHeatInitialized) {
             heat = PhoenixFissionConfigs.INSTANCE.fission.heatModel.ambientTemperatureHU * getHeatCapacity();
@@ -218,9 +208,6 @@ public class FissionWorkableElectricMultiblockMachine extends WorkableElectricMu
         reactorTickHandler.updateSubscription();
     }
 
-    // Fired by LDLib's sync system on the client whenever any persistedXxxIDs list above receives
-    // an updated value from the server, so the client's componentManager (which otherwise only
-    // resolves once, at onLoad()) stays live as components are added/removed.
     private void onComponentIDsUpdated(List<String> oldValue, List<String> newValue) {
         componentManager.resolvePersistedComponents();
     }
@@ -232,16 +219,6 @@ public class FissionWorkableElectricMultiblockMachine extends WorkableElectricMu
         componentManager.onStructureFormed();
         thermalManager.onStructureFormed();
         fuelManager.onStructureFormed();
-
-        // Deliberately NOT seeded here. getHeatCapacity() depends on multiBlockCount above, which isn't
-        // guaranteed to be fully settled the instant onStructureFormed() first fires for a multiblock -
-        // a one-time snapshot taken here could end up slightly out of sync with the live getHeatCapacity()
-        // that computeCoolingFloorHU() recomputes fresh every tick afterward, producing a small persistent
-        // gap that passive equilibration then spends a very long time (passiveCoolingConductivity is
-        // intentionally small) slowly closing - which looks exactly like "still heating up with no fuel"
-        // even though nothing is actually adding heat. Seeding happens in FissionThermalManager.
-        // tickThermalLogic() instead, which reads getHeatCapacity() at the same moment as the floor
-        // calculation right after it, so the two are structurally guaranteed to agree.
 
         reactorTickHandler.updateSubscription();
         markDirty();

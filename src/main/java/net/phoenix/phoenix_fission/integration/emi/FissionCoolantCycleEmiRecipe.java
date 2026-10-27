@@ -14,6 +14,7 @@ import dev.emi.emi.api.stack.EmiStack;
 import dev.emi.emi.api.widget.WidgetHolder;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -42,17 +43,32 @@ public class FissionCoolantCycleEmiRecipe implements EmiRecipe {
     @Override
     public List<EmiIngredient> getInputs() {
         if (type.isPassive()) return List.of();
-        EmiStack s = FissionEmiUtils.resolveFluid(type.getInputCoolantFluidId(), type.getCoolantPerTick());
-        return s.isEmpty() ? List.of() : List.of(s);
+        List<EmiIngredient> inputs = new ArrayList<>();
+        if (type.hasFluidCoolant()) {
+            EmiStack s = FissionEmiUtils.resolveFluid(type.getInputCoolantFluidId(), type.getCoolantPerTick());
+            if (!s.isEmpty()) inputs.add(s);
+        }
+        if (type.hasItemCoolant()) {
+            EmiStack s = FissionEmiUtils.resolveItem(type.getItemCoolantId(), 1);
+            if (!s.isEmpty()) inputs.add(s);
+        }
+        return inputs;
     }
 
     @Override
     public List<EmiStack> getOutputs() {
         if (type.isPassive()) return List.of();
+        List<EmiStack> outputs = new ArrayList<>();
         String outId = type.getOutputCoolantFluidId();
-        if (outId.equals(type.getInputCoolantFluidId())) return List.of();
-        EmiStack s = FissionEmiUtils.resolveFluid(outId, type.getCoolantPerTick());
-        return s.isEmpty() ? List.of() : List.of(s);
+        if (type.hasFluidCoolant() && !outId.equals(type.getInputCoolantFluidId())) {
+            EmiStack s = FissionEmiUtils.resolveFluid(outId, type.getCoolantPerTick());
+            if (!s.isEmpty()) outputs.add(s);
+        }
+        if (type.hasItemCoolant() && !type.getItemCoolantOutputId().isEmpty()) {
+            EmiStack s = FissionEmiUtils.resolveItem(type.getItemCoolantOutputId(), 1);
+            if (!s.isEmpty()) outputs.add(s);
+        }
+        return outputs;
     }
 
     @Override
@@ -62,7 +78,9 @@ public class FissionCoolantCycleEmiRecipe implements EmiRecipe {
 
     @Override
     public int getDisplayHeight() {
-        return type.isPassive() ? 58 : 74;
+        if (type.isPassive()) return 58;
+        // Fluid cooler layout is 74 tall; an item-coolant row adds one slot row, an item-only cooler is shorter.
+        return type.hasFluidCoolant() ? (type.hasItemCoolant() ? 100 : 74) : 74;
     }
 
     @Override
@@ -83,6 +101,16 @@ public class FissionCoolantCycleEmiRecipe implements EmiRecipe {
 
             String note = "Active even during coolant outage";
             FissionEmiUtils.text(widgets, note, W / 2 - font.width(note) / 2, 46, 0xFF_FFFFFF);
+        } else if (!type.hasFluidCoolant()) {
+            drawItemRow(widgets, font, 22);
+
+            String thresh = coolingLabel();
+            String rate = String.format(Locale.ROOT, "1 item / %.2f s", type.getItemCoolantSeconds());
+            FissionEmiUtils.text(widgets, thresh, 8, 46, 0xFF_55FFFF);
+            FissionEmiUtils.text(widgets, rate, W - font.width(rate) - 8, 46, 0xFF_AADDFF);
+
+            String cond = "Cools when reactor heat > threshold";
+            FissionEmiUtils.text(widgets, cond, W / 2 - font.width(cond) / 2, 60, 0xFF_FFFFFF);
         } else {
             EmiStack inFluid = FissionEmiUtils.resolveFluid(type.getInputCoolantFluidId(), type.getCoolantPerTick());
             String outFluidId = type.getOutputCoolantFluidId();
@@ -106,13 +134,45 @@ public class FissionCoolantCycleEmiRecipe implements EmiRecipe {
                 FissionEmiUtils.text(widgets, "(same fluid)", outX, slotY + 6, 0xFF_FFFFFF);
             }
 
-            String thresh = type.getCoolerTemperature() + " K threshold";
+            String thresh = coolingLabel();
             String mbt = type.getCoolantPerTick() + " mB/t";
             FissionEmiUtils.text(widgets, thresh, 8, 46, 0xFF_55FFFF);
             FissionEmiUtils.text(widgets, mbt, W - font.width(mbt) - 8, 46, 0xFF_AADDFF);
 
             String cond = "Cools when reactor heat > threshold";
             FissionEmiUtils.text(widgets, cond, W / 2 - font.width(cond) / 2, 60, 0xFF_FFFFFF);
+
+            if (type.hasItemCoolant()) {
+                drawItemRow(widgets, font, 76);
+            }
+        }
+    }
+
+    private String coolingLabel() {
+        boolean rated = net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs.INSTANCE.fission.heatModel
+                .thermalModel == net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs.ThermalModel.RATED;
+        if (rated && type.getRatedCoolingHUt() >= 0) {
+            return String.format(Locale.ROOT, "%.0f HU/t rated", type.getRatedCoolingHUt());
+        }
+        return type.getCoolerTemperature() + " K threshold";
+    }
+
+    private void drawItemRow(WidgetHolder widgets, Font font, int slotY) {
+        String outItemId = type.getItemCoolantOutputId();
+        boolean hasOut = !outItemId.isEmpty() && !"none".equalsIgnoreCase(outItemId);
+        int outWidth = hasOut ? 18 : font.width("(consumed)");
+        EmiTexture arrow = EmiTexture.FULL_ARROW;
+        int groupWidth = 18 + 6 + arrow.width + 6 + outWidth;
+        int groupX = W / 2 - groupWidth / 2;
+
+        widgets.addSlot(FissionEmiUtils.resolveItem(type.getItemCoolantId(), 1), groupX, slotY);
+        widgets.addTexture(arrow, groupX + 18 + 6, slotY + 1);
+
+        int outX = groupX + 18 + 6 + arrow.width + 6;
+        if (hasOut) {
+            widgets.addSlot(FissionEmiUtils.resolveItem(outItemId, 1), outX, slotY).recipeContext(this);
+        } else {
+            FissionEmiUtils.text(widgets, "(consumed)", outX, slotY + 6, 0xFF_FFFFFF);
         }
     }
 }

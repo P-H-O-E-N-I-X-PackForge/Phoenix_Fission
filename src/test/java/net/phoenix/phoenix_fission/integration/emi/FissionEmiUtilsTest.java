@@ -34,10 +34,10 @@ class FissionEmiUtilsTest {
 
     @Test
     void tierColor_clampsToValidRange() {
-        // Below range clamps to tier 1's color.
+        
         assertEquals(FissionEmiUtils.tierColor(1), FissionEmiUtils.tierColor(0));
         assertEquals(FissionEmiUtils.tierColor(1), FissionEmiUtils.tierColor(-5));
-        // Above range clamps to the tier 6+ ("default") color.
+        
         assertEquals(FissionEmiUtils.tierColor(6), FissionEmiUtils.tierColor(99));
     }
 

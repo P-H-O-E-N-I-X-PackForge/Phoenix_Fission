@@ -7,6 +7,7 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.material.Fluid;
@@ -55,15 +56,6 @@ public class FissionThermalManager {
         return (ambientTemp - heat) * conductivity;
     }
 
-    /**
-     * cooler.getCoolerTemperature() is a Kelvin value (a coolant's real-world temperature, e.g. ~77K for
-     * liquid nitrogen), not a raw HU quantity - it needs the same K-to-HU conversion maxSafeTempK/
-     * maxHeatClampTempK already get (temp * heatCapacity) before it can be meaningfully compared against
-     * or subtracted from machine.getHeat(). Without it, a cooler's configured temperature is negligible
-     * next to raw heat for any multiblock of nontrivial size, so only its conductivity ever mattered in
-     * practice - different coolant types barely differed from one another regardless of how cold they
-     * were actually supposed to be.
-     */
     protected double computeActiveCoolerHeatRemoval(IFissionCoolerType cooler, double heat,
                                                     long count, double conductivity, double heatCapacity) {
         double coolerTempHU = cooler.getCoolerTemperature() * heatCapacity;
@@ -76,6 +68,30 @@ public class FissionThermalManager {
         return c >= 0 ? c : hm.activeCoolingConductivity;
     }
 
+    public static boolean isRated(PhoenixFissionConfigs.HeatModelConfigs hm) {
+        return hm.thermalModel == PhoenixFissionConfigs.ThermalModel.RATED;
+    }
+
+    /** 0 at/below ambient, 1 at/above the safe-heat limit, linear in between. */
+    public static double ratedFraction(double heat, double ambientHU, double maxSafeHU) {
+        double span = Math.max(1e-6, maxSafeHU - ambientHU);
+        return Math.max(0.0, Math.min(1.0, (heat - ambientHU) / span));
+    }
+
+    /** HU/t one cooler block removes right now under the RATED model. */
+    public static double ratedCoolingDelivered(double ratedHUt, double heat, double ambientHU, double maxSafeHU) {
+        return Math.max(0.0, ratedHUt) * ratedFraction(heat, ambientHU, maxSafeHU);
+    }
+
+    /** Full rated HU/t of one cooler block - explicit if set, else what the CONDUCTIVE model gave at the limit. */
+    public static double resolveRatedCooling(IFissionCoolerType cooler, PhoenixFissionConfigs.HeatModelConfigs hm,
+                                             double heatCapacity) {
+        double r = cooler.getRatedCoolingHUt();
+        if (r >= 0) return r;
+        return Math.max(0.0,
+                (hm.maxSafeTempK - cooler.getCoolerTemperature()) * resolveConductivity(cooler, hm) * heatCapacity);
+    }
+
     protected CoolerLoad computeCoolerLoad() {
         var hm = PhoenixFissionConfigs.INSTANCE.fission.heatModel;
         var comp = machine.getComponentManager();
@@ -84,16 +100,38 @@ public class FissionThermalManager {
                 .filter(c -> !c.isPassive())
                 .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
 
+        boolean rated = isRated(hm);
+        double ambientHU = hm.ambientTemperatureHU * heatCapacity;
+        double maxSafeHU = machine.getMaxSafeHeatHU();
+        double refHU = Math.max(0.0001, hm.coolantReferenceHeatRemovalHUt);
+
         Map<IFissionCoolerType, Double> removal = new HashMap<>();
+        Map<IFissionCoolerType, Double> usage = new HashMap<>();
         for (var entry : counts.entrySet()) {
-            double conductivity = resolveConductivity(entry.getKey(), hm);
-            removal.put(entry.getKey(), computeActiveCoolerHeatRemoval(entry.getKey(), machine.getHeat(),
-                    entry.getValue(), conductivity, heatCapacity));
+            IFissionCoolerType cooler = entry.getKey();
+            long count = entry.getValue();
+            if (rated) {
+                double frac = ratedFraction(machine.getHeat(), ambientHU, maxSafeHU);
+                removal.put(cooler, ratedCoolingDelivered(resolveRatedCooling(cooler, hm, heatCapacity),
+                        machine.getHeat(), ambientHU, maxSafeHU) * count);
+                // Coolant use tracks how much of the cooler's rating is in use.
+                usage.put(cooler, frac * refHU);
+            } else {
+                double total = computeActiveCoolerHeatRemoval(cooler, machine.getHeat(), count,
+                        resolveConductivity(cooler, hm), heatCapacity);
+                removal.put(cooler, total);
+                usage.put(cooler, total / Math.max(1, count));
+            }
         }
-        return new CoolerLoad(counts, removal);
+        return new CoolerLoad(counts, removal, usage);
     }
 
-    protected record CoolerLoad(Map<IFissionCoolerType, Long> counts, Map<IFissionCoolerType, Double> removal) {}
+    /**
+     * counts: active cooler blocks per type. removal: total HU/t removed per type. usage: per-block heat-removal
+     * equivalent that coolant/item consumption is scaled from (see scaledCoolantAmount).
+     */
+    protected record CoolerLoad(Map<IFissionCoolerType, Long> counts, Map<IFissionCoolerType, Double> removal,
+                                Map<IFissionCoolerType, Double> usage) {}
 
     protected int computeMeltdownGracePeriodTicks(double heat, double maxSafeHeat,
                                                   double minGrace, double baseGrace, double severity) {
@@ -111,24 +149,6 @@ public class FissionThermalManager {
 
     private boolean overcooledThisTick = false;
 
-    /**
-     * The passive/ambient equilibration floor is pure room temperature - period. It intentionally does
-     * NOT fold in any active cooler's getCoolerTemperature(), even though that looks tempting since
-     * coolers are right there in scope. An active cooler's own threshold is already handled correctly
-     * and separately by computeActiveCoolerHeatRemoval, which compares its coolerTempHU against current
-     * heat to decide how much it removes. Folding that same threshold into this SHARED floor as well
-     * (via Math.max(ambient, coolerTemp), as this method previously did) meant that any normal, non-heater
-     * cooler configured above ambient - which is most of them; genuinely sub-ambient "cryo" coolants are
-     * the exception, not the rule - would silently turn passive equilibration into a heat source, pulling
-     * an idle, fuel-less reactor UP toward that cooler's own operating temperature instead of down toward
-     * real room temperature. A cooler's whole job is to pull heat down when it's hot; it should never be
-     * able to pull heat up when it's cold, no matter what its own operating temperature stat says.
-     *
-     * <p>ambientTemperatureK is a Kelvin value (293K room temp) - converted to actual HU via heatCapacity
-     * here, the same way maxSafeTempK/maxHeatClampTempK already are, so this represents real room
-     * temperature instead of a few hundred raw HU (near absolute zero once divided back out by
-     * heatCapacity for any multiblock bigger than 1 block).
-     */
     protected double computeCoolingFloorHU(double ambientTemperatureK, double heatCapacity) {
         return ambientTemperatureK * heatCapacity;
     }
@@ -196,16 +216,19 @@ public class FissionThermalManager {
         machine.isOverCooled = overcooledThisTick;
 
         machine.lastHasCoolant = true;
-        // c.getCoolerTemperature() is Kelvin - convert to HU before comparing against raw heat, same
-        // fix as everywhere else in this class.
+
         double heatCapacityForCoolers = machine.getHeatCapacity();
+        boolean ratedModel = isRated(hm);
         boolean requiresActiveCooling = comp.getActiveCoolers().stream()
-                .anyMatch(c -> !c.isPassive() && c.getCoolerTemperature() * heatCapacityForCoolers < machine.getHeat());
+                .anyMatch(c -> !c.isPassive() && (ratedModel ? machine.getHeat() > coolingFloorHU :
+                        c.getCoolerTemperature() * heatCapacityForCoolers < machine.getHeat()));
 
         CoolerLoad load = computeCoolerLoad();
 
         if (requiresActiveCooling && PhoenixFissionConfigs.INSTANCE.fission.coolingRequiresCoolant) {
-            machine.lastHasCoolant = processCoolantAction(false, load) && processCoolantAction(true, load);
+            // Simulate fluid and item coolant first so neither is consumed if the other is missing.
+            machine.lastHasCoolant = processCoolantAction(false, load) && processItemCoolantAction(false, load) &&
+                    processCoolantAction(true, load) && processItemCoolantAction(true, load);
         }
 
         if (requiresActiveCooling &&
@@ -235,16 +258,75 @@ public class FissionThermalManager {
     }
 
     public boolean canConsumeCoolantForThisTick() {
-        return processCoolantAction(false, computeCoolerLoad());
+        CoolerLoad load = computeCoolerLoad();
+        return processCoolantAction(false, load) && processItemCoolantAction(false, load);
     }
 
-    // Package-private (not private) so FissionThermalManagerTest can exercise it directly.
     static int scaledCoolantAmount(int baseAmountPerBlock, long count, double removalForType,
                                    PhoenixFissionConfigs.HeatModelConfigs hm) {
         if (baseAmountPerBlock <= 0 || count <= 0 || removalForType <= 0) return 0;
         double refHU = Math.max(0.0001, hm.coolantReferenceHeatRemovalHUt);
         double scaled = (baseAmountPerBlock * (double) count) * (removalForType / refHU);
         return (int) Math.round(Math.max(0.0, scaled));
+    }
+
+    // Items are discrete but consumption is fractional per tick, so carry the remainder like fuel does.
+    private final Map<String, Double> itemCoolantRemainder = new HashMap<>();
+
+    // Package-private for tests: fractional items consumed this tick for one cooler type.
+    static double scaledItemAmount(double itemsPerTickPerBlock, long count, double removalForType,
+                                   PhoenixFissionConfigs.HeatModelConfigs hm) {
+        if (itemsPerTickPerBlock <= 0 || count <= 0 || removalForType <= 0) return 0.0;
+        double refHU = Math.max(0.0001, hm.coolantReferenceHeatRemovalHUt);
+        return itemsPerTickPerBlock * count * (removalForType / refHU);
+    }
+
+    private boolean processItemCoolantAction(boolean execute, CoolerLoad load) {
+        var hm = PhoenixFissionConfigs.INSTANCE.fission.heatModel;
+
+        Map<String, Double> pendingPerItem = new HashMap<>();
+        Map<String, String> outputIdForItem = new HashMap<>();
+        for (var entry : load.counts().entrySet()) {
+            IFissionCoolerType c = entry.getKey();
+            if (!c.hasItemCoolant()) continue;
+            double amount = scaledItemAmount(c.getItemCoolantPerTick(), entry.getValue(),
+                    load.usage().getOrDefault(c, 0.0), hm);
+            if (amount <= 0) continue;
+            pendingPerItem.merge(c.getItemCoolantId(), amount, Double::sum);
+            String outId = c.getItemCoolantOutputId();
+            if (!outId.isEmpty() && !"none".equalsIgnoreCase(outId) && !outId.equalsIgnoreCase(c.getItemCoolantId())) {
+                outputIdForItem.put(c.getItemCoolantId(), outId);
+            }
+        }
+
+        for (var entry : pendingPerItem.entrySet()) {
+            String itemId = entry.getKey();
+            double total = itemCoolantRemainder.getOrDefault(itemId, 0.0) + entry.getValue();
+            int whole = (int) Math.floor(total);
+
+            ResourceLocation rl = ResourceLocation.tryParse(itemId);
+            if (rl == null || !ForgeRegistries.ITEMS.containsKey(rl)) return false;
+            var item = Objects.requireNonNull(ForgeRegistries.ITEMS.getValue(rl));
+
+            if (!execute) {
+                // Don't stall the reactor on a zero-item tick, only when a whole item is actually due.
+                if (whole > 0 && !machine.executeItemIO(new ItemStack(item, whole), IO.IN, true)) return false;
+                continue;
+            }
+
+            if (whole > 0 && !machine.executeItemIO(new ItemStack(item, whole), IO.IN, false)) return false;
+            itemCoolantRemainder.put(itemId, total - whole);
+
+            String outId = outputIdForItem.get(itemId);
+            if (whole > 0 && outId != null) {
+                ResourceLocation outRl = ResourceLocation.tryParse(outId);
+                if (outRl != null && ForgeRegistries.ITEMS.containsKey(outRl)) {
+                    machine.executeItemIO(new ItemStack(Objects.requireNonNull(ForgeRegistries.ITEMS.getValue(outRl)),
+                            whole), IO.OUT);
+                }
+            }
+        }
+        return true;
     }
 
     private boolean processCoolantAction(boolean execute, CoolerLoad load) {
@@ -255,9 +337,8 @@ public class FissionThermalManager {
 
         if (!cfg.coolantUsageAdditive) {
             IFissionCoolerType primary = comp.getPrimaryCoolerType();
-            if (primary == null) return true;
-            long count = Math.max(1, load.counts().getOrDefault(primary, 1L));
-            double removalPerBlock = load.removal().getOrDefault(primary, 0.0) / count;
+            if (primary == null || !primary.hasFluidCoolant()) return true;
+            double removalPerBlock = load.usage().getOrDefault(primary, 0.0);
             int scaledIn = scaledCoolantAmount(primary.getCoolantPerTick(), 1, removalPerBlock, hm);
             int scaledOut = scaledCoolantAmount(primary.getOutputCoolantPerTick(), 1, removalPerBlock, hm);
             return handleFluidConversion(primary.getInputCoolantFluidId(), primary.getOutputCoolantFluidId(),
@@ -272,12 +353,10 @@ public class FissionThermalManager {
 
         for (var entry : load.counts().entrySet()) {
             IFissionCoolerType c = entry.getKey();
-            if (c.getCoolantPerTick() <= 0 || c.getInputCoolantFluidId().isEmpty() ||
-                    "none".equalsIgnoreCase(c.getInputCoolantFluidId()))
-                continue;
-            double removalForType = load.removal().getOrDefault(c, 0.0);
-            int scaledIn = scaledCoolantAmount(c.getCoolantPerTick(), entry.getValue(), removalForType, hm);
-            int scaledOut = scaledCoolantAmount(c.getOutputCoolantPerTick(), entry.getValue(), removalForType, hm);
+            if (!c.hasFluidCoolant()) continue;
+            double usagePerBlock = load.usage().getOrDefault(c, 0.0);
+            int scaledIn = scaledCoolantAmount(c.getCoolantPerTick(), entry.getValue(), usagePerBlock, hm);
+            int scaledOut = scaledCoolantAmount(c.getOutputCoolantPerTick(), entry.getValue(), usagePerBlock, hm);
             if (scaledIn <= 0) continue;
 
             totalPerInput.merge(c.getInputCoolantFluidId(), scaledIn, Integer::sum);
@@ -349,10 +428,16 @@ public class FissionThermalManager {
         double heatCapacity = machine.getHeatCapacity();
         double ambientHU = hm.ambientTemperatureHU * heatCapacity;
         double maxCooling = Math.max(0.0, (maxSafe - ambientHU) * hm.passiveCoolingConductivity);
+        boolean rated = isRated(hm);
         for (IFissionCoolerType c : machine.getComponentManager().getActiveCoolers()) {
-            double coolerTempHU = c.getCoolerTemperature() * heatCapacity;
-            maxCooling += c.isPassive() ? c.getFlatCoolingHUt() :
-                    Math.max(0.0, (maxSafe - coolerTempHU) * resolveConductivity(c, hm));
+            if (c.isPassive()) {
+                maxCooling += c.getFlatCoolingHUt();
+            } else if (rated) {
+                maxCooling += resolveRatedCooling(c, hm, heatCapacity);
+            } else {
+                double coolerTempHU = c.getCoolerTemperature() * heatCapacity;
+                maxCooling += Math.max(0.0, (maxSafe - coolerTempHU) * resolveConductivity(c, hm));
+            }
         }
         return maxCooling;
     }
@@ -442,8 +527,7 @@ public class FissionThermalManager {
     }
 
     public void addDisplayText(List<Component> textList) {
-        // Raw HU, matching the "HU" label in the translation string below and
-        // MoltenSaltReactorMultiblockMachine's own addDisplayText override.
+
         textList.add(Component
                 .translatable("phoenix_fission.current_heat_display",
                         String.format("%.1f", machine.getHeat()),

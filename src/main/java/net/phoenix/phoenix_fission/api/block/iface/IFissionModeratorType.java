@@ -12,6 +12,18 @@ public interface IFissionModeratorType extends StringRepresentable {
     @NotNull
     String getName();
 
+    /**
+     * False (default): the block uses the shared moderator texture and is tinted with {@link #getTintColor()}.
+     * True: {@link #getTexture()} (and {@link #getActiveTexture()}) are used as-is, with no tinting.
+     */
+    default boolean isTextureManual() {
+        return false;
+    }
+
+    default ResourceLocation getActiveTexture() {
+        return getTexture();
+    }
+
     default int getTintColor() {
         return 0xFFFFFFFF;
     }

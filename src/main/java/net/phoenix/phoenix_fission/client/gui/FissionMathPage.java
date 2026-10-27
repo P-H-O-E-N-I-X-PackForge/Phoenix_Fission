@@ -22,6 +22,7 @@ import net.minecraft.network.chat.Style;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.phoenix.phoenix_fission.api.machine.multiblock.FissionWorkableElectricMultiblockMachine;
+import net.phoenix.phoenix_fission.api.machine.multiblock.managers.FissionThermalManager;
 import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
 
 import java.util.List;
@@ -123,11 +124,19 @@ public class FissionMathPage implements IFancyUIProvider {
 
             y = section(g, font, x, y, W, "COOLING / TICK", A_COOL);
 
-            double cond = fcfg.heatModel.activeCoolingConductivity;
-            y = formula(g, font, x, y, W,
-                    "passive: sum(flatHU/t)",
-                    "active: sum((heat - coolerTemp) * conductivity)");
-            y = note(g, font, x, y, W, "Default conductivity: " + fmt2(cond) + " (per-cooler types may override)");
+            if (FissionThermalManager.isRated(fcfg.heatModel)) {
+                y = formula(g, font, x, y, W,
+                        "passive: sum(flatHU/t)",
+                        "active: sum(rated * (heat - ambient) / (safe - ambient))");
+                y = note(g, font, x, y, W, "Production ignores temperature: stable heat = production / rated");
+            } else {
+                double cond = fcfg.heatModel.activeCoolingConductivity;
+                y = formula(g, font, x, y, W,
+                        "passive: sum(flatHU/t)",
+                        "active: sum((heat - coolerTemp) * conductivity)");
+                y = note(g, font, x, y, W,
+                        "Default conductivity: " + fmt2(cond) + " (per-cooler types may override)");
+            }
             y = note(g, font, x, y, W, "Live: " + fmt1(reactor.lastHeatRemovedPerTick) + " HU/t removed");
             y += 3;
 

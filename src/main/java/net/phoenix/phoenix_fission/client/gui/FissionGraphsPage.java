@@ -22,6 +22,7 @@ import net.phoenix.phoenix_fission.api.block.iface.IFissionFuelRodType;
 import net.phoenix.phoenix_fission.api.block.iface.IFissionModeratorType;
 import net.phoenix.phoenix_fission.api.machine.multiblock.FissionWorkableElectricMultiblockMachine;
 import net.phoenix.phoenix_fission.api.machine.multiblock.MoltenSaltReactorMultiblockMachine;
+import net.phoenix.phoenix_fission.api.machine.multiblock.managers.FissionThermalManager;
 import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
 
 import java.util.*;
@@ -327,7 +328,26 @@ public class FissionGraphsPage implements IFancyUIProvider {
             g.fill(x, y + 2, x + 5, y + 7, C_RED);
             g.drawString(font, "  Meltdown: " + formatK(maxClamp / heatCap), x, y, 0xCC_FF3333, false);
             y += 12;
-            g.drawString(font, "Assumes: reactivity=1.0, coolant present", x, y, C_DIM, false);
+            var hm = PhoenixFissionConfigs.INSTANCE.fission.heatModel;
+            if (FissionThermalManager.isRated(hm)) {
+                var comp = reactor.getComponentManager();
+                double modBonus = 1.0 + (computeModBonus(comp.getActiveModerators()) / 100.0);
+                double production = computeHeatProduction(0, comp.getActiveFuelRods(), modBonus, hm);
+                double rated = 0.0;
+                for (IFissionCoolerType c : comp.getActiveCoolers()) {
+                    if (c.isPassive()) production -= Math.max(0.0, c.getFlatCoolingHUt());
+                    else rated += FissionThermalManager.resolveRatedCooling(c, hm, heatCap);
+                }
+                production = Math.max(0.0, production);
+                double pct = rated > 0 ? production / rated * 100.0 : Double.POSITIVE_INFINITY;
+                String load = rated > 0 ?
+                        String.format("Load: %.0f HU/t vs %.0f rated = %.0f%%", production, rated, pct) :
+                        String.format("Load: %.0f HU/t, no rated cooling", production);
+                int col = pct < 100.0 ? C_GREEN : C_RED;
+                g.drawString(font, load, x, y, col, false);
+            } else {
+                g.drawString(font, "Assumes: reactivity=1.0, coolant present", x, y, C_DIM, false);
+            }
         }
 
         @OnlyIn(Dist.CLIENT)
@@ -351,10 +371,6 @@ public class FissionGraphsPage implements IFancyUIProvider {
             int endLabelX = x + W - font.width(xMaxStr);
             g.drawString(font, xMaxStr, endLabelX, labelY, C_DIM, false);
 
-            // xMax is always maxClampHU * 1.15, so meltdownFrac sits at a near-constant ~87% of
-            // the plot width regardless of reactor config - close enough to the right edge that a
-            // fixed fractional cutoff (the old `< 0.92` check) isn't a reliable guard against
-            // overlapping the end-of-axis Kelvin label. Check actual label pixel bounds instead.
             int zeroLabelRight = x + font.width(zeroStr);
             int pad = 4;
 
@@ -416,7 +432,10 @@ public class FissionGraphsPage implements IFancyUIProvider {
             }
             if (rods.isEmpty()) return 0.0;
             double rodInteraction = (rods.size() + 1.0) / 2.0;
-            double thermalScalar = Math.pow(1.0 + T / Math.max(1.0, reactor.getMaxSafeHeatHU()), 2.0);
+            double ratio = T / Math.max(1.0, reactor.getMaxSafeHeatHU());
+            double thermalScalar = FissionThermalManager.isRated(hm) ? 1.0 :
+                    hm.exponentialHeatGrowth ? Math.exp(ratio * hm.heatGenerationExponent) :
+                            Math.pow(1.0 + ratio, hm.heatGenerationExponent);
             Map<IFissionFuelRodType, Long> groups = rods.stream()
                     .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
             double total = 0.0;
@@ -431,11 +450,7 @@ public class FissionGraphsPage implements IFancyUIProvider {
                                       List<IFissionCoolerType> coolers,
                                       PhoenixFissionConfigs.HeatModelConfigs hm) {
             double cooling = 0.0;
-            // Pure ambient floor for passive equilibration - matches FissionThermalManager.
-            // computeCoolingFloorHU: an active cooler's own threshold is already handled below in the
-            // per-cooler branch, so it must not also feed this shared floor, or a normal (non-heater)
-            // cooler configured above ambient would pull an idle reactor UP toward its own operating
-            // temperature instead of down toward real room temperature.
+
             double heatCapacity = reactor.getHeatCapacity();
             double floor = hm.ambientTemperatureHU * heatCapacity;
 
@@ -447,6 +462,10 @@ public class FissionGraphsPage implements IFancyUIProvider {
                 IFissionCoolerType c = e.getKey();
                 if (c.isPassive()) {
                     if (T > floor) cooling += c.getFlatCoolingHUt() * e.getValue();
+                } else if (FissionThermalManager.isRated(hm)) {
+                    cooling += FissionThermalManager.ratedCoolingDelivered(
+                            FissionThermalManager.resolveRatedCooling(c, hm, heatCapacity), T, floor,
+                            reactor.getMaxSafeHeatHU()) * e.getValue();
                 } else {
                     double conductivity = c.getConductivity() >= 0 ? c.getConductivity() : hm.activeCoolingConductivity;
                     double coolerTempHU = c.getCoolerTemperature() * heatCapacity;

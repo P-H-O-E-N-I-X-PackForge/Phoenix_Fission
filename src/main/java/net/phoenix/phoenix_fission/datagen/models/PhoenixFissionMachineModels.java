@@ -20,6 +20,34 @@ public class PhoenixFissionMachineModels {
         return PhoenixFission.id("block/cube_2_layer_all_tinted");
     }
 
+    private static ResourceLocation base(String kind) {
+        return PhoenixFission.id("block/fission/" + kind + "_base");
+    }
+
+    /**
+     * Tinted by default: the shared kind base underneath and the (grayscale) mask on top, which the
+     * block/item colour handlers tint with the type's colour. A type that supplies its own finished
+     * texture ({@code isTextureManual}) gets a plain cube with that texture instead.
+     */
+    private static void buildModels(RegistrateBlockstateProvider prov, Block block, String name, boolean manual,
+                                    ResourceLocation texture, ResourceLocation activeTexture, ResourceLocation base,
+                                    ResourceLocation mask, ResourceLocation maskOn) {
+        var inactive = manual ?
+                prov.models().cubeAll(name, texture) :
+                prov.models().withExistingParent(name, tinted2LayerParent())
+                        .texture("bot_all", base).texture("top_all", mask);
+        var active = manual ?
+                prov.models().cubeAll(name + "_active", activeTexture) :
+                prov.models().withExistingParent(name + "_active", tinted2LayerParent())
+                        .texture("bot_all", base).texture("top_all", maskOn);
+
+        prov.getVariantBuilder(block)
+                .partialState().with(GTBlockStateProperties.ACTIVE, false)
+                .modelForState().modelFile(inactive).addModel()
+                .partialState().with(GTBlockStateProperties.ACTIVE, true)
+                .modelForState().modelFile(active).addModel();
+    }
+
     private static ResourceLocation coolerMask() {
         return PhoenixFission.id("block/fission/masks/cooler_mask");
     }
@@ -50,88 +78,30 @@ public class PhoenixFissionMachineModels {
 
     public static <
             T extends Block> NonNullBiConsumer<DataGenContext<Block, T>, RegistrateBlockstateProvider> createActiveCoolerModel(IFissionCoolerType type) {
-        return (ctx, prov) -> {
-            String name = ctx.getName();
-            Block block = ctx.getEntry();
-
-            var inactive = prov.models()
-                    .withExistingParent(name, tinted2LayerParent())
-                    .texture("bot_all", PhoenixFission.id("block/fission/coolers/" + type.getName()))
-                    .texture("top_all", coolerMask());
-
-            var active = prov.models()
-                    .withExistingParent(name + "_active", tinted2LayerParent())
-                    .texture("bot_all", PhoenixFission.id("block/fission/coolers/" + type.getName()))
-                    .texture("top_all", coolerMaskOn());
-
-            prov.getVariantBuilder(block)
-                    .partialState().with(GTBlockStateProperties.ACTIVE, false)
-                    .modelForState().modelFile(inactive).addModel()
-                    .partialState().with(GTBlockStateProperties.ACTIVE, true)
-                    .modelForState().modelFile(active).addModel();
-        };
+        return (ctx, prov) -> buildModels(prov, ctx.getEntry(), ctx.getName(), type.isTextureManual(),
+                type.getTexture(), type.getActiveTexture(), base("cooler"), coolerMask(), coolerMaskOn());
     }
 
     public static <
             T extends Block> NonNullBiConsumer<DataGenContext<Block, T>, RegistrateBlockstateProvider> createBlanketRodModel(IFissionBlanketType type) {
-        return (ctx, prov) -> {
-            String name = ctx.getName();
-            Block block = ctx.getEntry();
-
-            var inactive = prov.models()
-                    .withExistingParent(name, tinted2LayerParent())
-                    .texture("bot_all", PhoenixFission.id("block/fission/blankets/" + type.getName()))
-                    .texture("top_all", blanketMask());
-
-            var active = prov.models()
-                    .withExistingParent(name + "_active", tinted2LayerParent())
-                    .texture("bot_all", PhoenixFission.id("block/fission/blankets/" + type.getName()))
-                    .texture("top_all", blanketMaskOn());
-
-            prov.getVariantBuilder(block)
-                    .partialState().with(GTBlockStateProperties.ACTIVE, false)
-                    .modelForState().modelFile(inactive).addModel()
-                    .partialState().with(GTBlockStateProperties.ACTIVE, true)
-                    .modelForState().modelFile(active).addModel();
-        };
+        return (ctx, prov) -> buildModels(prov, ctx.getEntry(), ctx.getName(), type.isTextureManual(),
+                type.getTexture(), type.getActiveTexture(), base("blanket"), blanketMask(), blanketMaskOn());
     }
 
     public static <
             T extends Block> NonNullBiConsumer<DataGenContext<Block, T>, RegistrateBlockstateProvider> createFuelRodModel(IFissionFuelRodType type) {
-        return (ctx, prov) -> {
-            String name = ctx.getName();
-            Block block = ctx.getEntry();
-
-            var inactive = prov.models()
-                    .withExistingParent(name, tinted2LayerParent())
-                    .texture("bot_all", PhoenixFission.id("block/fission/fuel_rods/" + type.getName()))
-                    .texture("top_all", rodMask());
-
-            var active = prov.models()
-                    .withExistingParent(name + "_active", tinted2LayerParent())
-                    .texture("bot_all", PhoenixFission.id("block/fission/fuel_rods/" + type.getName()))
-                    .texture("top_all", rodMaskOn());
-
-            prov.getVariantBuilder(block)
-                    .partialState().with(GTBlockStateProperties.ACTIVE, false)
-                    .modelForState().modelFile(inactive).addModel()
-                    .partialState().with(GTBlockStateProperties.ACTIVE, true)
-                    .modelForState().modelFile(active).addModel();
-        };
+        return (ctx, prov) -> buildModels(prov, ctx.getEntry(), ctx.getName(), type.isTextureManual(),
+                type.getTexture(), type.getActiveTexture(), base("fuel_rod"), rodMask(), rodMaskOn());
     }
 
     public static <
             T extends Block> NonNullBiConsumer<DataGenContext<Block, T>, RegistrateBlockstateProvider> createFissionModeratorModel(IFissionModeratorType type) {
         return (ctx, prov) -> {
-            String name = ctx.getName();
-            Block block = ctx.getEntry();
-
-            var model = prov.models()
-                    .withExistingParent(name, tinted2LayerParent())
-                    .texture("bot_all", PhoenixFission.id("block/fission/moderators/" + type.getName()))
-                    .texture("top_all", modMask());
-
-            prov.simpleBlock(block, model);
+            var model = type.isTextureManual() ?
+                    prov.models().cubeAll(ctx.getName(), type.getTexture()) :
+                    prov.models().withExistingParent(ctx.getName(), tinted2LayerParent())
+                            .texture("bot_all", base("moderator")).texture("top_all", modMask());
+            prov.simpleBlock(ctx.getEntry(), model);
         };
     }
 }

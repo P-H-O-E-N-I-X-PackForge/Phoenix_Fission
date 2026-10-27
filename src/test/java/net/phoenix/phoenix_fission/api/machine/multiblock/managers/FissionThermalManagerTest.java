@@ -11,16 +11,11 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * Regression coverage for the proportional coolant-consumption formula and per-cooler conductivity
- * fallback introduced alongside {@code coolantReferenceHeatRemovalHUt}. Both are pure functions of
- * their arguments, so they're testable without spinning up a Minecraft/GTCEu runtime.
- */
 class FissionThermalManagerTest {
 
-    /** Minimal {@link IFissionCoolerType} stub — only the fields these two formulas actually read are meaningful. */
     private static IFissionCoolerType cooler(int coolerTemperature, int coolantUsagePerTick, double conductivity) {
         return new IFissionCoolerType() {
+
             @Override
             public @NotNull String getName() {
                 return "test_cooler";
@@ -62,8 +57,6 @@ class FissionThermalManagerTest {
         return new PhoenixFissionConfigs.HeatModelConfigs();
     }
 
-    // --- resolveConductivity ---
-
     @Test
     void resolveConductivity_usesCoolerOverride_whenNonNegative() {
         var hm = heatModel();
@@ -82,18 +75,15 @@ class FissionThermalManagerTest {
         assertEquals(0.25, FissionThermalManager.resolveConductivity(c, hm));
     }
 
-    // --- scaledCoolantAmount ---
-
     @Test
     void scaledCoolantAmount_isProportionalToHeatRemoved() {
         var hm = heatModel();
         hm.coolantReferenceHeatRemovalHUt = 100.0;
 
-        // At exactly the reference removal, consumption equals the configured base rate.
         assertEquals(10, FissionThermalManager.scaledCoolantAmount(10, 1, 100.0, hm));
-        // At double the reference removal, consumption doubles too.
+        
         assertEquals(20, FissionThermalManager.scaledCoolantAmount(10, 1, 200.0, hm));
-        // At a tenth of the reference removal, consumption scales down proportionally.
+        
         assertEquals(1, FissionThermalManager.scaledCoolantAmount(10, 1, 10.0, hm));
     }
 
@@ -102,7 +92,6 @@ class FissionThermalManagerTest {
         var hm = heatModel();
         hm.coolantReferenceHeatRemovalHUt = 100.0;
 
-        // 3 blocks of a 10 mB/t cooler, removing the reference amount in aggregate.
         assertEquals(30, FissionThermalManager.scaledCoolantAmount(10, 3, 100.0, hm));
     }
 
@@ -119,6 +108,47 @@ class FissionThermalManagerTest {
         assertEquals(0, FissionThermalManager.scaledCoolantAmount(0, 1, 100.0, hm));
         assertEquals(0, FissionThermalManager.scaledCoolantAmount(-10, 1, 100.0, hm));
         assertEquals(0, FissionThermalManager.scaledCoolantAmount(10, 0, 100.0, hm));
+    }
+
+    @Test
+    void scaledItemAmount_isFractionalAndProportionalToHeatRemoved() {
+        var hm = heatModel();
+        hm.coolantReferenceHeatRemovalHUt = 100.0;
+        assertEquals(0.05, FissionThermalManager.scaledItemAmount(0.05, 1, 100.0, hm), 1e-9);
+        assertEquals(0.10, FissionThermalManager.scaledItemAmount(0.05, 1, 200.0, hm), 1e-9);
+        assertEquals(0.15, FissionThermalManager.scaledItemAmount(0.05, 3, 100.0, hm), 1e-9);
+    }
+
+    @Test
+    void scaledItemAmount_isZero_whenNothingToConsume() {
+        var hm = heatModel();
+        assertEquals(0.0, FissionThermalManager.scaledItemAmount(0.0, 1, 100.0, hm));
+        assertEquals(0.0, FissionThermalManager.scaledItemAmount(0.05, 0, 100.0, hm));
+        assertEquals(0.0, FissionThermalManager.scaledItemAmount(0.05, 1, 0.0, hm));
+    }
+
+    @Test
+    void ratedFraction_isZeroAtAmbient_oneAtSafeLimit_andClamped() {
+        assertEquals(0.0, FissionThermalManager.ratedFraction(293.0, 293.0, 1000.0), 1e-9);
+        assertEquals(0.0, FissionThermalManager.ratedFraction(100.0, 293.0, 1000.0), 1e-9);
+        assertEquals(1.0, FissionThermalManager.ratedFraction(1000.0, 293.0, 1000.0), 1e-9);
+        assertEquals(1.0, FissionThermalManager.ratedFraction(5000.0, 293.0, 1000.0), 1e-9);
+        assertEquals(0.5, FissionThermalManager.ratedFraction(646.5, 293.0, 1000.0), 1e-9);
+    }
+
+    @Test
+    void ratedCoolingDelivered_scalesRatingByFraction() {
+        assertEquals(500.0, FissionThermalManager.ratedCoolingDelivered(1000.0, 646.5, 293.0, 1000.0), 1e-9);
+        assertEquals(0.0, FissionThermalManager.ratedCoolingDelivered(1000.0, 200.0, 293.0, 1000.0), 1e-9);
+        assertEquals(0.0, FissionThermalManager.ratedCoolingDelivered(-5.0, 900.0, 293.0, 1000.0), 1e-9);
+    }
+
+    @Test
+    void ratedModel_stableHeatFractionIsProductionOverRatedCooling() {
+        // Production 600 HU/t against 1000 HU/t rated: cooling matches production at 60% of the span.
+        double ambient = 293.0, safe = 1000.0, rated = 1000.0, production = 600.0;
+        double stable = ambient + (production / rated) * (safe - ambient);
+        assertEquals(production, FissionThermalManager.ratedCoolingDelivered(rated, stable, ambient, safe), 1e-6);
     }
 
     @Test

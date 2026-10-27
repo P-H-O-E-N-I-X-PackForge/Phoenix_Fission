@@ -6,7 +6,6 @@ import net.phoenix.phoenix_fission.api.PhoenixAPI;
 import net.phoenix.phoenix_fission.api.block.FissionBlanketBlock;
 import net.phoenix.phoenix_fission.api.block.iface.IFissionBlanketType;
 
-import dev.latvian.mods.kubejs.block.BlockBuilder;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.jetbrains.annotations.NotNull;
@@ -15,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Accessors(chain = true, fluent = true)
-public class FissionBlanketRodBlockBuilder extends BlockBuilder {
+public class FissionBlanketRodBlockBuilder extends FissionTintedBlockBuilder {
 
     @Setter
     public transient int durationTicks = 1200;
@@ -27,12 +26,15 @@ public class FissionBlanketRodBlockBuilder extends BlockBuilder {
 
     public transient List<IFissionBlanketType.BlanketOutput> outputs = new ArrayList<>();
 
-    @Setter
-    public transient String texture = "phoenix_fission:block/fission/blanket_base";
 
     public FissionBlanketRodBlockBuilder(ResourceLocation i) {
         super(i);
         noValidSpawns(true);
+    }
+
+    @Override
+    protected String kind() {
+        return "blanket";
     }
 
     public class KjsBlanketType implements IFissionBlanketType {
@@ -64,9 +66,22 @@ public class FissionBlanketRodBlockBuilder extends BlockBuilder {
 
         @Override
         public @NotNull ResourceLocation getTexture() {
-            ResourceLocation rl = ResourceLocation.tryParse(texture);
-            return rl != null ? rl :
-                    ResourceLocation.fromNamespaceAndPath("phoenix_fission", "block/fission/blanket_base");
+            return isTextureManual() ? manualTexture(false) : sharedBase();
+        }
+
+        @Override
+        public ResourceLocation getActiveTexture() {
+            return isTextureManual() ? manualTexture(true) : sharedBase();
+        }
+
+        @Override
+        public boolean isTextureManual() {
+            return FissionBlanketRodBlockBuilder.this.isTextureManual();
+        }
+
+        @Override
+        public int getTintColor() {
+            return tintArgb();
         }
 
         @Override

@@ -185,12 +185,6 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
 
         super.drawInBackground(g, mouseX, mouseY, dt);
 
-        // Both the custom title bar and the HUD content below belong only to the reactor's own
-        // main page. currentHomePage is *not* a stable "is this our page" check: GTCEu reassigns
-        // it to whatever was just navigated to (the page switcher flyout, a hatch/bus's own page,
-        // etc.) on every navigation, so `currentPage == currentHomePage` is true again as soon as
-        // you're looking at any other page's own top level - not just ours. `mainPage` is the one
-        // reference FancyMachineUIWidget never reassigns after construction.
         if (currentPage == mainPage && pageContainer != null) {
             int contentY = pageContainer.getPosition().y;
             int titleH = contentY - y;
@@ -975,9 +969,6 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
                     g.drawString(font, tempStr, x + 5, iy + 12, A_COOL, false);
                     g.drawString(font, mbStr, x + W - font.width(mbStr) - 6, iy + 12, C_MID, false);
 
-                    // c.getCoolerTemperature() is Kelvin, currentHeat is raw HU - convert via
-                    // heatCapacity before comparing, or this shows "Active now" based on a threshold
-                    // orders of magnitude off from what the reactor's own simulation actually uses.
                     boolean activeNow = currentHeat > c.getCoolerTemperature() * reactor.getHeatCapacity();
                     String activeStr = activeNow ? "Active now" : "Idle (heat < threshold)";
                     g.drawString(font, activeStr, x + 5, iy + 21,

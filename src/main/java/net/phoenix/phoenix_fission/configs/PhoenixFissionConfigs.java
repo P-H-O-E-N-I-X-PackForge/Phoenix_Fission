@@ -41,6 +41,15 @@ public class PhoenixFissionConfigs {
         public String msrReactorPoisoningOutputFluid = "minecraft:lava";
 
         @Configurable
+        @Configurable.Comment({
+                "Register the built-in example progression: 5 fuel rod tiers, 6 active coolers and 4 moderators,",
+                "tuned for the RATED heat model so the mod is playable out of the box.",
+                "Pack devs defining their own components (KubeJS) should set this to false.",
+                "Changing it needs a restart; components already placed in a world vanish when turned off."
+        })
+        public boolean defaultComponentsEnabled = true;
+
+        @Configurable
         @Configurable.Comment("Enable the Nuke block.")
         public boolean nukeEnabled = true;
 
@@ -132,7 +141,26 @@ public class PhoenixFissionConfigs {
         public boolean nukeReplaceWithFire = false;
     }
 
+    public enum ThermalModel {
+        RATED,
+        CONDUCTIVE
+    }
+
     public static class HeatModelConfigs {
+
+        @Configurable
+        @Configurable.Comment({
+                "Which heat model reactors use.",
+                "RATED (default): every active cooler has a rated cooling in HU/t (ratedCoolingHUt) that it",
+                "  delivers in full at the safe-heat limit, scaling down linearly to nothing at ambient.",
+                "  Heat production does NOT depend on temperature and fuel burn is steady, so a reactor's",
+                "  stable heat is simply: production / total rated cooling = fraction of the way from",
+                "  ambient to the safe limit. Under 100% is safe, over 100% eventually melts down.",
+                "CONDUCTIVE: the older model - coolers pull heat toward their own temperature through",
+                "  conductivity constants and production grows with current heat (see exponentialHeatGrowth).",
+                "  Harder to predict, but production feeds back on temperature."
+        })
+        public ThermalModel thermalModel = ThermalModel.RATED;
 
         @Configurable
         @Configurable.Comment({
@@ -191,6 +219,7 @@ public class PhoenixFissionConfigs {
 
         @Configurable
         @Configurable.Comment({
+                "[CONDUCTIVE model; also the fallback for RATED coolers with no explicit ratedCoolingHUt]",
                 "Active cooling conductivity constant (C_active).",
                 "Scales how effectively coolant cells transfer heat away.",
                 "Formula: (coolantTemp - reactorTemp) * parallels * C_active"

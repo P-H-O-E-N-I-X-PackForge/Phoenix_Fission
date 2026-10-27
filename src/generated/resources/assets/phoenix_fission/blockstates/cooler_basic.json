@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "active=false": {
+      "model": "phoenix_fission:block/cooler_basic"
+    },
+    "active=true": {
+      "model": "phoenix_fission:block/cooler_basic_active"
+    }
+  }
+}

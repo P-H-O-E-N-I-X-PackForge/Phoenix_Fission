@@ -6,13 +6,12 @@ import net.phoenix.phoenix_fission.api.PhoenixAPI;
 import net.phoenix.phoenix_fission.api.block.FissionFuelRodBlock;
 import net.phoenix.phoenix_fission.api.block.iface.IFissionFuelRodType;
 
-import dev.latvian.mods.kubejs.block.BlockBuilder;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.jetbrains.annotations.NotNull;
 
 @Accessors(chain = true, fluent = true)
-public class FissionFuelRodBlockBuilder extends BlockBuilder {
+public class FissionFuelRodBlockBuilder extends FissionTintedBlockBuilder {
 
     @Setter
     public transient int baseHeatProduction = 50;
@@ -30,12 +29,15 @@ public class FissionFuelRodBlockBuilder extends BlockBuilder {
     @Setter
     @NotNull
     public transient String outputKey = "";
-    @Setter
-    public transient String texture = "phoenix_fission:block/fission/fuel_rod_base";
 
     public FissionFuelRodBlockBuilder(ResourceLocation i) {
         super(i);
         noValidSpawns(true);
+    }
+
+    @Override
+    protected String kind() {
+        return "fuel_rod";
     }
 
     public class KjsFuelRodType implements IFissionFuelRodType {
@@ -77,9 +79,22 @@ public class FissionFuelRodBlockBuilder extends BlockBuilder {
 
         @Override
         public @NotNull ResourceLocation getTexture() {
-            ResourceLocation rl = ResourceLocation.tryParse(texture);
-            return rl != null ? rl :
-                    ResourceLocation.fromNamespaceAndPath("phoenix_fission", "block/fission/fuel_rod_base");
+            return isTextureManual() ? manualTexture(false) : sharedBase();
+        }
+
+        @Override
+        public ResourceLocation getActiveTexture() {
+            return isTextureManual() ? manualTexture(true) : sharedBase();
+        }
+
+        @Override
+        public boolean isTextureManual() {
+            return FissionFuelRodBlockBuilder.this.isTextureManual();
+        }
+
+        @Override
+        public int getTintColor() {
+            return tintArgb();
         }
 
         @Override

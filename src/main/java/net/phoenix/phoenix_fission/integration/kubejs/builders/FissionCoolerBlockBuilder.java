@@ -9,13 +9,12 @@ import net.phoenix.phoenix_fission.api.PhoenixAPI;
 import net.phoenix.phoenix_fission.api.block.FissionCoolerBlock;
 import net.phoenix.phoenix_fission.api.block.iface.IFissionCoolerType;
 
-import dev.latvian.mods.kubejs.block.BlockBuilder;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.jetbrains.annotations.NotNull;
 
 @Accessors(chain = true, fluent = true)
-public class FissionCoolerBlockBuilder extends BlockBuilder {
+public class FissionCoolerBlockBuilder extends FissionTintedBlockBuilder {
 
     @Setter
     public transient int coolerTemperature = 1000;
@@ -29,6 +28,8 @@ public class FissionCoolerBlockBuilder extends BlockBuilder {
     public transient boolean isPassive = false;
     @Setter
     public transient double conductivity = -1.0;
+    @Setter
+    public transient double ratedCoolingHUt = -1.0;
 
     @Setter
     @NotNull
@@ -37,11 +38,22 @@ public class FissionCoolerBlockBuilder extends BlockBuilder {
     @NotNull
     public transient String outputCoolantFluidId = "gtceu:steam";
     @Setter
-    public transient String texture = "phoenix_fission:block/fission/cooler_base";
+    @NotNull
+    public transient String itemCoolantId = "";
+    @Setter
+    @NotNull
+    public transient String itemCoolantOutputId = "";
+    @Setter
+    public transient double itemCoolantSeconds = 0.0;
 
     public FissionCoolerBlockBuilder(ResourceLocation i) {
         super(i);
         noValidSpawns(true);
+    }
+
+    @Override
+    protected String kind() {
+        return "cooler";
     }
 
     public class KjsCoolerType implements IFissionCoolerType {
@@ -82,8 +94,28 @@ public class FissionCoolerBlockBuilder extends BlockBuilder {
         }
 
         @Override
+        public @NotNull String getItemCoolantId() {
+            return isPassive() ? "" : itemCoolantId;
+        }
+
+        @Override
+        public @NotNull String getItemCoolantOutputId() {
+            return isPassive() ? "" : itemCoolantOutputId;
+        }
+
+        @Override
+        public double getItemCoolantSeconds() {
+            return isPassive() ? 0.0 : Math.max(0.0, itemCoolantSeconds);
+        }
+
+        @Override
         public double getFlatCoolingHUt() {
             return flatCoolingHUt;
+        }
+
+        @Override
+        public double getRatedCoolingHUt() {
+            return ratedCoolingHUt;
         }
 
         @Override
@@ -93,14 +125,31 @@ public class FissionCoolerBlockBuilder extends BlockBuilder {
 
         @Override
         public boolean isPassive() {
-            return isPassive || "none".equalsIgnoreCase(requiredCoolantMaterialId);
+            // "none" fluid only means passive if there's no item coolant either (item-only coolers are active).
+            boolean noFluid = "none".equalsIgnoreCase(requiredCoolantMaterialId);
+            boolean hasItem = !itemCoolantId.isEmpty() && !"none".equalsIgnoreCase(itemCoolantId) &&
+                    itemCoolantSeconds > 0.0;
+            return isPassive || (noFluid && !hasItem);
         }
 
         @Override
         public @NotNull ResourceLocation getTexture() {
-            ResourceLocation rl = ResourceLocation.tryParse(texture);
-            return rl != null ? rl :
-                    ResourceLocation.fromNamespaceAndPath("phoenix_fission", "block/fission/cooler_base");
+            return isTextureManual() ? manualTexture(false) : sharedBase();
+        }
+
+        @Override
+        public ResourceLocation getActiveTexture() {
+            return isTextureManual() ? manualTexture(true) : sharedBase();
+        }
+
+        @Override
+        public boolean isTextureManual() {
+            return FissionCoolerBlockBuilder.this.isTextureManual();
+        }
+
+        @Override
+        public int getTintColor() {
+            return tintArgb();
         }
 
         @Override

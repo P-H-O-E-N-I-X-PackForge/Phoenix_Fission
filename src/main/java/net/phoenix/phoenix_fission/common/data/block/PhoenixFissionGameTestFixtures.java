@@ -21,16 +21,6 @@ import org.jetbrains.annotations.NotNull;
 
 import static net.phoenix.phoenix_fission.PhoenixFission.PHOENIX_REGISTRATE;
 
-/**
- * Minimal Java-registered fission components used only by {@code FissionReactorGameTest}. This mod ships
- * no default player-facing components (they're all meant to come from a pack's KubeJS scripts), so the
- * GameTest suite needs its own fixed, self-contained set that doesn't depend on any external script -
- * otherwise the test would only pass on whichever machine happens to have a matching startup script in
- * its {@code run/kubejs} folder.
- *
- * <p>Only registered when GameTests are actually enabled for this mod (or during datagen), so these never
- * show up in a normal player's item list.
- */
 public class PhoenixFissionGameTestFixtures {
 
     public static final String FUEL_ROD_ID = "gametest_fuel_rod";
@@ -87,6 +77,7 @@ public class PhoenixFissionGameTestFixtures {
     }
 
     private static final class GameTestFuelRodType implements IFissionFuelRodType {
+
         @Override
         public @NotNull String getName() {
             return FUEL_ROD_ID;
@@ -124,6 +115,7 @@ public class PhoenixFissionGameTestFixtures {
     }
 
     private static final class GameTestCoolerType implements IFissionCoolerType {
+
         @Override
         public @NotNull String getName() {
             return COOLER_ID;
@@ -166,6 +158,7 @@ public class PhoenixFissionGameTestFixtures {
     }
 
     private static final class GameTestModeratorType implements IFissionModeratorType {
+
         @Override
         public @NotNull String getName() {
             return MODERATOR_ID;

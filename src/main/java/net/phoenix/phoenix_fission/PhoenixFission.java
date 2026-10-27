@@ -30,6 +30,7 @@ import net.phoenix.phoenix_fission.api.block.PhoenixFissionEntities;
 import net.phoenix.phoenix_fission.common.PhoenixFissionMachines;
 import net.phoenix.phoenix_fission.common.data.PhoenixRecipeTypes;
 import net.phoenix.phoenix_fission.common.data.block.PhoenixFissionBlocks;
+import net.phoenix.phoenix_fission.common.data.block.PhoenixFissionDefaultComponents;
 import net.phoenix.phoenix_fission.common.data.block.PhoenixFissionGameTestFixtures;
 import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
 import net.phoenix.phoenix_fission.datagen.PhoenixDatagen;
@@ -63,9 +64,9 @@ public class PhoenixFission {
 
         modEventBus.addListener(this::commonSetup);
         if (FMLEnvironment.dist.isClient()) {
-            // clientSetup is @OnlyIn(Dist.CLIENT) and gets stripped from the server-side class
-            // entirely; referencing it unconditionally throws NoSuchMethodError on a dedicated server.
+
             modEventBus.addListener(this::clientSetup);
+            net.phoenix.phoenix_fission.client.FissionColorHandlers.register(modEventBus);
         }
         modEventBus.addGenericListener(RecipeConditionType.class, this::registerConditions);
         modEventBus.addGenericListener(GTRecipeType.class, this::registerRecipeTypes);
@@ -86,6 +87,7 @@ public class PhoenixFission {
         PHOENIX_REGISTRATE.registerRegistrate();
         PhoenixFissionEntities.init();
         PhoenixFissionBlocks.init();
+        PhoenixFissionDefaultComponents.init();
         PhoenixFissionGameTestFixtures.init();
         PhoenixDatagen.init();
     }
