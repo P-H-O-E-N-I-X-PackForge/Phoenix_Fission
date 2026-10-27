@@ -13,7 +13,7 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.phoenix.phoenix_fission.PhoenixFission;
 import net.phoenix.phoenix_fission.api.block.iface.IFissionFuelRodType;
 
@@ -38,8 +38,7 @@ public class FissionFuelRodBlock extends ActiveBlock {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable BlockGetter level,
-                                List<Component> tooltip, TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         if (!GTUtil.isShiftDown()) {
             tooltip.add(Component.translatable("block.phoenix_fission.fission_moderator.shift")
                     .withStyle(ChatFormatting.GRAY));
@@ -83,12 +82,12 @@ public class FissionFuelRodBlock extends ActiveBlock {
         ResourceLocation rl = ResourceLocation.tryParse(key);
         if (rl == null) return Component.literal(key).withStyle(ChatFormatting.YELLOW);
 
-        Item item = ForgeRegistries.ITEMS.getValue(rl);
+        Item item = BuiltInRegistries.ITEM.getOptional(rl).orElse(null);
         if (item != null && item != Items.AIR) {
             return item.getName(new ItemStack(item));
         }
 
-        Fluid fluid = ForgeRegistries.FLUIDS.getValue(rl);
+        Fluid fluid = BuiltInRegistries.FLUID.getOptional(rl).orElse(null);
         if (fluid != null && fluid != Fluids.EMPTY) {
             return Component.translatable(fluid.getFluidType().getDescriptionId());
         }

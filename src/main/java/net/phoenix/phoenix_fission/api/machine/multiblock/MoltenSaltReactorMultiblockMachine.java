@@ -1,14 +1,12 @@
 package net.phoenix.phoenix_fission.api.machine.multiblock;
 
+import com.gregtechceu.gtceu.api.blockentity.BlockEntityCreationInfo;
+import com.gregtechceu.gtceu.api.sync_system.annotations.SaveField;
+import com.gregtechceu.gtceu.api.sync_system.annotations.SyncToClient;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
-import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
+import com.gregtechceu.gtceu.api.machine.trait.recipe.RecipeLogic;
 
-import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -16,10 +14,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.phoenix.phoenix_fission.api.block.iface.IMSRCoreLinerType;
-import net.phoenix.phoenix_fission.client.gui.MSRFancyUIWidget;
 import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
 
 import org.jetbrains.annotations.NotNull;
@@ -34,69 +31,53 @@ import java.util.stream.Collectors;
 @MethodsReturnNonnullByDefault
 public class MoltenSaltReactorMultiblockMachine extends FissionWorkableElectricMultiblockMachine {
 
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(
-            MoltenSaltReactorMultiblockMachine.class,
-            FissionWorkableElectricMultiblockMachine.MANAGED_FIELD_HOLDER);
 
-    @Persisted
-    @DescSynced
+    @SaveField
+    @SyncToClient
     public double xenonPoisonLevel = 0.0;
 
-    @Persisted
-    @DescSynced
+    @SaveField
+    @SyncToClient
     public int structuralLinerCount = 0;
 
     protected @Nullable IMSRCoreLinerType coreLinerSpec = null;
 
-    @Persisted
-    @DescSynced
+    @SaveField
+    @SyncToClient
     public String linerName = "";
-    @Persisted
-    @DescSynced
+    @SaveField
+    @SyncToClient
     public int linerFlowRate = 0;
-    @Persisted
-    @DescSynced
+    @SaveField
+    @SyncToClient
     public double linerHeatPerMb = 0.0;
 
-    @Persisted
-    @DescSynced
+    @SaveField
+    @SyncToClient
     public boolean lastCatalystActive = false;
-    @Persisted
-    @DescSynced
+    @SaveField
+    @SyncToClient
     public boolean lastXenonPurgeSucceeded = false;
 
-    public MoltenSaltReactorMultiblockMachine(IMachineBlockEntity holder) {
+    public MoltenSaltReactorMultiblockMachine(BlockEntityCreationInfo holder, Object... args) {
         super(holder);
     }
 
     @Override
-    public ManagedFieldHolder getFieldHolder() {
-        return MANAGED_FIELD_HOLDER;
-    }
+    public void formStructure(String substructureName) {
+        super.formStructure(substructureName);
+        if (!DEFAULT_STRUCTURE.equals(substructureName)) return;
 
-    @Override
-    public void onStructureFormed() {
-        super.onStructureFormed();
+        List<IMSRCoreLinerType> liners = getComponentManager().getActiveLiners();
+        this.structuralLinerCount = liners.size();
 
-        var context = getMultiblockState().getMatchContext();
-        if (context != null) {
-            List<IMSRCoreLinerType> liners = new ArrayList<>();
-            Object rawList = context.get("LinerTypes");
-            if (rawList instanceof List<?> list) {
-                for (Object obj : list) {
-                    if (obj instanceof IMSRCoreLinerType liner) liners.add(liner);
-                }
-            }
-            this.structuralLinerCount = liners.size();
-
-            this.coreLinerSpec = liners.stream()
-                    .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
-                    .entrySet().stream()
-                    .max(Map.Entry.<IMSRCoreLinerType, Long>comparingByValue()
-                            .thenComparing(e -> e.getKey().getName()))
-                    .map(Map.Entry::getKey)
-                    .orElse(null);
-        }
+        this.coreLinerSpec = liners.stream()
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
+                .entrySet().stream()
+                .max(Map.Entry.<IMSRCoreLinerType, Long>comparingByValue()
+                        .thenComparing(e -> e.getKey().getName()))
+                .map(Map.Entry::getKey)
+                .orElse(null);
 
         if (this.coreLinerSpec != null) {
             this.linerName = this.coreLinerSpec.getName();
@@ -112,12 +93,12 @@ public class MoltenSaltReactorMultiblockMachine extends FissionWorkableElectricM
         this.lastParallels = Math.max(1, this.structuralLinerCount);
 
         this.getRecipeLogic().setStatus(RecipeLogic.Status.IDLE);
-        markDirty();
     }
 
     @Override
-    public void onStructureInvalid() {
-        super.onStructureInvalid();
+    public void invalidateStructure(String substructureName) {
+        super.invalidateStructure(substructureName);
+        if (!DEFAULT_STRUCTURE.equals(substructureName)) return;
         this.structuralLinerCount = 0;
         this.coreLinerSpec = null;
         this.linerName = "";
@@ -258,89 +239,13 @@ public class MoltenSaltReactorMultiblockMachine extends FissionWorkableElectricM
     private FluidStack resolveFluidStack(String fluidId, int amount) {
         ResourceLocation rl = ResourceLocation.tryParse(fluidId);
         if (rl == null) return null;
-        var fluid = ForgeRegistries.FLUIDS.getValue(rl);
+        var fluid = BuiltInRegistries.FLUID.getOptional(rl).orElse(null);
         if (fluid == null || fluid == Fluids.EMPTY) return null;
         return new FluidStack(fluid, amount);
     }
 
     private void tryAddEnergy(long joules) {
         getEnergyContainer().addEnergy(joules);
-    }
-
-    @Override
-    public void addDisplayText(@NotNull List<Component> textList) {
-        if (!isFormed() || coreLinerSpec == null) {
-            textList.add(Component.translatable("phoenix_fission.not_formed")
-                    .withStyle(s -> s.withColor(0xFF4444)));
-            return;
-        }
-
-        double maxSafeHU = this.getMaxSafeHeatHU();
-        final boolean overheat = this.getHeat() > maxSafeHU;
-
-        textList.add(Component.translatable("phoenix_fission.current_heat_display",
-                String.format("%.1f", this.getHeat()), String.format("%.1f", maxSafeHU))
-                .withStyle(s -> s.withColor(overheat ? 0xFF3333 : 0x33FF33)));
-
-        double maxSafeHeat = Math.max(1.0, maxSafeHU);
-        double heatRatio = this.getHeat() / maxSafeHeat;
-        double thermalEfficiency = 0.5 + (Math.pow(heatRatio, 2) * 2.0);
-        int effColor = thermalEfficiency > 1.8 ? 0x55FF55 : (thermalEfficiency > 1.0 ? 0xFFAA00 : 0xFF5555);
-        textList.add(Component.translatable("phoenix_fission.msr.thermal_efficiency",
-                String.format(java.util.Locale.ROOT, "%.1f", thermalEfficiency * 100.0) + "%")
-                .withStyle(s -> s.withColor(effColor)));
-
-        textList.add(getVoltageFormattedOutputMSR(lastGeneratedEUt));
-
-        textList.add(Component.translatable("phoenix_fission.parallels", lastParallels));
-        textList.add(Component.translatable("phoenix_fission.msr.structural_type",
-                coreLinerSpec.getName().toUpperCase())
-                .withStyle(s -> s.withColor(0x55FF55)));
-        textList.add(Component.translatable("phoenix_fission.msr.active_liners", this.structuralLinerCount)
-                .withStyle(s -> s.withColor(0x55AAFF)));
-        textList.add(Component.translatable("phoenix_fission.msr.processing_rate",
-                (Math.max(1, this.structuralLinerCount) * coreLinerSpec.getFluidFlowRate()) + " mb/t")
-                .withStyle(s -> s.withColor(0xFFAA00)));
-
-        if (lastCatalystActive) {
-            textList.add(Component.translatable("phoenix_fission.msr.catalyst_fluorine")
-                    .withStyle(s -> s.withColor(0x55FFFF)));
-        }
-
-        double xenonPct = xenonPoisonLevel * 100;
-        int xenonColor = xenonPoisonLevel < 0.05 ? 0x55FF55 : (xenonPoisonLevel > 0.35 ? 0xFF3333 : 0xAA00AA);
-        if (xenonPoisonLevel < 0.05 && lastGeneratedEUt > 0) {
-            textList.add(Component.translatable("phoenix_fission.msr.xenon_clean")
-                    .withStyle(s -> s.withColor(0x55FF55)));
-        } else {
-            textList.add(Component.translatable("phoenix_fission.msr.xenon_poisoning",
-                    String.format(java.util.Locale.ROOT, "%.1f", xenonPct) + "%")
-                    .withStyle(s -> s.withColor(xenonColor)));
-        }
-
-        textList.add(Component.literal("  Xe Purge: ")
-                .withStyle(ChatFormatting.GRAY)
-                .append(Component.literal(lastXenonPurgeSucceeded ? "OK" : "Blocked")
-                        .withStyle(s -> s.withColor(lastXenonPurgeSucceeded ? 0x55FF55 : 0xFF5555))));
-
-        textList.add(Component.translatable("phoenix_fission.cooling_power", lastProvidedCooling)
-                .withStyle(s -> s.withColor(0x55FFFF)));
-        textList.add(Component.translatable(
-                lastHasCoolant ? "phoenix_fission.coolant_status.ok" : "phoenix_fission.coolant_status.empty"));
-
-        if (meltdownTimerTicks > 0) {
-            textList.add(Component.translatable("phoenix_fission.status.danger_timer",
-                    meltdownTimerTicks / 20));
-        }
-    }
-
-    @Override
-    public ModularUI createUI(@NotNull Player player) {
-        if (getLevel() != null && !getLevel().isClientSide) {
-            getLevel().sendBlockUpdated(getPos(), getBlockState(), getBlockState(), 3);
-        }
-        return new ModularUI(264, 256, this, player)
-                .widget(new MSRFancyUIWidget(this, 264, 256));
     }
 
     private Component getVoltageFormattedOutputMSR(long euOut) {

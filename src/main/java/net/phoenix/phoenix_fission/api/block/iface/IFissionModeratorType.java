@@ -1,6 +1,5 @@
 package net.phoenix.phoenix_fission.api.block.iface;
 
-import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.StringRepresentable;
@@ -36,7 +35,6 @@ public interface IFissionModeratorType extends StringRepresentable {
 
     int getParallelBonus();
 
-    Material getMaterial();
 
     ResourceLocation getTexture();
 

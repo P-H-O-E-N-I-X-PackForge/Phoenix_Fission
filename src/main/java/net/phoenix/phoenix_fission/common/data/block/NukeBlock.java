@@ -5,9 +5,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
@@ -59,7 +60,7 @@ public class NukeBlock extends Block {
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, @Nullable BlockGetter level,
+    public void appendHoverText(@NotNull ItemStack stack, Item.TooltipContext context,
                                 List<Component> tooltip, @NotNull TooltipFlag flag) {
         tooltip.add(Component.literal("Large scale nuclear explosive.").withStyle(ChatFormatting.DARK_GREEN));
         tooltip.add(Component.literal("Handle with caution!").withStyle(ChatFormatting.RED));
@@ -75,17 +76,21 @@ public class NukeBlock extends Block {
     }
 
     @Override
-    public @NotNull InteractionResult use(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos,
-                                          Player player, @NotNull InteractionHand hand, @NotNull BlockHitResult hit) {
-        ItemStack stack = player.getItemInHand(hand);
+    protected @NotNull ItemInteractionResult useItemOn(@NotNull ItemStack stack, @NotNull BlockState state,
+                                                       @NotNull Level level, @NotNull BlockPos pos,
+                                                       @NotNull Player player, @NotNull InteractionHand hand,
+                                                       @NotNull BlockHitResult hit) {
         if (stack.is(Items.FLINT_AND_STEEL) || stack.is(Items.FIRE_CHARGE)) {
             prime(level, pos, player);
             if (!player.isCreative()) {
-                if (stack.is(Items.FLINT_AND_STEEL)) stack.hurtAndBreak(1, player, p -> p.broadcastBreakEvent(hand));
-                else stack.shrink(1);
+                if (stack.is(Items.FLINT_AND_STEEL)) {
+                    stack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(hand));
+                } else {
+                    stack.shrink(1);
+                }
             }
-            return InteractionResult.sidedSuccess(level.isClientSide);
+            return ItemInteractionResult.sidedSuccess(level.isClientSide);
         }
-        return InteractionResult.PASS;
+        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }
 }

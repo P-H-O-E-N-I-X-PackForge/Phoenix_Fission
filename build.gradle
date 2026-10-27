@@ -1,161 +1,140 @@
-
-import net.neoforged.moddevgradle.legacyforge.tasks.RemapJar
 plugins {
-
-    id "idea"
-    id "eclipse"
-    id "maven-publish"
-    id 'net.neoforged.moddev.legacyforge' version '2.0.91'
+    id 'java-library'
+    id 'maven-publish'
+    id 'idea'
+    id 'net.neoforged.moddev' version '2.0.143'
     id 'com.diffplug.spotless' version '7.0.2'
-    id 'com.github.johnrengelman.shadow' version '8.1.1'
-
 }
 
-
-
-configurations {
-    shadow {
-        extendsFrom implementation
-    }
+tasks.named('wrapper', Wrapper).configure {
+    distributionType = Wrapper.DistributionType.BIN
 }
 
+version = mod_version
+group = mod_group_id
 
-def generatedResources = file("src/generated")
-
-
-sourceSets {
-
-    main.resources {
-
-        srcDir 'src/main/resources'
-        srcDir 'src/generated/resources'
-
-    }
-
+sourceSets.main.resources {
+    srcDir 'src/generated/resources'
 }
 
 repositories {
-
     mavenLocal()
     mavenCentral()
-    maven { //GTM maven
+    maven {
         name = 'GTCEu Maven'
-        url = 'https://maven.gtceu.com'
+        url = 'https://maven.gtceu.com/'
         content {
             includeGroup 'com.gregtechceu.gtceu'
-            includeGroup 'appeng'
-            includeGroup 'lu.kolja'
-
+            includeGroup 'brachy.modularui'
         }
     }
     maven {
-// 'Ars'
-        url 'https://maven.blamejared.com'
-    }
-
-    maven {
-        name 'FirstDarkDev'
-        url "https://maven.firstdarkdev.xyz/snapshots/"
+        name = 'ParchmentMC'
+        url = 'https://maven.parchmentmc.org'
     }
     maven {
-// latvian.dev Maven (KubeJS and Rhino)
-        url = "https://maven.latvian.dev/releases"
+        name = 'BlameJared Maven'
+        url = 'https://maven.blamejared.com/'
     }
-    maven { // Registrate
-        url = "https://maven.tterrag.com/"
+    maven {
+        name = 'Devos Snapshot Maven'
+        url = 'https://mvn.devos.one/snapshots/'
         content {
-            includeGroup("com.tterrag.registrate")
+            includeGroup 'com.tterrag.registrate'
         }
     }
     maven {
-// Patchouli, JEI
-        name = "BlameJared"
-        url = "https://maven.blamejared.com/"
-    }
-    maven {
-        url = "https://maven.theillusivec4.top/"
-    }
-    maven {
-        url "https://cursemaven.com/"
+        name = 'LatvianDev Maven'
+        url = 'https://maven.latvian.dev/releases/'
         content {
-            includeGroup "curse.maven"
+            includeGroup 'dev.latvian.mods'
+            includeGroup 'dev.latvian.apps'
         }
     }
     maven {
-// EMI
-        name = "TerraformersMC"
-        url = "https://maven.terraformersmc.com/"
-    }
-
-    maven {
-        url = "https://maven.architectury.dev"
+        name = 'Sleeping Town'
+        url = 'https://repo.sleeping.town/'
+        content {
+            includeGroup 'dev.emi'
+        }
     }
     maven {
-        url = "https://thedarkcolour.github.io/KotlinForForge/"
+        name = 'Architectury Maven'
+        url = 'https://maven.architectury.dev/'
+        content {
+            includeGroup 'dev.architectury'
+        }
     }
     maven {
-// 'Curios'
-        url "https://maven.blamejared.com"
+        name = 'Modrinth'
+        url = 'https://api.modrinth.com/maven'
+        content {
+            includeGroup 'maven.modrinth'
+        }
     }
     maven {
-        url "https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/"
+        name = 'CurseMaven'
+        url = 'https://cursemaven.com/'
+        content {
+            includeGroup 'curse.maven'
+        }
     }
-    maven {
-        name = "ftbMavenReleases"
-        url = uri("https://maven.ftb.dev/releases")
+    exclusiveContent { // Configuration
+        forRepositories(
+                maven { url = 'https://repo.repsy.io/mvn/toma/public/' },
+                maven { url = 'https://api.repsy.io/mvn/toma/public' }
+        )
+        filter { includeGroup('dev.toma.configuration') }
+    }
+    flatDir {
+        dir 'libs'
     }
 }
 
+base {
+    archivesName = archives_base_name
+}
 
-version = mod_version
-group = maven_group
-base { archivesName = archives_base_name }
-java { sourceCompatibility = targetCompatibility = JavaVersion.VERSION_17 }
-sourceSets.main.resources { srcDir 'src/generated/resources' }
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
-
-legacyForge {
-    version = project.minecraft_version + '-' + project.forge_version
+neoForge {
+    version = project.neo_version
 
     parchment {
-        mappingsVersion = project.mapping_version
-        minecraftVersion = project.minecraft_version
+        mappingsVersion = project.parchment_mappings_version
+        minecraftVersion = project.parchment_minecraft_version
     }
+
+    accessTransformers.from('src/main/resources/META-INF/accesstransformer.cfg')
 
     runs {
         configureEach {
-            systemProperty 'forge.logging.markers', 'REGISTRIES'
-
+            // the 1.20.1 run folder holds old worlds and configs, so 1.21.1 gets its own
+            gameDirectory = file('run-1211')
+            systemProperty 'neoforge.logging.markers', 'REGISTRIES'
             logLevel = org.slf4j.event.Level.DEBUG
-            sourceSet = sourceSets.main
         }
         client {
             client()
-            programArguments.addAll('--refresh-dependencies')
-            systemProperty('forge.enabledGameTestNamespaces', project.mod_id)
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
         server {
             server()
-            systemProperty('forge.enabledGameTestNamespaces', project.mod_id)
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
             programArguments.addAll('--nogui', '--world', 'world-extra')
         }
-
-
+        gameTestServer {
+            type = 'gameTestServer'
+            gameDirectory = file('run-1211-gametest')
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            programArguments.addAll('--nogui')
+        }
         data {
             data()
             programArguments.addAll('--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath())
             programArguments.addAll('--existing-mod', 'gtceu')
         }
-
-        gameTestServer {
-            // No client()/server()/data()-style convenience method for this exists in this MDG
-            // version, but the run "type" is a plain FML-defined string, same as the others.
-            type = 'gameTestServer'
-            systemProperty('forge.enabledGameTestNamespaces', project.mod_id)
-            programArguments.addAll('--nogui')
-        }
     }
-
 
     mods {
         "${mod_id}" {
@@ -164,113 +143,74 @@ legacyForge {
     }
 }
 
-// Gives the `test` source set access to Minecraft/GTCEu/etc. so unit tests can reference
-// mod types. The legacyforge plugin doesn't expose the newer `unitTest { }` DSL (that's
-// NeoForge-only), so this is the manual equivalent.
-legacyForge.addModdingDependenciesTo(sourceSets.test)
-
-test {
-    useJUnitPlatform()
-}
-
-jar {
-    manifest.attributes([
-            "MixinConfigs": "phoenix_fission.mixins.json"
-    ])
-}
-
-mixin {
-// MixinGradle Settings
-    add sourceSets.main, 'mixins.phoenix_fission.refmap.json'
-    config 'phoenix_fission.mixins.json'
+configurations {
+    runtimeClasspath.extendsFrom localRuntime
 }
 
 apply from: "$rootDir/gradle/scripts/spotless.gradle"
 
-
 dependencies {
-    compileOnly("org.jetbrains:annotations:26.0.1")
+    compileOnly 'org.jetbrains:annotations:26.0.2'
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
 
-    annotationProcessor('org.spongepowered:mixin:0.8.5:processor')
+    // GregTech and what it is built on
+    implementation("com.gregtechceu.gtceu:gtceu-${minecraft_version}:${gtm_version}") { transitive = false }
+    implementation("brachy.modularui:modularui-mc${minecraft_version}:${mui_version}") { transitive = false }
+    implementation "com.tterrag.registrate:Registrate:${registrate_version}"
+    implementation "dev.toma.configuration:configuration-${minecraft_version}:${configuration_version}"
+    implementation "dev.latvian.mods:kubejs-neoforge:${kubejs_version}"
 
-// JEI, EMI, Jade
-    modCompileOnly("mezz.jei:jei-${minecraft_version}-forge-api:${jei_version}")
-    modCompileOnly("mezz.jei:jei-${minecraft_version}-common-api:${jei_version}")
-    modRuntimeOnly("mezz.jei:jei-${minecraft_version}-forge:${jei_version}")
-    modImplementation("dev.emi:emi-forge:${emi_version}+${minecraft_version}")
-    modRuntimeOnly("curse.maven:jade-324717:5390389")
-    modCompileOnly("curse.maven:jade-324717:5390389")
+    // Optional integrations
+    compileOnly "dev.emi:emi-neoforge:${emi_version}+${minecraft_version}"
+    localRuntime "dev.emi:emi-neoforge:${emi_version}+${minecraft_version}"
+    compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
+    compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
+    implementation "maven.modrinth:jade:15.10.6+neoforge"
 
-
-
-// GregTech and dependencies
-    modImplementation("com.gregtechceu.gtceu:gtceu-${minecraft_version}:${gtceu_version}:slim") { transitive = false }
-    modImplementation("com.lowdragmc.ldlib:ldlib-forge-${minecraft_version}:${ldlib_version}") { transitive = false }
-    modImplementation("com.tterrag.registrate:Registrate:${registrate_version}")
-    modImplementation("dev.latvian.mods:kubejs-forge:${kubejs_version}")
-    modImplementation("dev.latvian.mods:rhino-forge:${rhino_version}")
-    modImplementation("dev.toma.configuration:configuration-forge-${minecraft_version}:${configuration_version}")
-    modRuntimeOnly("dev.architectury:architectury-forge:${architectury_version}")
-
-
-    modRuntimeOnly("curse.maven:kubejs-aisle-tool-1236291:7543948")
-
-
-// lombok
-    compileOnly 'org.projectlombok:lombok:1.18.24'
-    annotationProcessor 'org.projectlombok:lombok:1.18.24'
-
-// tests
-    testCompileOnly("org.jetbrains:annotations:26.0.1")
-    testImplementation platform('org.junit:junit-bom:5.10.2')
-    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-
 }
 
-configurations.configureEach {
-    resolutionStrategy {
-        cacheChangingModulesFor 0, 'seconds'
+sourceSets {
+    test {
+        compileClasspath += sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.runtimeClasspath
     }
+}
+
+tasks.named('test', Test).configure {
+    useJUnitPlatform()
 }
 
 tasks.named('processResources', ProcessResources).configure {
-    var properties = [
-            "mod_license": mod_license,
-            "mod_id": mod_id,
-            "version": version,
-            "mod_name": mod_name,
-            "mod_url": mod_url,
-            "mod_author": mod_author,
-            "forge_version": forge_version.split("\\.")[0],
-            "minecraft_version": minecraft_version,
-            "gtceu_version": gtceu_version,
+    var replaceProperties = [
+            minecraft_version      : minecraft_version,
+            minecraft_version_range: minecraft_version_range,
+            neo_version            : neo_version,
+            loader_version_range   : loader_version_range,
+            gtm_version_min        : gtm_version_min,
+            mod_id                 : mod_id,
+            mod_name               : mod_name,
+            mod_license            : mod_license,
+            mod_version            : mod_version,
+            mod_author             : mod_author,
+            mod_url                : mod_url,
     ]
-    inputs.properties(properties)
-
-    filesMatching("META-INF/mods.toml") {
-        expand properties + [project: project]
+    inputs.properties replaceProperties
+    filesMatching('META-INF/neoforge.mods.toml') {
+        expand replaceProperties
     }
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-
-
-
-tasks.named('jar', Jar).configure {
-    archiveClassifier.set('slim')
-    finalizedBy 'reobfJar'
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.compilerArgs << '-Xmaxerrs' << '5000'
 }
 
-
-shadowJar {
-
-    archiveClassifier.set('unreobf-shadow')
-    configurations = [project.configurations.shadow]
-    relocate 'appeng', "${project.maven_group}.relocated.ae2"
-    finalizedBy 'reobfShadowJar'
-}
-
-tasks.named("build") {
-    dependsOn("spotlessApply")
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
+    }
 }

@@ -113,7 +113,6 @@ public interface IFissionCoolerType extends StringRepresentable {
         return 0xFFFFFFFF;
     }
 
-    Material getMaterial();
 
     ResourceLocation getTexture();
 

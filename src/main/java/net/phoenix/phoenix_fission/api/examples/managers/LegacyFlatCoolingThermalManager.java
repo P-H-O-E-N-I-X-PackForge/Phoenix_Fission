@@ -8,8 +8,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.phoenix.phoenix_fission.api.block.FissionFuelRodBlock;
 import net.phoenix.phoenix_fission.api.block.FissionModeratorBlock;
 import net.phoenix.phoenix_fission.api.block.iface.IFissionCoolerType;
@@ -145,21 +145,21 @@ public class LegacyFlatCoolingThermalManager extends FissionThermalManager {
         if (amount <= 0 || inId.isEmpty() || "none".equalsIgnoreCase(inId)) return true;
 
         ResourceLocation inRl = ResourceLocation.tryParse(inId);
-        if (inRl == null || !ForgeRegistries.FLUIDS.containsKey(inRl))
+        if (inRl == null || !BuiltInRegistries.FLUID.containsKey(inRl))
             return false;
 
         FluidStack inStack = new FluidStack(
-                ForgeRegistries.FLUIDS.getValue(inRl), amount);
+                BuiltInRegistries.FLUID.getOptional(inRl).orElse(null), amount);
 
         if (!machine.executeFluidIO(inStack, IO.IN, !execute))
             return false;
 
         if (execute && !outId.isEmpty() && !"none".equalsIgnoreCase(outId) && !outId.equalsIgnoreCase(inId)) {
             ResourceLocation outRl = ResourceLocation.tryParse(outId);
-            if (outRl != null && ForgeRegistries.FLUIDS.containsKey(outRl)) {
+            if (outRl != null && BuiltInRegistries.FLUID.containsKey(outRl)) {
                 machine.executeFluidIO(
                         new FluidStack(
-                                ForgeRegistries.FLUIDS.getValue(outRl), amount),
+                                BuiltInRegistries.FLUID.getOptional(outRl).orElse(null), amount),
                         IO.OUT, false);
             }
         }

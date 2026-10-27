@@ -1,11 +1,10 @@
 package net.phoenix.phoenix_fission.api.machine.multiblock.part;
 
+import com.gregtechceu.gtceu.api.blockentity.BlockEntityCreationInfo;
 import com.gregtechceu.gtceu.api.machine.ConditionalSubscriptionHandler;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
-import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
+import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredPartMachine;
 
-import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.core.Direction;
 
@@ -14,22 +13,15 @@ import org.jetbrains.annotations.Nullable;
 
 public abstract class SensorHatchPartMachine extends TieredPartMachine {
 
-    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(SensorHatchPartMachine.class,
-            TieredPartMachine.MANAGED_FIELD_HOLDER);
 
     protected final ConditionalSubscriptionHandler signalUpdateHandler;
 
-    public SensorHatchPartMachine(IMachineBlockEntity holder, int tier) {
+    public SensorHatchPartMachine(BlockEntityCreationInfo holder, int tier) {
         super(holder, tier);
         this.signalUpdateHandler = new ConditionalSubscriptionHandler(
                 this,
                 this::updateSignal,
                 this::isAttachedToFormedController);
-    }
-
-    @Override
-    public @NotNull ManagedFieldHolder getFieldHolder() {
-        return MANAGED_FIELD_HOLDER;
     }
 
     @Override
@@ -45,13 +37,13 @@ public abstract class SensorHatchPartMachine extends TieredPartMachine {
     }
 
     @Override
-    public void addedToController(@NotNull IMultiController controller) {
+    public void addedToController(@NotNull MultiblockControllerMachine controller) {
         super.addedToController(controller);
         signalUpdateHandler.updateSubscription();
     }
 
     @Override
-    public void removedFromController(@NotNull IMultiController controller) {
+    public void removedFromController(@NotNull MultiblockControllerMachine controller) {
         super.removedFromController(controller);
         signalUpdateHandler.updateSubscription();
     }
@@ -65,11 +57,11 @@ public abstract class SensorHatchPartMachine extends TieredPartMachine {
 
     public void updateSignal() {
         if (getLevel() != null && !getLevel().isClientSide) {
-            getLevel().updateNeighborsAt(getPos(), getHolder().getSelf().getBlockState().getBlock());
+            getLevel().updateNeighborsAt(getBlockPos(), getHolder().getSelf().getBlockState().getBlock());
         }
     }
 
-    public @Nullable IMultiController getController() {
+    public @Nullable MultiblockControllerMachine getController() {
         if (getControllers().isEmpty()) return null;
         var controller = getControllers().iterator().next();
         return (controller != null && controller.isFormed()) ? controller : null;

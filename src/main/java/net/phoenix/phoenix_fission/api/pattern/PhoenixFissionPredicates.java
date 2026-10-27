@@ -1,19 +1,27 @@
 package net.phoenix.phoenix_fission.api.pattern;
 
-import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
-
-import com.lowdragmc.lowdraglib.utils.BlockInfo;
+import com.gregtechceu.gtceu.api.multiblock.MultiPredicate;
+import com.gregtechceu.gtceu.api.multiblock.Predicates;
+import com.gregtechceu.gtceu.api.multiblock.error.PlaceholderError;
+import com.gregtechceu.gtceu.api.multiblock.util.BlockInfo;
 
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.phoenix.phoenix_fission.api.PhoenixAPI;
 import net.phoenix.phoenix_fission.api.block.*;
-import net.phoenix.phoenix_fission.api.block.iface.*;
 import net.phoenix.phoenix_fission.common.data.block.*;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+/**
+ * Pattern predicates that accept any fission component block. They match by block class, so components registered
+ * from Java, the default set or KubeJS all work without needing to be in a fixed list; the formed structure is then
+ * classified by the machine itself (see FissionComponentManager).
+ */
 public class PhoenixFissionPredicates {
 
     private static BlockInfo emptyComponentFallback() {
@@ -33,164 +41,57 @@ public class PhoenixFissionPredicates {
         }
     }
 
-    public static TraceabilityPredicate fissionCoolers() {
-        return new TraceabilityPredicate(blockWorldState -> {
-            var blockState = blockWorldState.getBlockState();
-
-            var emptyBlock = safeGet(PhoenixFissionBlocks.EMPTY_REACTOR_COMPONENT);
-            if (PhoenixAPI.FISSION_COOLERS.isEmpty() && emptyBlock != null && blockState.is(emptyBlock)) {
-                return true;
-            }
-
-            for (Map.Entry<IFissionCoolerType, Supplier<FissionCoolerBlock>> entry : PhoenixAPI.FISSION_COOLERS
-                    .entrySet()) {
-                var block = safeGet(entry.getValue());
-                if (block == null) continue;
-                if (blockState.is(block)) {
-                    List<IFissionCoolerType> componentList = blockWorldState.getMatchContext().getOrPut("CoolerTypes",
-                            new ArrayList<>());
-                    componentList.add(entry.getKey());
-                    return true;
-                }
-            }
-            return false;
-        }, () -> {
-            var infos = PhoenixAPI.FISSION_COOLERS.entrySet().stream()
-                    .sorted(Comparator.comparing(e -> e.getKey().getName()))
-                    .map(e -> safeGet(e.getValue()))
-                    .filter(Objects::nonNull)
-                    .map(b -> BlockInfo.fromBlockState(b.defaultBlockState()))
-                    .toArray(BlockInfo[]::new);
-            return infos.length > 0 ? infos : new BlockInfo[] { emptyComponentFallback() };
-        }).addTooltips(Component.translatable("phoenix.multiblock.pattern.info.multiple_coolers"));
+    private static boolean isEmptyPlaceholder(BlockState state, boolean registryEmpty) {
+        if (!registryEmpty) return false;
+        var empty = safeGet(PhoenixFissionBlocks.EMPTY_REACTOR_COMPONENT);
+        return empty != null && state.is(empty);
     }
 
-    public static TraceabilityPredicate fissionBlankets() {
-        return new TraceabilityPredicate(blockWorldState -> {
-            var blockState = blockWorldState.getBlockState();
+    private static <T extends Block> MultiPredicate componentPredicate(String name, Class<T> blockClass,
+                                                                       Collection<? extends Supplier<? extends Block>> registered,
+                                                                       String tooltipKey) {
+        List<BlockInfo> candidates = registered.stream()
+                .map(PhoenixFissionPredicates::safeGet)
+                .filter(Objects::nonNull)
+                .map(b -> BlockInfo.fromBlockState(b.defaultBlockState()))
+                .toList();
+        if (candidates.isEmpty()) candidates = List.of(emptyComponentFallback());
 
-            var emptyBlock = safeGet(PhoenixFissionBlocks.EMPTY_REACTOR_COMPONENT);
-            if (PhoenixAPI.FISSION_BLANKETS.isEmpty() && emptyBlock != null && blockState.is(emptyBlock)) {
-                return true;
-            }
+        Predicate<com.gregtechceu.gtceu.api.multiblock.PredicateContext> test = ctx -> {
+            BlockState state = ctx.state();
+            return blockClass.isInstance(state.getBlock()) || isEmptyPlaceholder(state, registered.isEmpty());
+        };
 
-            for (Map.Entry<IFissionBlanketType, Supplier<FissionBlanketBlock>> entry : PhoenixAPI.FISSION_BLANKETS
-                    .entrySet()) {
-                var block = safeGet(entry.getValue());
-                if (block == null) continue;
-                if (blockState.is(block)) {
-                    List<IFissionBlanketType> componentList = blockWorldState.getMatchContext().getOrPut("BlanketTypes",
-                            new ArrayList<>());
-                    componentList.add(entry.getKey());
-                    return true;
-                }
-            }
-            return false;
-        }, () -> {
-            var infos = PhoenixAPI.FISSION_BLANKETS.entrySet().stream()
-                    .sorted(Comparator.comparing(e -> e.getKey().getName()))
-                    .map(e -> safeGet(e.getValue()))
-                    .filter(Objects::nonNull)
-                    .map(b -> BlockInfo.fromBlockState(b.defaultBlockState()))
-                    .toArray(BlockInfo[]::new);
-            return infos.length > 0 ? infos : new BlockInfo[] { emptyComponentFallback() };
-        }).addTooltips(Component.translatable("phoenix.multiblock.pattern.info.multiple_blankets"));
+        return Predicates.builder(name)
+                .candidates(candidates)
+                .predicate(test)
+                .errorFunction(ctx -> PlaceholderError.instance())
+                .toMultiPredicate()
+                .addTooltips(Component.translatable(tooltipKey));
     }
 
-    public static TraceabilityPredicate fissionFuelRods() {
-        return new TraceabilityPredicate(blockWorldState -> {
-            var blockState = blockWorldState.getBlockState();
-
-            var emptyBlock = safeGet(PhoenixFissionBlocks.EMPTY_REACTOR_COMPONENT);
-            if (PhoenixAPI.FISSION_FUEL_RODS.isEmpty() && emptyBlock != null && blockState.is(emptyBlock)) {
-                return true;
-            }
-
-            for (Map.Entry<IFissionFuelRodType, Supplier<FissionFuelRodBlock>> entry : PhoenixAPI.FISSION_FUEL_RODS
-                    .entrySet()) {
-                var block = safeGet(entry.getValue());
-                if (block == null) continue;
-                if (blockState.is(block)) {
-                    List<IFissionFuelRodType> componentList = blockWorldState.getMatchContext().getOrPut("FuelRodTypes",
-                            new ArrayList<>());
-                    componentList.add(entry.getKey());
-                    return true;
-                }
-            }
-            return false;
-        }, () -> {
-            var infos = PhoenixAPI.FISSION_FUEL_RODS.entrySet().stream()
-                    .sorted(Comparator.comparing(e -> e.getKey().getName()))
-                    .map(e -> safeGet(e.getValue()))
-                    .filter(Objects::nonNull)
-                    .map(b -> BlockInfo.fromBlockState(b.defaultBlockState()))
-                    .toArray(BlockInfo[]::new);
-            return infos.length > 0 ? infos : new BlockInfo[] { emptyComponentFallback() };
-        }).addTooltips(Component.translatable("phoenix.multiblock.pattern.info.multiple_fuel_rods"));
+    public static MultiPredicate fissionCoolers() {
+        return componentPredicate("fission_cooler", FissionCoolerBlock.class, PhoenixAPI.FISSION_COOLERS.values(),
+                "phoenix.multiblock.pattern.info.multiple_coolers");
     }
 
-    public static TraceabilityPredicate fissionModerators() {
-        return new TraceabilityPredicate(blockWorldState -> {
-            var blockState = blockWorldState.getBlockState();
-
-            var emptyBlock = safeGet(PhoenixFissionBlocks.EMPTY_REACTOR_COMPONENT);
-            if (PhoenixAPI.FISSION_MODERATORS.isEmpty() && emptyBlock != null && blockState.is(emptyBlock)) {
-                return true;
-            }
-
-            for (Map.Entry<IFissionModeratorType, Supplier<FissionModeratorBlock>> entry : PhoenixAPI.FISSION_MODERATORS
-                    .entrySet()) {
-                var block = safeGet(entry.getValue());
-                if (block == null) continue;
-                if (blockState.is(block)) {
-                    List<IFissionModeratorType> componentList = blockWorldState.getMatchContext()
-                            .getOrPut("ModeratorTypes", new ArrayList<>());
-                    componentList.add(entry.getKey());
-                    return true;
-                }
-            }
-            return false;
-        }, () -> {
-            var infos = PhoenixAPI.FISSION_MODERATORS.entrySet().stream()
-                    .sorted(Comparator.comparing(e -> e.getKey().getName()))
-                    .map(e -> safeGet(e.getValue()))
-                    .filter(Objects::nonNull)
-                    .map(b -> BlockInfo.fromBlockState(b.defaultBlockState()))
-                    .toArray(BlockInfo[]::new);
-            return infos.length > 0 ? infos : new BlockInfo[] { emptyComponentFallback() };
-        }).addTooltips(Component.translatable("phoenix.multiblock.pattern.info.multiple_moderators"));
+    public static MultiPredicate fissionBlankets() {
+        return componentPredicate("fission_blanket", FissionBlanketBlock.class, PhoenixAPI.FISSION_BLANKETS.values(),
+                "phoenix.multiblock.pattern.info.multiple_blankets");
     }
 
-    public static TraceabilityPredicate msrCoreLiner() {
-        return new TraceabilityPredicate(blockWorldState -> {
-            var blockState = blockWorldState.getBlockState();
+    public static MultiPredicate fissionFuelRods() {
+        return componentPredicate("fission_fuel_rod", FissionFuelRodBlock.class, PhoenixAPI.FISSION_FUEL_RODS.values(),
+                "phoenix.multiblock.pattern.info.multiple_fuel_rods");
+    }
 
-            var emptyBlock = safeGet(PhoenixFissionBlocks.EMPTY_REACTOR_COMPONENT);
-            if (PhoenixAPI.MSR_LINERS.isEmpty() && emptyBlock != null && blockState.is(emptyBlock)) {
-                return true;
-            }
+    public static MultiPredicate fissionModerators() {
+        return componentPredicate("fission_moderator", FissionModeratorBlock.class,
+                PhoenixAPI.FISSION_MODERATORS.values(), "phoenix.multiblock.pattern.info.multiple_moderators");
+    }
 
-            for (Map.Entry<IMSRCoreLinerType, Supplier<MSRCoreLinerBlock>> entry : PhoenixAPI.MSR_LINERS.entrySet()) {
-                var block = safeGet(entry.getValue());
-                if (block == null) continue;
-                if (blockState.is(block)) {
-                    var type = entry.getKey();
-                    blockWorldState.getMatchContext().increment("MSRLinerCount", 1);
-                    List<IMSRCoreLinerType> componentList = blockWorldState.getMatchContext().getOrPut("LinerTypes",
-                            new ArrayList<>());
-                    componentList.add(type);
-                    return true;
-                }
-            }
-            return false;
-        }, () -> {
-            var infos = PhoenixAPI.MSR_LINERS.entrySet().stream()
-                    .sorted(Comparator.comparing(e -> e.getKey().getName()))
-                    .map(e -> safeGet(e.getValue()))
-                    .filter(Objects::nonNull)
-                    .map(b -> BlockInfo.fromBlockState(b.defaultBlockState()))
-                    .toArray(BlockInfo[]::new);
-            return infos.length > 0 ? infos : new BlockInfo[] { emptyComponentFallback() };
-        }).addTooltips(Component.translatable("phoenix.multiblock.pattern.info.multiple_liners"));
+    public static MultiPredicate msrCoreLiner() {
+        return componentPredicate("msr_core_liner", MSRCoreLinerBlock.class, PhoenixAPI.MSR_LINERS.values(),
+                "phoenix.multiblock.pattern.info.multiple_liners");
     }
 }

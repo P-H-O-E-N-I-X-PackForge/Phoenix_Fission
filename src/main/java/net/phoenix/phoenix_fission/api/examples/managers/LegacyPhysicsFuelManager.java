@@ -4,7 +4,7 @@ import com.gregtechceu.gtceu.api.capability.recipe.IO;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.phoenix.phoenix_fission.api.block.iface.IFissionFuelRodType;
 import net.phoenix.phoenix_fission.api.block.iface.IFissionModeratorType;
 import net.phoenix.phoenix_fission.api.machine.multiblock.FissionWorkableElectricMultiblockMachine;
@@ -113,10 +113,10 @@ public class LegacyPhysicsFuelManager extends FissionFuelManager {
         if (itemIn.isEmpty()) return;
 
         ResourceLocation inRl = ResourceLocation.tryParse(itemIn);
-        if (inRl == null || !ForgeRegistries.ITEMS.containsKey(inRl)) return;
+        if (inRl == null || !BuiltInRegistries.ITEM.containsKey(inRl)) return;
 
         ItemStack inStack = new ItemStack(
-                Objects.requireNonNull(ForgeRegistries.ITEMS.getValue(inRl)), toConsume);
+                Objects.requireNonNull(BuiltInRegistries.ITEM.getOptional(inRl).orElse(null)), toConsume);
 
         if (!machine.executeItemIO(inStack, IO.IN, false)) {
             machine.setHeat(Math.max(machine.getHeat(),
@@ -127,10 +127,10 @@ public class LegacyPhysicsFuelManager extends FissionFuelManager {
         String itemOut = fuelType.getOutputKey();
         if (!itemOut.isEmpty() && !"none".equalsIgnoreCase(itemOut) && !itemOut.equalsIgnoreCase(itemIn)) {
             ResourceLocation outRl = ResourceLocation.tryParse(itemOut);
-            if (outRl != null && ForgeRegistries.ITEMS.containsKey(outRl)) {
+            if (outRl != null && BuiltInRegistries.ITEM.containsKey(outRl)) {
                 machine.executeItemIO(
                         new ItemStack(
-                                Objects.requireNonNull(ForgeRegistries.ITEMS.getValue(outRl)), toConsume),
+                                Objects.requireNonNull(BuiltInRegistries.ITEM.getOptional(outRl).orElse(null)), toConsume),
                         IO.OUT);
             }
         }

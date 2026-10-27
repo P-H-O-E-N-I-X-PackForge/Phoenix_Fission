@@ -1,13 +1,12 @@
 package net.phoenix.phoenix_fission.api.block;
 
 import com.gregtechceu.gtceu.api.block.ActiveBlock;
-import com.gregtechceu.gtceu.api.data.chemical.material.Material;
-import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.BlockGetter;
@@ -35,8 +34,7 @@ public class FissionModeratorBlock extends ActiveBlock {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable BlockGetter level,
-                                List<Component> tooltip, TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         if (!GTUtil.isShiftDown()) {
             tooltip.add(Component.translatable("block.phoenix_fission.fission_moderator.shift")
                     .withStyle(ChatFormatting.GRAY));
@@ -115,9 +113,5 @@ public class FissionModeratorBlock extends ActiveBlock {
             return name;
         }
 
-        @Override
-        public Material getMaterial() {
-            return GTMaterials.NULL;
-        }
     }
 }

@@ -125,14 +125,20 @@ public class NukePrimedRenderer extends EntityRenderer<NukePrimedEntity> {
     }
 
     private static void addQuad(VertexConsumer vc, PoseStack.Pose p, float a) {
-        vc.vertex(p.pose(), -0.5f, -0.5f, 0.0f).color(255, 255, 255, (int) (a * 255)).uv(0, 1)
-                .overlayCoords(OverlayTexture.NO_OVERLAY).uv2(0xF000F0).normal(p.normal(), 0, 0, 1).endVertex();
-        vc.vertex(p.pose(), 0.5f, -0.5f, 0.0f).color(255, 255, 255, (int) (a * 255)).uv(1, 1)
-                .overlayCoords(OverlayTexture.NO_OVERLAY).uv2(0xF000F0).normal(p.normal(), 0, 0, 1).endVertex();
-        vc.vertex(p.pose(), 0.5f, 0.5f, 0.0f).color(255, 255, 255, (int) (a * 255)).uv(1, 0)
-                .overlayCoords(OverlayTexture.NO_OVERLAY).uv2(0xF000F0).normal(p.normal(), 0, 0, 1).endVertex();
-        vc.vertex(p.pose(), -0.5f, 0.5f, 0.0f).color(255, 255, 255, (int) (a * 255)).uv(0, 0)
-                .overlayCoords(OverlayTexture.NO_OVERLAY).uv2(0xF000F0).normal(p.normal(), 0, 0, 1).endVertex();
+        int alpha = (int) (a * 255);
+        vertex(vc, p, -0.5f, -0.5f, 0, 1, alpha);
+        vertex(vc, p, 0.5f, -0.5f, 1, 1, alpha);
+        vertex(vc, p, 0.5f, 0.5f, 1, 0, alpha);
+        vertex(vc, p, -0.5f, 0.5f, 0, 0, alpha);
+    }
+
+    private static void vertex(VertexConsumer vc, PoseStack.Pose p, float x, float y, float u, float v, int alpha) {
+        vc.addVertex(p, x, y, 0.0f)
+                .setColor(255, 255, 255, alpha)
+                .setUv(u, v)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(0xF000F0)
+                .setNormal(p, 0, 0, 1);
     }
 
     @Override

@@ -11,8 +11,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.material.Fluid;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.phoenix.phoenix_fission.api.block.FissionFuelRodBlock;
 import net.phoenix.phoenix_fission.api.block.FissionModeratorBlock;
 import net.phoenix.phoenix_fission.api.block.iface.IFissionCoolerType;
@@ -305,8 +305,8 @@ public class FissionThermalManager {
             int whole = (int) Math.floor(total);
 
             ResourceLocation rl = ResourceLocation.tryParse(itemId);
-            if (rl == null || !ForgeRegistries.ITEMS.containsKey(rl)) return false;
-            var item = Objects.requireNonNull(ForgeRegistries.ITEMS.getValue(rl));
+            if (rl == null || !BuiltInRegistries.ITEM.containsKey(rl)) return false;
+            var item = Objects.requireNonNull(BuiltInRegistries.ITEM.getOptional(rl).orElse(null));
 
             if (!execute) {
                 // Don't stall the reactor on a zero-item tick, only when a whole item is actually due.
@@ -320,8 +320,8 @@ public class FissionThermalManager {
             String outId = outputIdForItem.get(itemId);
             if (whole > 0 && outId != null) {
                 ResourceLocation outRl = ResourceLocation.tryParse(outId);
-                if (outRl != null && ForgeRegistries.ITEMS.containsKey(outRl)) {
-                    machine.executeItemIO(new ItemStack(Objects.requireNonNull(ForgeRegistries.ITEMS.getValue(outRl)),
+                if (outRl != null && BuiltInRegistries.ITEM.containsKey(outRl)) {
+                    machine.executeItemIO(new ItemStack(Objects.requireNonNull(BuiltInRegistries.ITEM.getOptional(outRl).orElse(null)),
                             whole), IO.OUT);
                 }
             }
@@ -387,7 +387,7 @@ public class FissionThermalManager {
         ResourceLocation inRl = ResourceLocation.tryParse(inId);
         if (inRl == null) return false;
 
-        Fluid inFluid = ForgeRegistries.FLUIDS.getValue(inRl);
+        Fluid inFluid = BuiltInRegistries.FLUID.getOptional(inRl).orElse(null);
         if (inFluid == null) return false;
 
         FluidStack inStack = new FluidStack(inFluid, inAmount);
@@ -417,7 +417,7 @@ public class FissionThermalManager {
         ResourceLocation outRl = ResourceLocation.tryParse(outId);
         if (outRl == null) return;
 
-        Fluid outFluid = ForgeRegistries.FLUIDS.getValue(outRl);
+        Fluid outFluid = BuiltInRegistries.FLUID.getOptional(outRl).orElse(null);
         if (outFluid != null) {
             machine.executeFluidIO(new FluidStack(outFluid, outAmount), IO.OUT, false);
         }

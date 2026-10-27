@@ -1,15 +1,16 @@
 package net.phoenix.phoenix_fission.api.machine.multiblock;
 
+import com.gregtechceu.gtceu.api.blockentity.BlockEntityCreationInfo;
+import com.gregtechceu.gtceu.api.sync_system.annotations.SaveField;
+import com.gregtechceu.gtceu.api.sync_system.annotations.SyncToClient;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKeys;
-import com.gregtechceu.gtceu.api.gui.fancy.TabsWidget;
 import com.gregtechceu.gtceu.api.machine.ConditionalSubscriptionHandler;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.ITieredMachine;
-import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
+import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
@@ -19,10 +20,6 @@ import com.gregtechceu.gtceu.common.machine.multiblock.part.EnergyHatchPartMachi
 import com.gregtechceu.gtceu.data.recipe.builder.GTRecipeBuilder;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
-import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
-import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -32,12 +29,10 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.phoenix.phoenix_fission.client.gui.ThermoelectricGeneratorFancyUIWidget;
-import net.phoenix.phoenix_fission.client.gui.ThermoelectricGeneratorMathPage;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.phoenix.phoenix_fission.common.data.block.PhoenixFissionBlocks;
 import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
 
@@ -50,50 +45,44 @@ import java.util.Objects;
 
 public class ThermoelectricGeneratorMachine extends WorkableElectricMultiblockMachine implements ITieredMachine {
 
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(
-            ThermoelectricGeneratorMachine.class, WorkableElectricMultiblockMachine.MANAGED_FIELD_HOLDER);
 
     @Getter
-    @DescSynced
-    @Persisted
+    @SyncToClient
+    @SaveField
     private int length = 0;
 
     @Getter
-    @Persisted
-    @DescSynced
+    @SaveField
+    @SyncToClient
     private int dynamoTier = GTValues.HV;
     @Getter
-    @Persisted
-    @DescSynced
+    @SaveField
+    @SyncToClient
     private int heat = 0;
     @Getter
-    @Persisted
-    @DescSynced
+    @SaveField
+    @SyncToClient
     private int cooldownTicks = 0;
     @Getter
-    @Persisted
-    @DescSynced
+    @SaveField
+    @SyncToClient
     private boolean heliumActive = false;
     @Getter
-    @Persisted
-    @DescSynced
+    @SaveField
+    @SyncToClient
     private long maxHatchOutput = 0;
 
     protected final ConditionalSubscriptionHandler updateHandler;
 
-    public ThermoelectricGeneratorMachine(IMachineBlockEntity holder) {
+    public ThermoelectricGeneratorMachine(BlockEntityCreationInfo holder, Object... args) {
         super(holder);
         this.updateHandler = new ConditionalSubscriptionHandler(this, this::updateLogic, this::isFormed);
     }
 
     @Override
-    public @NotNull ManagedFieldHolder getFieldHolder() {
-        return MANAGED_FIELD_HOLDER;
-    }
-
-    @Override
-    public void onStructureFormed() {
-        super.onStructureFormed();
+    public void formStructure(String substructureName) {
+        super.formStructure(substructureName);
+        if (!DEFAULT_STRUCTURE.equals(substructureName)) return;
         calculateExchangerLength();
         detectDynamoTier();
 
@@ -102,8 +91,7 @@ public class ThermoelectricGeneratorMachine extends WorkableElectricMultiblockMa
         getRecipeLogic().updateTickSubscription();
 
         if (!Objects.requireNonNull(getLevel()).isClientSide) {
-            this.markDirty();
-            getLevel().sendBlockUpdated(getPos(), getBlockState(), getBlockState(), 3);
+            getLevel().sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
         }
     }
 
@@ -114,7 +102,7 @@ public class ThermoelectricGeneratorMachine extends WorkableElectricMultiblockMa
         Direction back = getFrontFacing().getOpposite();
 
         for (int depth = 1; depth <= 30; depth++) {
-            BlockPos scanPos = getPos().relative(back, depth);
+            BlockPos scanPos = getBlockPos().relative(back, depth);
             Block blockAtCenter = getLevel().getBlockState(scanPos).getBlock();
 
             if (isExchangerLayerBlock(blockAtCenter)) {
@@ -135,7 +123,7 @@ public class ThermoelectricGeneratorMachine extends WorkableElectricMultiblockMa
         long totalPower = 0;
 
         var parts = getParts();
-        for (IMultiPart part : parts) {
+        for (MultiblockPartMachine part : parts) {
             if (!(part instanceof EnergyHatchPartMachine hatch)) continue;
 
             IEnergyContainer container = hatch.energyContainer;
@@ -155,8 +143,7 @@ public class ThermoelectricGeneratorMachine extends WorkableElectricMultiblockMa
             this.maxHatchOutput = totalPower;
 
             if (this.isFormed() && getLevel() != null && !getLevel().isClientSide) {
-                this.markDirty();
-                getLevel().sendBlockUpdated(getPos(), getBlockState(), getBlockState(), 3);
+                getLevel().sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
             }
         }
     }
@@ -264,24 +251,9 @@ public class ThermoelectricGeneratorMachine extends WorkableElectricMultiblockMa
     private static FluidStack resolveConfiguredFluid(String id, int amount) {
         ResourceLocation rl = ResourceLocation.tryParse(id);
         if (rl == null) return null;
-        Fluid fluid = ForgeRegistries.FLUIDS.getValue(rl);
+        Fluid fluid = BuiltInRegistries.FLUID.getOptional(rl).orElse(null);
         if (fluid == null || fluid == Fluids.EMPTY) return null;
         return new FluidStack(fluid, Math.max(1, amount));
     }
 
-    @Override
-    @OnlyIn(Dist.CLIENT)
-    public void attachSideTabs(TabsWidget tabs) {
-        super.attachSideTabs(tabs);
-        tabs.attachSubTab(new ThermoelectricGeneratorMathPage(this));
-    }
-
-    @Override
-    public @NotNull ModularUI createUI(@NotNull Player entityPlayer) {
-        return new ModularUI(198, 208, this, entityPlayer).widget(new ThermoelectricGeneratorFancyUIWidget(this, 198,
-                208));
-    }
-
-    @Override
-    public void addDisplayText(@NotNull List<Component> textList) {}
 }

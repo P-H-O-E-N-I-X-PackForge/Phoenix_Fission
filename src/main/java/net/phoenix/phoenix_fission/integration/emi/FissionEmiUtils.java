@@ -7,7 +7,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 import dev.emi.emi.api.stack.EmiStack;
 import dev.emi.emi.api.widget.TextWidget;
@@ -64,7 +64,7 @@ final class FissionEmiUtils {
         if (id == null || id.isEmpty() || "none".equalsIgnoreCase(id)) return EmiStack.EMPTY;
         ResourceLocation rl = ResourceLocation.tryParse(id);
         if (rl == null) return EmiStack.EMPTY;
-        Item item = ForgeRegistries.ITEMS.getValue(rl);
+        Item item = BuiltInRegistries.ITEM.getOptional(rl).orElse(null);
         if (item == null || item == Items.AIR) return EmiStack.EMPTY;
         return EmiStack.of(new ItemStack(item, Math.max(1, count)));
     }
@@ -73,7 +73,7 @@ final class FissionEmiUtils {
         if (id == null || id.isEmpty() || "none".equalsIgnoreCase(id)) return EmiStack.EMPTY;
         ResourceLocation rl = ResourceLocation.tryParse(id);
         if (rl == null) return EmiStack.EMPTY;
-        Fluid fluid = ForgeRegistries.FLUIDS.getValue(rl);
+        Fluid fluid = BuiltInRegistries.FLUID.getOptional(rl).orElse(null);
         if (fluid == null || fluid == Fluids.EMPTY) return EmiStack.EMPTY;
         return EmiStack.of(fluid, Math.max(1, mb));
     }

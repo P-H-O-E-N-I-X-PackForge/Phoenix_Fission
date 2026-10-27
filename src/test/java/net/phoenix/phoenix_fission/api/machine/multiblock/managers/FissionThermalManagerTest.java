@@ -41,10 +41,6 @@ class FissionThermalManagerTest {
                 return conductivity;
             }
 
-            @Override
-            public Material getMaterial() {
-                return null;
-            }
 
             @Override
             public ResourceLocation getTexture() {

@@ -10,8 +10,8 @@ import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.phoenix.phoenix_fission.api.machine.multiblock.ThermoelectricGeneratorMachine;
 import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
 

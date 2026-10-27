@@ -2,7 +2,6 @@ package net.phoenix.phoenix_fission.common.data.block;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
-import com.gregtechceu.gtceu.common.data.GTMaterials;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.BlockItem;
@@ -146,10 +145,6 @@ public class PhoenixFissionGameTestFixtures {
             return true;
         }
 
-        @Override
-        public Material getMaterial() {
-            return GTMaterials.NULL;
-        }
 
         @Override
         public ResourceLocation getTexture() {
@@ -184,10 +179,6 @@ public class PhoenixFissionGameTestFixtures {
             return 0;
         }
 
-        @Override
-        public Material getMaterial() {
-            return GTMaterials.NULL;
-        }
 
         @Override
         public ResourceLocation getTexture() {

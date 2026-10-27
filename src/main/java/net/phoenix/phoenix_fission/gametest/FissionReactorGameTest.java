@@ -7,7 +7,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.gametest.PrefixGameTestTemplate;
+import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import net.phoenix.phoenix_fission.PhoenixFission;
 import net.phoenix.phoenix_fission.api.block.FissionCoolerBlock;
 import net.phoenix.phoenix_fission.api.machine.multiblock.FissionWorkableElectricMultiblockMachine;
@@ -231,14 +231,14 @@ public class FissionReactorGameTest {
 
     private static void requireItem(java.util.List<String> problems, String what, String id) {
         var rl = net.minecraft.resources.ResourceLocation.tryParse(id);
-        if (rl == null || !net.minecraftforge.registries.ForgeRegistries.ITEMS.containsKey(rl)) {
+        if (rl == null || !net.minecraftforge.registries.BuiltInRegistries.ITEM.containsKey(rl)) {
             problems.add(what + "=" + id);
         }
     }
 
     private static void requireFluid(java.util.List<String> problems, String what, String id) {
         var rl = net.minecraft.resources.ResourceLocation.tryParse(id);
-        if (rl == null || !net.minecraftforge.registries.ForgeRegistries.FLUIDS.containsKey(rl)) {
+        if (rl == null || !net.minecraftforge.registries.BuiltInRegistries.FLUID.containsKey(rl)) {
             problems.add(what + "=" + id);
         }
     }

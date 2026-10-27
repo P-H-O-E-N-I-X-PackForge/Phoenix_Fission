@@ -1,17 +1,14 @@
 package net.phoenix.phoenix_fission.api.machine.multiblock;
 
+import com.gregtechceu.gtceu.api.blockentity.BlockEntityCreationInfo;
+import com.gregtechceu.gtceu.api.sync_system.annotations.SaveField;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.api.recipe.modifier.ModifierFunction;
 import com.gregtechceu.gtceu.data.recipe.builder.GTRecipeBuilder;
 
-import com.lowdragmc.lowdraglib.gui.widget.Widget;
-import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
-import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -22,7 +19,7 @@ import net.minecraft.world.Containers;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.phoenix.phoenix_fission.api.PhoenixAPI;
 import net.phoenix.phoenix_fission.api.block.iface.IFissionBlanketType;
 import net.phoenix.phoenix_fission.api.block.iface.IFissionFuelRodType;
@@ -39,9 +36,6 @@ import java.util.stream.Collectors;
 @MethodsReturnNonnullByDefault
 public class BreederWorkableElectricMultiblockMachine extends DynamicFissionReactorMachine {
 
-    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(
-            BreederWorkableElectricMultiblockMachine.class,
-            DynamicFissionReactorMachine.MANAGED_FIELD_HOLDER);
 
     private transient List<IFissionBlanketType> activeBlankets = new ArrayList<>();
 
@@ -49,19 +43,14 @@ public class BreederWorkableElectricMultiblockMachine extends DynamicFissionReac
     @Getter
     private transient IFissionBlanketType primaryBlanket = null;
 
-    @Persisted
+    @SaveField
     private long blanketCycleCount = 0;
 
-    @Persisted
+    @SaveField
     private int blanketCycleTicks = 0;
 
-    public BreederWorkableElectricMultiblockMachine(IMachineBlockEntity holder) {
+    public BreederWorkableElectricMultiblockMachine(BlockEntityCreationInfo holder, Object... args) {
         super(holder);
-    }
-
-    @Override
-    public ManagedFieldHolder getFieldHolder() {
-        return MANAGED_FIELD_HOLDER;
     }
 
     @Override
@@ -72,23 +61,19 @@ public class BreederWorkableElectricMultiblockMachine extends DynamicFissionReac
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public void onStructureFormed() {
-        super.onStructureFormed();
+    public void formStructure(String substructureName) {
+        super.formStructure(substructureName);
+        if (!DEFAULT_STRUCTURE.equals(substructureName)) return;
 
-        Object obj = getMultiblockState().getMatchContext().get("BlanketTypes");
-        if (obj instanceof List<?> list) {
-            this.activeBlankets = (List<IFissionBlanketType>) list;
-        } else {
-            this.activeBlankets = new ArrayList<>();
-        }
+        this.activeBlankets = new ArrayList<>(getComponentManager().getActiveBlankets());
 
         selectPrimaryBlanket();
     }
 
     @Override
-    public void onStructureInvalid() {
-        super.onStructureInvalid();
+    public void invalidateStructure(String substructureName) {
+        super.invalidateStructure(substructureName);
+        if (!DEFAULT_STRUCTURE.equals(substructureName)) return;
         this.activeBlankets.clear();
         this.primaryBlanket = null;
     }
@@ -209,7 +194,7 @@ public class BreederWorkableElectricMultiblockMachine extends DynamicFissionReac
         ResourceLocation rl = ResourceLocation.tryParse(key);
         if (rl == null) return ItemStack.EMPTY;
 
-        Item item = ForgeRegistries.ITEMS.getValue(rl);
+        Item item = BuiltInRegistries.ITEM.getOptional(rl).orElse(null);
         if (item == null || item == Items.AIR) {
             return ItemStack.EMPTY;
         }
@@ -232,7 +217,7 @@ public class BreederWorkableElectricMultiblockMachine extends DynamicFissionReac
             if (!result.isSuccess() && getLevel() != null) {
                 Containers.dropItemStack(
                         getLevel(),
-                        getPos().getX(), getPos().getY(), getPos().getZ(),
+                        getBlockPos().getX(), getBlockPos().getY(), getBlockPos().getZ(),
                         is);
             }
         }
@@ -298,7 +283,7 @@ public class BreederWorkableElectricMultiblockMachine extends DynamicFissionReac
             seed ^= serverLevel.getSeed();
         }
 
-        seed ^= getPos().asLong() * 0xD1B54A32D192ED03L;
+        seed ^= getBlockPos().asLong() * 0xD1B54A32D192ED03L;
         seed ^= blanketCycleCount * 0x94D049BB133111EBL;
         return new Random(seed);
     }
@@ -331,22 +316,4 @@ public class BreederWorkableElectricMultiblockMachine extends DynamicFissionReac
         return result;
     }
 
-    @Override
-    public Widget createUIWidget() {
-        return new WidgetGroup(0, 0, 224, 216);
-    }
-
-    @Override
-    public void addDisplayText(@NotNull List<Component> textList) {
-        super.addDisplayText(textList);
-        if (!isFormed()) return;
-
-        if (activeBlankets.isEmpty()) {
-            textList.add(Component.literal("Breeding Offline - No Blankets Present")
-                    .withStyle(ChatFormatting.RED));
-        } else {
-            textList.add(Component.literal("Breeding Active")
-                    .withStyle(ChatFormatting.GREEN));
-        }
-    }
 }

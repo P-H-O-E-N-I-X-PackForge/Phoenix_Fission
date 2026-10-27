@@ -3,7 +3,9 @@ package net.phoenix.phoenix_fission.api.machine.multiblock.managers;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.StringRepresentable;
+import net.minecraft.world.level.block.Block;
 import net.phoenix.phoenix_fission.api.PhoenixAPI;
+import net.phoenix.phoenix_fission.api.block.*;
 import net.phoenix.phoenix_fission.api.block.iface.*;
 import net.phoenix.phoenix_fission.api.machine.multiblock.FissionWorkableElectricMultiblockMachine;
 
@@ -31,6 +33,9 @@ public class FissionComponentManager {
     @Getter
     protected final List<IFissionSensorHatchType> activeSensorHatches = new ArrayList<>();
 
+    @Getter
+    protected final List<IMSRCoreLinerType> activeLiners = new ArrayList<>();
+
     @Nullable
     @Getter
     protected IFissionCoolerType primaryCoolerType = null;
@@ -46,12 +51,12 @@ public class FissionComponentManager {
     }
 
     public void onStructureFormed() {
-        this.activeCoolers.addAll(getListFromContext("CoolerTypes"));
-        this.activeModerators.addAll(getListFromContext("ModeratorTypes"));
-        this.activeFuelRods.addAll(getListFromContext("FuelRodTypes"));
-        this.activeBlankets.addAll(getListFromContext("BlanketTypes"));
-        this.activeStabilityHatches.addAll(getListFromContext("StabilityTypes"));
-        this.activeSensorHatches.addAll(getListFromContext("SensorTypes"));
+        activeCoolers.clear();
+        activeModerators.clear();
+        activeFuelRods.clear();
+        activeBlankets.clear();
+        activeLiners.clear();
+        classifyFormedBlocks();
 
         machine.getPersistedCoolerIDs().clear();
         machine.getPersistedCoolerIDs().addAll(this.activeCoolers.stream().map(IFissionCoolerType::getName).toList());
@@ -81,6 +86,7 @@ public class FissionComponentManager {
         activeBlankets.clear();
         activeStabilityHatches.clear();
         activeSensorHatches.clear();
+        activeLiners.clear();
 
         machine.getPersistedCoolerIDs().clear();
         machine.getPersistedModeratorIDs().clear();
@@ -148,11 +154,19 @@ public class FissionComponentManager {
                 .map(Map.Entry::getKey).orElse(null);
     }
 
-    @SuppressWarnings("unchecked")
-    private <T> List<T> getListFromContext(String key) {
-        Object obj = machine.getMultiblockState().getMatchContext().get(key);
-        if (obj instanceof List<?> list) return (List<T>) list;
-        return new ArrayList<>();
+    /**
+     * Sorts every block of the formed structure into the component lists. Works on the block classes, so it covers
+     * components from Java, the default set and KubeJS alike.
+     */
+    private void classifyFormedBlocks() {
+        for (var info : machine.getDefaultPatternState().getCache().values()) {
+            Block block = info.getBlockState().getBlock();
+            if (block instanceof FissionCoolerBlock b) activeCoolers.add(b.getCoolerType());
+            else if (block instanceof FissionModeratorBlock b) activeModerators.add(b.getModeratorType());
+            else if (block instanceof FissionFuelRodBlock b) activeFuelRods.add(b.getFuelRodType());
+            else if (block instanceof FissionBlanketBlock b) activeBlankets.add(b.getBlanketType());
+            else if (block instanceof MSRCoreLinerBlock b) activeLiners.add(b.getLinerType());
+        }
     }
 
     public void addDisplayText(List<Component> textList) {

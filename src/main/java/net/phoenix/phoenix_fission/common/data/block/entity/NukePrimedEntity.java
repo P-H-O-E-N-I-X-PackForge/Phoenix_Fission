@@ -2,8 +2,6 @@ package net.phoenix.phoenix_fission.common.data.block.entity;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -14,7 +12,6 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.network.NetworkHooks;
 import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
 
 import org.jetbrains.annotations.Nullable;
@@ -39,9 +36,9 @@ public class NukePrimedEntity extends Entity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        this.entityData.define(DATA_FUSE, 80);
-        this.entityData.define(DATA_RADIUS, 16);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(DATA_FUSE, 80);
+        builder.define(DATA_RADIUS, 16);
     }
 
     public void setOwner(@Nullable LivingEntity owner) {
@@ -149,8 +146,4 @@ public class NukePrimedEntity extends Entity {
         tag.putLong("WipeCenter", wipeCenter.asLong());
     }
 
-    @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return NetworkHooks.getEntitySpawningPacket(this);
-    }
 }

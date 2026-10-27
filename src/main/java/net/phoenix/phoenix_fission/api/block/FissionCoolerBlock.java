@@ -2,19 +2,19 @@ package net.phoenix.phoenix_fission.api.block;
 
 import com.gregtechceu.gtceu.api.block.ActiveBlock;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
-import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.StringRepresentable;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.phoenix.phoenix_fission.PhoenixFission;
 import net.phoenix.phoenix_fission.api.block.iface.IFissionCoolerType;
 
@@ -39,8 +39,7 @@ public class FissionCoolerBlock extends ActiveBlock {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable BlockGetter level,
-                                List<Component> tooltip, TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         if (!GTUtil.isShiftDown()) {
             tooltip.add(Component.translatable("block.phoenix_fission.fission_moderator.shift")
                     .withStyle(ChatFormatting.GRAY));
@@ -97,7 +96,7 @@ public class FissionCoolerBlock extends ActiveBlock {
         ResourceLocation rl = ResourceLocation.tryParse(fluidId);
         if (rl == null) return Component.translatable(fluidId).withStyle(ChatFormatting.YELLOW);
 
-        Fluid f = ForgeRegistries.FLUIDS.getValue(rl);
+        Fluid f = BuiltInRegistries.FLUID.getOptional(rl).orElse(null);
         if (f != null && f != Fluids.EMPTY) {
             return Component.translatable(f.getFluidType().getDescriptionId());
         }
@@ -195,9 +194,5 @@ public class FissionCoolerBlock extends ActiveBlock {
             return name;
         }
 
-        @Override
-        public Material getMaterial() {
-            return GTMaterials.NULL;
-        }
     }
 }

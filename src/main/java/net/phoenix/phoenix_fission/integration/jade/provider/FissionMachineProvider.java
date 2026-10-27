@@ -14,7 +14,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.phoenix.phoenix_fission.PhoenixFission;
 import net.phoenix.phoenix_fission.api.block.iface.IFissionBlanketType;
 import net.phoenix.phoenix_fission.api.machine.multiblock.BreederWorkableElectricMultiblockMachine;
@@ -288,12 +288,12 @@ public class FissionMachineProvider implements IBlockComponentProvider, IServerD
 
         ResourceLocation rl = ResourceLocation.tryParse(key);
         if (rl != null) {
-            var item = ForgeRegistries.ITEMS.getValue(rl);
+            var item = BuiltInRegistries.ITEM.getOptional(rl).orElse(null);
             if (item != null && item != Items.AIR) {
                 return new ItemStack(item, 1).getHoverName();
             }
 
-            Fluid fluid = ForgeRegistries.FLUIDS.getValue(rl);
+            Fluid fluid = BuiltInRegistries.FLUID.getOptional(rl).orElse(null);
             if (fluid != null && fluid != Fluids.EMPTY) {
                 return Component.translatable(fluid.getFluidType().getDescriptionId());
             }
