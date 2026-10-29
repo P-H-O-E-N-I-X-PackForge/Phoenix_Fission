@@ -2,25 +2,26 @@ package net.phoenix.phoenix_fission.api.machine.multiblock;
 
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
+import com.gregtechceu.gtceu.api.gui.fancy.TabsWidget;
 import com.gregtechceu.gtceu.api.machine.ConditionalSubscriptionHandler;
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
-import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
-import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
-import com.lowdragmc.lowdraglib.gui.widget.SlotWidget;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.items.IItemHandlerModifiable;
+import net.phoenix.phoenix_fission.client.gui.RtgFancyUIWidget;
+import net.phoenix.phoenix_fission.client.gui.RtgGraphsPage;
+import net.phoenix.phoenix_fission.client.gui.RtgHistory;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.phoenix.phoenix_fission.api.item.RtgCellItem;
-import net.phoenix.phoenix_fission.client.gui.RtgWidget;
 import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
 
 import lombok.Getter;
@@ -122,30 +123,23 @@ public class RtgArrayMachine extends WorkableElectricMultiblockMachine {
         if (wear) cellInfo = info;
     }
 
+    private RtgHistory history;
+
+    /** Client-side rolling samples for the screen pages; created on first use. */
+    public RtgHistory getHistory() {
+        if (history == null) history = new RtgHistory();
+        return history;
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public void attachSideTabs(TabsWidget tabs) {
+        super.attachSideTabs(tabs);
+        tabs.attachSubTab(new RtgGraphsPage(this));
+    }
+
     @Override
     public @NotNull ModularUI createUI(@NotNull Player entityPlayer) {
-        int sectionH = 92;
-        int totalW = RtgWidget.TAB_W + 2 + RtgWidget.CONTENT_W;
-        int totalH = RtgWidget.CONTENT_H + sectionH;
-        var ui = new ModularUI(totalW, totalH, this, entityPlayer)
-                .widget(new RtgWidget(this, totalW, totalH));
-
-        // Player inventory in its own section under the screen, with dark HUD-style cells.
-        var cellTexture = new GuiTextureGroup(new ColorRectTexture(0xAA_010A12),
-                new ColorBorderTexture(-1, 0x55_00E5CC));
-        int invX = RtgWidget.TAB_W + 2 + (RtgWidget.CONTENT_W - 162) / 2;
-        int invY = RtgWidget.CONTENT_H + 11;
-        var inv = entityPlayer.getInventory();
-        for (int row = 0; row < 3; row++) {
-            for (int col = 0; col < 9; col++) {
-                ui.widget(new SlotWidget(inv, 9 + row * 9 + col, invX + col * 18, invY + row * 18, true, true)
-                        .setBackgroundTexture(cellTexture));
-            }
-        }
-        for (int col = 0; col < 9; col++) {
-            ui.widget(new SlotWidget(inv, col, invX + col * 18, invY + 58, true, true)
-                    .setBackgroundTexture(cellTexture));
-        }
-        return ui;
+        return new ModularUI(198, 208, this, entityPlayer).widget(new RtgFancyUIWidget(this, 198, 208));
     }
 }
