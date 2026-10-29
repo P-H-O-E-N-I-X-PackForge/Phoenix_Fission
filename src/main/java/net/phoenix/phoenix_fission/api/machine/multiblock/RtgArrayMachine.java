@@ -14,6 +14,9 @@ import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import net.phoenix.phoenix_fission.api.item.RtgCellItem;
 import net.phoenix.phoenix_fission.client.gui.CanvasWidget;
 import net.phoenix.phoenix_fission.client.gui.FissionPanelUi;
+import net.phoenix.phoenix_fission.client.gui.FissionTabbedScreen;
+import net.phoenix.phoenix_fission.client.gui.RtgGraphsPage;
+import net.phoenix.phoenix_fission.client.gui.RtgHistory;
 import net.phoenix.phoenix_fission.client.gui.RtgHud;
 import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
 
@@ -116,13 +119,21 @@ public class RtgArrayMachine extends WorkableElectricMultiblockMachine {
     @Override
     public ModularPanel<?> buildUI(PosGuiData data, PanelSyncManager syncManager, UISettings settings) {
         boolean client = getLevel() != null && getLevel().isClientSide;
+        FissionTabbedScreen screen = null;
+        if (client) {
+            var history = new RtgHistory();
+            screen = new FissionTabbedScreen(List.of(
+                    new FissionTabbedScreen.Tab("H", new RtgHud(this, history)),
+                    new FissionTabbedScreen.Tab("~", new RtgGraphsPage(this, history))));
+        }
+        final FissionTabbedScreen finalScreen = screen;
         var panel = MachineUIPanelBuilder.panelBuilder(this).attachInventory(false).addTitleBar(false)
                 .drawGTLogo(false)
                 .mainContents(main -> {
-                    if (client) main.child(new CanvasWidget(new RtgHud(this)).size(UI_WIDTH, UI_HEIGHT));
+                    if (finalScreen != null) main.child(new CanvasWidget(finalScreen).size(UI_WIDTH, UI_HEIGHT));
                     FissionPanelUi.addInventory(main, UI_WIDTH, UI_HEIGHT);
                 }).build(syncManager, settings);
-        if (client) panel.background(FissionPanelUi.BACKGROUND);
+        if (finalScreen != null) FissionPanelUi.apply(panel, finalScreen);
         return panel;
     }
 }

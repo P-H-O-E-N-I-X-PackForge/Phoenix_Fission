@@ -29,15 +29,18 @@ public class RtgHud implements CanvasPainter {
     private static final int TITLE_H = 16;
 
     private final RtgArrayMachine machine;
+    private final RtgHistory history;
     private int scroll = 0;
 
-    public RtgHud(RtgArrayMachine machine) {
+    public RtgHud(RtgArrayMachine machine, RtgHistory history) {
         this.machine = machine;
+        this.history = history;
     }
 
     @Override
     public void render(GuiGraphics g, int w, int h, int mouseX, int mouseY) {
         Font font = Minecraft.getInstance().font;
+        history.sampleIfDue(machine);
         GuiDraw.drawGradientRect(g, 0, 0, w, h, BG_TOP, BG_BOT, false);
 
         g.fill(0, 0, w, TITLE_H, BG_TOP);
