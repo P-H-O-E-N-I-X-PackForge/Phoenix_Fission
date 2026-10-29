@@ -201,6 +201,12 @@ public class PhoenixMachineLangHandler {
         provider.add("jade.phoenix_fission.blanket_input", "Blanket Fuel: %s");
         provider.add("jade.phoenix_fission.blanket_output", "Breeding Product: %s");
         provider.add("jade.phoenix_fission.blanket_amount", "Base per cycle: %s");
+        provider.add("tooltip.phoenix_fission.rtg_cell.output", "Output: %s EU/t");
+        provider.add("tooltip.phoenix_fission.rtg_cell.remaining", "Remaining: %s of %s");
+        provider.add("jade.phoenix_fission.rtg_output", "Output: %s EU/t");
+        provider.add("jade.phoenix_fission.rtg_cells", "Cells: %s");
+        provider.add("jade.phoenix_fission.rtg_shortest", "Shortest remaining: %s");
+        provider.add("jade.phoenix_fission.rtg_no_cells", "No RTG cells loaded");
         provider.add("jade.phoenix_fission.heat", "§cCore Heat: %s HU");
         provider.add("jade.phoenix_fission.fission_meltdown_timer", "§6MELTDOWN: %s seconds!");
         provider.add("jade.phoenix_fission.fission_safe", "§aCore Stable");

@@ -37,6 +37,7 @@
   "block.phoenix_fission.niobium_sic_moderator": "Niobium-SiC Moderator",
   "block.phoenix_fission.nuke_block": "Nuke Block",
   "block.phoenix_fission.pressurized_fission_reactor": "§bPressurized Fission Reactor",
+  "block.phoenix_fission.rtg_array": "§6RTG Array",
   "block.phoenix_fission.t1_fuel_rod": "Tier 1 Fuel Rod",
   "block.phoenix_fission.t2_fuel_rod": "Tier 2 Fuel Rod",
   "block.phoenix_fission.t3_fuel_rod": "Tier 3 Fuel Rod",
@@ -94,6 +95,10 @@
   "gui.phoenix_fission.stability_sensor.title": "Thermal Stability Configuration",
   "gui.phoenix_fission.thermoelectric_generator.current_efficiency": "Thermal Conductivity: Tier %d",
   "gui.phoenix_fission.thermoelectric_generator.heat_exchange_surface": "Exchange Columns: %d",
+  "item.phoenix_fission.rtg_cell_am241": "Americium-241 RTG Cell",
+  "item.phoenix_fission.rtg_cell_cm244": "Curium-244 RTG Cell",
+  "item.phoenix_fission.rtg_cell_pu238": "Plutonium-238 RTG Cell",
+  "item.phoenix_fission.rtg_cell_sr90": "Strontium-90 RTG Cell",
   "itemGroup.phoenix_fission.creative_tab": "Phoenix's Fission",
   "jade.phoenix_fission.blanket_amount": "Base per cycle: %s",
   "jade.phoenix_fission.blanket_input": "Blanket Fuel: %s",
@@ -106,6 +111,10 @@
   "jade.phoenix_fission.no_plasma_boost": "No Plasma Catalyst",
   "jade.phoenix_fission.plasma_boost_active": "Plasma Boost: %s Active",
   "jade.phoenix_fission.plasma_boost_duration": "Power Multiplier: %s",
+  "jade.phoenix_fission.rtg_cells": "Cells: %s",
+  "jade.phoenix_fission.rtg_no_cells": "No RTG cells loaded",
+  "jade.phoenix_fission.rtg_output": "Output: %s EU/t",
+  "jade.phoenix_fission.rtg_shortest": "Shortest remaining: %s",
   "jade.phoenix_fission.shield_cooldown": "Shield Recharging: %ds",
   "jade.phoenix_fission.shield_health": "Shield Health: %d",
   "jade.phoenix_fission.shield_state": "Shield State: %s",
@@ -199,5 +208,7 @@
   "tech.phoenix_fission.laser.output.low": "Tesla Photonic Coalescer",
   "tech.phoenix_fission.laser.output.mid": "Tesla Photonic Coalescence Array",
   "tooltip.phoenix.empty_component.0": "This is an empty component, provides no stats.",
-  "tooltip.phoenix.empty_component.1": "Useful for filling out a Fission Reactor."
+  "tooltip.phoenix.empty_component.1": "Useful for filling out a Fission Reactor.",
+  "tooltip.phoenix_fission.rtg_cell.output": "Output: %s EU/t",
+  "tooltip.phoenix_fission.rtg_cell.remaining": "Remaining: %s of %s"
 }

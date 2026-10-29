@@ -64,5 +64,6 @@ public class PhoenixKubeJSPlugin extends dev.latvian.mods.kubejs.KubeJSPlugin {
                 FissionBlanketRodBlockBuilder::new);
         RegistryInfo.BLOCK.addType("msr_core_liner", MSRCoreLinerBlockBuilder.class,
                 MSRCoreLinerBlockBuilder::new);
+        RegistryInfo.ITEM.addType("rtg_cell", RtgCellItemBuilder.class, RtgCellItemBuilder::new);
     }
 }

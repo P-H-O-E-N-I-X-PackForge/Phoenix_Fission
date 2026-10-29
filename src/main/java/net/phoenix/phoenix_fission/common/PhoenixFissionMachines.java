@@ -28,6 +28,7 @@ import net.phoenix.phoenix_fission.api.machine.multiblock.BreederWorkableElectri
 import net.phoenix.phoenix_fission.api.machine.multiblock.DynamicFissionReactorMachine;
 import net.phoenix.phoenix_fission.api.machine.multiblock.FissionWorkableElectricMultiblockMachine;
 import net.phoenix.phoenix_fission.api.machine.multiblock.MoltenSaltReactorMultiblockMachine;
+import net.phoenix.phoenix_fission.api.machine.multiblock.RtgArrayMachine;
 import net.phoenix.phoenix_fission.api.machine.multiblock.ThermoelectricGeneratorMachine;
 import net.phoenix.phoenix_fission.api.machine.multiblock.part.AdvancedFissionScramHatchPart;
 import net.phoenix.phoenix_fission.api.machine.multiblock.part.AdvancedFissionStabilitySensorPart;
@@ -459,6 +460,29 @@ public class PhoenixFissionMachines {
 
                 return shapeInfos;
             })
+            .register();
+
+    public static final MultiblockMachineDefinition RTG_ARRAY = PHOENIX_REGISTRATE
+            .multiblock("rtg_array", RtgArrayMachine::new)
+            .langValue("§6RTG Array")
+            .rotationState(RotationState.NON_Y_AXIS)
+            .recipeType(PhoenixRecipeTypes.RTG_ARRAY_RECIPES)
+            .appearanceBlock(PhoenixFissionBlocks.FISSILE_REACTION_SAFE_CASING)
+            .pattern(definition -> FactoryBlockPattern.start(LEFT, UP, BACK)
+                    .aisle("BBB", "BGB", "BBB")
+                    .aisle("BBB", "BCB", "BBB")
+                    .aisle("BBB", "BBB", "BBB")
+                    .where('B', Predicates.blocks(PhoenixFissionBlocks.FISSILE_REACTION_SAFE_CASING.get())
+                            .setMinGlobalLimited(10)
+                            .or(Predicates.abilities(PartAbility.IMPORT_ITEMS).setMinGlobalLimited(1))
+                            .or(Predicates.abilities(PartAbility.OUTPUT_ENERGY).setMinGlobalLimited(1))
+                            .or(Predicates.abilities(PartAbility.MAINTENANCE).setExactLimit(1)))
+                    .where('C', Predicates.blocks(PhoenixFissionBlocks.FISSILE_HEAT_SAFE_CASING.get()))
+                    .where('G', Predicates.controller(Predicates.blocks(definition.get())))
+                    .build())
+            .workableCasingModel(
+                    PhoenixFission.id("block/fission/fissile_reaction_safe_casing"),
+                    GTCEu.id("block/multiblock/fusion_reactor"))
             .register();
 
     public static void init() {}

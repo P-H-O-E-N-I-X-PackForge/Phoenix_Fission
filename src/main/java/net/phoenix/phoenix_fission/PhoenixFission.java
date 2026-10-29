@@ -87,6 +87,7 @@ public class PhoenixFission {
         PHOENIX_REGISTRATE.registerRegistrate();
         PhoenixFissionEntities.init();
         PhoenixFissionBlocks.init();
+        net.phoenix.phoenix_fission.common.data.item.PhoenixFissionItems.init();
         PhoenixFissionDefaultComponents.init();
         PhoenixFissionGameTestFixtures.init();
         PhoenixDatagen.init();
