@@ -73,6 +73,12 @@ public class PhoenixMachineLangHandler {
         provider.add("phoenix_fission.coolant_output", "Hot Coolant Produced: %s");
         provider.add("phoenix_fission.coolant_status.ok", "§aCoolant Supply OK");
         provider.add("phoenix_fission.coolant_status.empty", "§cCoolant Supply Depleted");
+        provider.add("tooltip.phoenix_fission.rtg_cell.output", "Output: %s EU/t");
+        provider.add("tooltip.phoenix_fission.rtg_cell.remaining", "Remaining: %s of %s");
+        provider.add("jade.phoenix_fission.rtg_output", "Output: %s EU/t");
+        provider.add("jade.phoenix_fission.rtg_cells", "Cells: %s");
+        provider.add("jade.phoenix_fission.rtg_shortest", "Shortest remaining: %s");
+        provider.add("jade.phoenix_fission.rtg_no_cells", "No RTG cells loaded");
         provider.add("phoenix_fission.summary", "Cooling: %s / %s HU/t");
         provider.add("phoenix_fission.cooling_power", "§bCooling Capacity: §f%s HU/t");
 

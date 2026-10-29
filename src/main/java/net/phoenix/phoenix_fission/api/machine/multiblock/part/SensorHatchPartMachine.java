@@ -5,14 +5,12 @@ import com.gregtechceu.gtceu.api.machine.ConditionalSubscriptionHandler;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredPartMachine;
 
-
 import net.minecraft.core.Direction;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class SensorHatchPartMachine extends TieredPartMachine {
-
 
     protected final ConditionalSubscriptionHandler signalUpdateHandler;
 
@@ -37,8 +35,8 @@ public abstract class SensorHatchPartMachine extends TieredPartMachine {
     }
 
     @Override
-    public void addedToController(@NotNull MultiblockControllerMachine controller) {
-        super.addedToController(controller);
+    public void addedToController(@NotNull MultiblockControllerMachine controller, String substructureName) {
+        super.addedToController(controller, substructureName);
         signalUpdateHandler.updateSubscription();
     }
 
@@ -57,7 +55,7 @@ public abstract class SensorHatchPartMachine extends TieredPartMachine {
 
     public void updateSignal() {
         if (getLevel() != null && !getLevel().isClientSide) {
-            getLevel().updateNeighborsAt(getBlockPos(), getHolder().getSelf().getBlockState().getBlock());
+            getLevel().updateNeighborsAt(getBlockPos(), getBlockState().getBlock());
         }
     }
 

@@ -22,7 +22,8 @@ public class FissionReactorGameTest {
 
     @GameTest(templateNamespace = PhoenixFission.MOD_ID, template = "pressurized_reactor", timeoutTicks = 400)
     public static void pressurizedReactorFormsAndDetectsComponents(GameTestHelper helper) {
-        BlockState controllerState = PhoenixFissionMachines.PRESSURIZED_FISSION_REACTOR.defaultBlockState();
+        BlockState controllerState = PhoenixFissionMachines.PRESSURIZED_FISSION_REACTOR.get().getBlock()
+                .defaultBlockState();
         helper.setBlock(CONTROLLER_POS, controllerState);
 
         helper.runAtTickTime(5, () -> {
@@ -34,13 +35,8 @@ public class FissionReactorGameTest {
 
             reactor.setFrontFacing(Direction.NORTH);
 
-            var pattern = PhoenixFissionMachines.PRESSURIZED_FISSION_REACTOR.getPatternFactory().get();
-            var fakePlayer = helper.makeMockPlayer();
-            pattern.autoBuild(fakePlayer, reactor.getMultiblockState());
-
-            if (pattern.checkPatternAt(reactor.getMultiblockState(), false)) {
-                reactor.onStructureFormed();
-            }
+            buildStructure(helper, reactor);
+            reactor.checkAndFormStructure();
 
             var fuelRodState = PhoenixFissionGameTestFixtures.GAMETEST_FUEL_ROD.get().defaultBlockState();
             BlockPos controllerAbs = helper.absolutePos(CONTROLLER_POS);
@@ -67,9 +63,7 @@ public class FissionReactorGameTest {
                 return;
             }
 
-            if (pattern.checkPatternAt(reactor.getMultiblockState(), false)) {
-                reactor.onStructureFormed();
-            }
+            reactor.checkAndFormStructure();
         });
 
         helper.runAtTickTime(20, () -> {
@@ -79,21 +73,11 @@ public class FissionReactorGameTest {
                 return;
             }
 
-            var pattern = PhoenixFissionMachines.PRESSURIZED_FISSION_REACTOR.getPatternFactory().get();
-            if (!reactor.isFormed() && pattern.checkPatternAt(reactor.getMultiblockState(), false)) {
-                reactor.onStructureFormed();
-            }
+            if (!reactor.isFormed()) reactor.checkAndFormStructure();
 
             if (!reactor.isFormed()) {
-                var state = reactor.getMultiblockState();
-                String detail = "no error info available";
-                if (state != null && state.hasError() && state.error != null) {
-                    BlockPos origin = helper.absolutePos(BlockPos.ZERO);
-                    BlockPos relative = state.error.getPos().subtract(origin);
-                    detail = "at world " + state.error.getPos() + " (local " + relative + "): " +
-                            state.error.getErrorInfo().getString();
-                }
-                helper.fail("Reactor did not form after autoBuild (" + detail + ")");
+                helper.fail("Reactor did not form after building the structure (" +
+                        reactor.getDefaultPatternState().getErrors() + ")");
                 return;
             }
 
@@ -122,7 +106,8 @@ public class FissionReactorGameTest {
 
     @GameTest(templateNamespace = PhoenixFission.MOD_ID, template = "pressurized_reactor", timeoutTicks = 400)
     public static void noOverheatSpikeWhenFuelWithdrawalFails(GameTestHelper helper) {
-        BlockState controllerState = PhoenixFissionMachines.PRESSURIZED_FISSION_REACTOR.defaultBlockState();
+        BlockState controllerState = PhoenixFissionMachines.PRESSURIZED_FISSION_REACTOR.get().getBlock()
+                .defaultBlockState();
         helper.setBlock(CONTROLLER_POS, controllerState);
 
         helper.runAtTickTime(5, () -> {
@@ -134,13 +119,8 @@ public class FissionReactorGameTest {
 
             reactor.setFrontFacing(Direction.NORTH);
 
-            var pattern = PhoenixFissionMachines.PRESSURIZED_FISSION_REACTOR.getPatternFactory().get();
-            var fakePlayer = helper.makeMockPlayer();
-            pattern.autoBuild(fakePlayer, reactor.getMultiblockState());
-
-            if (pattern.checkPatternAt(reactor.getMultiblockState(), false)) {
-                reactor.onStructureFormed();
-            }
+            buildStructure(helper, reactor);
+            reactor.checkAndFormStructure();
 
             var fuelRodState = PhoenixFissionGameTestFixtures.GAMETEST_FUEL_ROD.get().defaultBlockState();
             BlockPos controllerAbs = helper.absolutePos(CONTROLLER_POS);
@@ -166,9 +146,7 @@ public class FissionReactorGameTest {
                 return;
             }
 
-            if (pattern.checkPatternAt(reactor.getMultiblockState(), false)) {
-                reactor.onStructureFormed();
-            }
+            reactor.checkAndFormStructure();
         });
 
         helper.runAtTickTime(20, () -> {
@@ -178,10 +156,7 @@ public class FissionReactorGameTest {
                 return;
             }
 
-            var pattern = PhoenixFissionMachines.PRESSURIZED_FISSION_REACTOR.getPatternFactory().get();
-            if (!reactor.isFormed() && pattern.checkPatternAt(reactor.getMultiblockState(), false)) {
-                reactor.onStructureFormed();
-            }
+            if (!reactor.isFormed()) reactor.checkAndFormStructure();
 
             var comp = reactor.getComponentManager();
             if (!reactor.isFormed() || comp.getActiveFuelRods().isEmpty()) {
@@ -231,15 +206,30 @@ public class FissionReactorGameTest {
 
     private static void requireItem(java.util.List<String> problems, String what, String id) {
         var rl = net.minecraft.resources.ResourceLocation.tryParse(id);
-        if (rl == null || !net.minecraftforge.registries.BuiltInRegistries.ITEM.containsKey(rl)) {
+        if (rl == null || !net.minecraft.core.registries.BuiltInRegistries.ITEM.containsKey(rl)) {
             problems.add(what + "=" + id);
         }
     }
 
     private static void requireFluid(java.util.List<String> problems, String what, String id) {
         var rl = net.minecraft.resources.ResourceLocation.tryParse(id);
-        if (rl == null || !net.minecraftforge.registries.BuiltInRegistries.FLUID.containsKey(rl)) {
+        if (rl == null || !net.minecraft.core.registries.BuiltInRegistries.FLUID.containsKey(rl)) {
             problems.add(what + "=" + id);
         }
+    }
+
+    /** Places every block of the reactor's default pattern around the controller using GTM's own structure helper. */
+    private static void buildStructure(GameTestHelper helper, FissionWorkableElectricMultiblockMachine reactor) {
+        var blocks = new java.util.HashMap<BlockPos, com.gregtechceu.gtceu.api.multiblock.util.BlockInfo>();
+        com.gregtechceu.gtceu.api.multiblock.util.AbstractStructureHelper
+                .blockPattern(new it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap())
+                .populate(blocks, reactor.getDefaultStructurePattern(),
+                        new it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap<>(), reactor.getFrontFacing(),
+                        reactor.getUpwardsFacing(), false);
+        BlockPos controllerAbs = helper.absolutePos(CONTROLLER_POS);
+        blocks.forEach((rel, info) -> {
+            if (rel.equals(BlockPos.ZERO) || info.isAir()) return;
+            helper.getLevel().setBlockAndUpdate(controllerAbs.offset(rel), info.getBlockState());
+        });
     }
 }

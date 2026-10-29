@@ -22,12 +22,14 @@ import com.gregtechceu.gtceu.common.data.GTRecipeModifiers;
 import com.gregtechceu.gtceu.common.data.machines.GTMachineUtils;
 
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.level.block.Blocks;
 import net.phoenix.phoenix_fission.PhoenixFission;
 import net.phoenix.phoenix_fission.api.machine.PhoenixPartAbility;
 import net.phoenix.phoenix_fission.api.machine.multiblock.BreederWorkableElectricMultiblockMachine;
 import net.phoenix.phoenix_fission.api.machine.multiblock.DynamicFissionReactorMachine;
 import net.phoenix.phoenix_fission.api.machine.multiblock.FissionWorkableElectricMultiblockMachine;
 import net.phoenix.phoenix_fission.api.machine.multiblock.MoltenSaltReactorMultiblockMachine;
+import net.phoenix.phoenix_fission.api.machine.multiblock.RtgArrayMachine;
 import net.phoenix.phoenix_fission.api.machine.multiblock.ThermoelectricGeneratorMachine;
 import net.phoenix.phoenix_fission.api.machine.multiblock.part.AdvancedFissionScramHatchPart;
 import net.phoenix.phoenix_fission.api.machine.multiblock.part.AdvancedFissionStabilitySensorPart;
@@ -40,7 +42,6 @@ import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.function.BiFunction;
 
 import static com.gregtechceu.gtceu.api.GTValues.VNF;
@@ -61,14 +62,16 @@ public class PhoenixFissionMachines {
 
     public static final MachineEntry<MachineDefinition>[] FISSION_ADVANCED_STABILITY_SENSOR = registerAdvancedStabilitySensors(
             "fission_advanced_stability_sensor", "Advanced Fission Stability Sensor", GTValues.EV, GTValues.UV);
-    public static final MachineEntry<MachineDefinition>[] FISSION_SCRAM_HATCH = registerScramHatches("fission_scram_hatch",
+    public static final MachineEntry<MachineDefinition>[] FISSION_SCRAM_HATCH = registerScramHatches(
+            "fission_scram_hatch",
             "Fission SCRAM Hatch", GTValues.HV, GTValues.UV);
     public static final MachineEntry<MachineDefinition>[] FISSION_ADVANCED_SCRAM_HATCH = registerAdvancedScramHatches(
             "fission_advanced_scram_hatch", "Advanced Fission SCRAM Hatch", GTValues.EV, GTValues.UV);
     public static final MachineEntry<MachineDefinition>[] FISSION_STABILITY_SENSOR = registerStabilitySensors(
             "fission_stability_sensor", "Fission Stability Sensor", GTValues.HV, GTValues.UV);
 
-    private static MachineEntry<MachineDefinition>[] registerScramHatches(String name, String displayName, int minTier, int maxTier) {
+    private static MachineEntry<MachineDefinition>[] registerScramHatches(String name, String displayName, int minTier,
+                                                                          int maxTier) {
         final String ioOverlay = "overlay_pipe_in_emissive";
         final String emissiveOverlay = OVERLAY_PLASMA_HATCH_TEX;
 
@@ -95,8 +98,9 @@ public class PhoenixFissionMachines {
                 (MachineInstanceFactory.Tiered<MetaMachine>) factory::buildMachine, builder, tiers);
     }
 
-    private static MachineEntry<MachineDefinition>[] registerAdvancedStabilitySensors(String name, String displayName, int minTier,
-                                                                        int maxTier) {
+    private static MachineEntry<MachineDefinition>[] registerAdvancedStabilitySensors(String name, String displayName,
+                                                                                      int minTier,
+                                                                                      int maxTier) {
         final String ioOverlay = "overlay_pipe_out_emissive";
         final String emissiveOverlay = OVERLAY_PLASMA_HATCH_TEX;
 
@@ -117,8 +121,9 @@ public class PhoenixFissionMachines {
                 minTier);
     }
 
-    private static MachineEntry<MachineDefinition>[] registerStabilitySensors(String name, String displayName, int minTier,
-                                                                int maxTier) {
+    private static MachineEntry<MachineDefinition>[] registerStabilitySensors(String name, String displayName,
+                                                                              int minTier,
+                                                                              int maxTier) {
         final String ioOverlay = "overlay_pipe_out_emissive";
         final String emissiveOverlay = OVERLAY_PLASMA_HATCH_TEX;
 
@@ -134,8 +139,9 @@ public class PhoenixFissionMachines {
                 GTValues.HV);
     }
 
-    private static MachineEntry<MachineDefinition>[] registerAdvancedScramHatches(String name, String displayName, int minTier,
-                                                                    int maxTier) {
+    private static MachineEntry<MachineDefinition>[] registerAdvancedScramHatches(String name, String displayName,
+                                                                                  int minTier,
+                                                                                  int maxTier) {
         final String ioOverlay = "overlay_pipe_in_emissive";
         final String emissiveOverlay = OVERLAY_PLASMA_HATCH_TEX;
 
@@ -179,7 +185,8 @@ public class PhoenixFissionMachines {
                     .recipeModifiers(BreederWorkableElectricMultiblockMachine::recipeModifier,
                             GTRecipeModifiers.ELECTRIC_OVERCLOCK.apply(OverclockingLogic.NON_PERFECT_OVERCLOCK_SUBTICK))
                     .appearanceBlock(PhoenixFissionBlocks.FISSILE_REACTION_SAFE_CASING)
-                    .pattern(definition -> MultiblockPatternBuilder.start(RelativeDirection.FRONT, RelativeDirection.UP, RelativeDirection.LEFT)
+                    .pattern(definition -> MultiblockPatternBuilder
+                            .start(RelativeDirection.FRONT, RelativeDirection.UP, RelativeDirection.LEFT)
                             .slice("BBCCCCCBB", "BBDEEEDBB", "BBDEEEDBB", "BBDEEEDBB", "BBDFFFDBB", "BBDFFFDBB",
                                     "BBCFFFCBB",
                                     "BBCFFFCBB", "BBBBBBBBB")
@@ -233,7 +240,7 @@ public class PhoenixFissionMachines {
                             .where('M', Predicates.controller(definition))
                             .build())
                     .workableCasingModel(PhoenixFission.id("block/fission/fissile_reaction_safe_casing"),
-                                    GTCEu.id("block/multiblock/fusion_reactor"))
+                            GTCEu.id("block/multiblock/fusion_reactor"))
                     .register();
             registerFissionReactor(HIGH_PERFORMANCE_BREEDER_REACTOR, BreederWorkableElectricMultiblockMachine.class);
         }
@@ -249,7 +256,8 @@ public class PhoenixFissionMachines {
                     .recipeModifiers(DynamicFissionReactorMachine::recipeModifier,
                             GTRecipeModifiers.ELECTRIC_OVERCLOCK.apply(OverclockingLogic.NON_PERFECT_OVERCLOCK_SUBTICK))
                     .appearanceBlock(PhoenixFissionBlocks.FISSILE_REACTION_SAFE_CASING)
-                    .pattern(definition -> MultiblockPatternBuilder.start(RelativeDirection.FRONT, RelativeDirection.UP, RelativeDirection.LEFT)
+                    .pattern(definition -> MultiblockPatternBuilder
+                            .start(RelativeDirection.FRONT, RelativeDirection.UP, RelativeDirection.LEFT)
                             .slice("BCCCB", "CDDDC", "CDDDC", "CDDDC", "BCCCB")
                             .slice("CEFEC", "DGGGD", "DGGGD", "DGGGD", "CDHDC")
                             .slice("CFEFC", "DGFGD", "DGFGD", "DGFGD", "CHEHC")
@@ -277,7 +285,7 @@ public class PhoenixFissionMachines {
                             .where('I', Predicates.controller(definition))
                             .build())
                     .workableCasingModel(PhoenixFission.id("block/fission/fissile_reaction_safe_casing"),
-                                    GTCEu.id("block/multiblock/fusion_reactor"))
+                            GTCEu.id("block/multiblock/fusion_reactor"))
                     .register();
             registerFissionReactor(PRESSURIZED_FISSION_REACTOR, DynamicFissionReactorMachine.class);
         }
@@ -293,7 +301,8 @@ public class PhoenixFissionMachines {
                     .recipeModifiers(MoltenSaltReactorMultiblockMachine::recipeModifier,
                             GTRecipeModifiers.ELECTRIC_OVERCLOCK.apply(OverclockingLogic.NON_PERFECT_OVERCLOCK_SUBTICK))
                     .appearanceBlock(GCYMBlocks.CASING_HIGH_TEMPERATURE_SMELTING)
-                    .pattern(definition -> MultiblockPatternBuilder.start(RelativeDirection.FRONT, RelativeDirection.UP, RelativeDirection.LEFT)
+                    .pattern(definition -> MultiblockPatternBuilder
+                            .start(RelativeDirection.FRONT, RelativeDirection.UP, RelativeDirection.LEFT)
                             .slice("ABACCCABA", "ADACCCADA", "ADACCCADA", "ADACCCADA", "ADACCCADA", "ADACCCADA",
                                     "ABACCCABA")
                             .slice("BEEBEBEEB", "DGHHDHHGD", "DGHHDHHGD", "DGHHDHHGD", "DGHHDHHGD", "DGHHDHHGD",
@@ -334,7 +343,7 @@ public class PhoenixFissionMachines {
                             .where('L', Predicates.blocks(PhoenixFissionBlocks.FISSILE_HEAT_SAFE_CASING.get()))
                             .build())
                     .workableCasingModel(GTCEu.id("block/casings/gcym/high_temperature_smelting_casing"),
-                                    GTCEu.id("block/multiblock/fusion_reactor"))
+                            GTCEu.id("block/multiblock/fusion_reactor"))
                     .register();
             registerFissionReactor(MOLTEN_SALT_REACTOR, MoltenSaltReactorMultiblockMachine.class);
         }
@@ -349,7 +358,8 @@ public class PhoenixFissionMachines {
             .recipeType(PhoenixRecipeTypes.THERMOELECTRIC_GENERATOR_RECIPES)
             .recipeModifiers(ThermoelectricGeneratorMachine::recipeModifier)
             .appearanceBlock(PhoenixFissionBlocks.FISSILE_HEAT_SAFE_CASING)
-            .pattern(definition -> MultiblockPatternBuilder.start(RelativeDirection.BACK, RelativeDirection.UP, RelativeDirection.LEFT)
+            .pattern(definition -> MultiblockPatternBuilder
+                    .start(RelativeDirection.BACK, RelativeDirection.UP, RelativeDirection.LEFT)
                     .slice("ABBBBBA", "BBBCBBB", "BBCCCBB", "BCCGCCB", "BBCCCBB", "BBBCBBB", "ABBBBBA")
                     .slice("ABCCCBA", "BBAAABB", "CAAEAAC", "CAESEAC", "CAAEAAC", "BBAAABB", "ABCCCBA")
                     .slice("ABCCCBA", "BBAAABB", "CAAEAAC", "CAESEAC", "CAAEAAC", "BBAAABB", "ABCCCBA")
@@ -373,6 +383,30 @@ public class PhoenixFissionMachines {
                     .build())
             .workableCasingModel(
                     PhoenixFission.id("block/fission/fissile_heat_safe_casing"),
+                    GTCEu.id("block/multiblock/fusion_reactor"))
+            .register();
+
+    public static final MachineEntry<MultiblockMachineDefinition> RTG_ARRAY = PHOENIX_REGISTRATE
+            .multiblock("rtg_array", RtgArrayMachine::new)
+            .langValue("§6RTG Array")
+            .rotationState(RotationState.NON_Y_AXIS)
+            .recipeType(PhoenixRecipeTypes.RTG_ARRAY_RECIPES)
+            .appearanceBlock(PhoenixFissionBlocks.FISSILE_REACTION_SAFE_CASING)
+            .pattern(definition -> MultiblockPatternBuilder
+                    .start(RelativeDirection.BACK, RelativeDirection.UP, RelativeDirection.LEFT)
+                    .slice("BBB", "BGB", "BBB")
+                    .slice("BBB", "BCB", "BBB")
+                    .slice("BBB", "BBB", "BBB")
+                    .where('B', Predicates.blocks(PhoenixFissionBlocks.FISSILE_REACTION_SAFE_CASING.get())
+                            .setMinGlobalLimited(10)
+                            .or(Predicates.abilities(PartAbility.IMPORT_ITEMS).setMinGlobalLimited(1))
+                            .or(Predicates.abilities(PartAbility.OUTPUT_ENERGY).setMinGlobalLimited(1))
+                            .or(Predicates.abilities(PartAbility.MAINTENANCE).setExactLimit(1)))
+                    .where('C', Predicates.blocks(PhoenixFissionBlocks.FISSILE_HEAT_SAFE_CASING.get()))
+                    .where('G', Predicates.controller(definition))
+                    .build())
+            .workableCasingModel(
+                    PhoenixFission.id("block/fission/fissile_reaction_safe_casing"),
                     GTCEu.id("block/multiblock/fusion_reactor"))
             .register();
 

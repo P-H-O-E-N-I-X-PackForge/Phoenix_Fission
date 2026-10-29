@@ -7,10 +7,10 @@ import com.gregtechceu.gtceu.api.recipe.modifier.ModifierFunction;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.phoenix.phoenix_fission.api.block.iface.IFissionFuelRodType;
 import net.phoenix.phoenix_fission.api.block.iface.IFissionModeratorType;
 import net.phoenix.phoenix_fission.api.machine.multiblock.FissionWorkableElectricMultiblockMachine;
@@ -215,7 +215,9 @@ public class FissionFuelManager {
                 ResourceLocation outRl = ResourceLocation.tryParse(itemOut);
                 if (outRl != null && BuiltInRegistries.ITEM.containsKey(outRl)) {
                     machine.executeItemIO(
-                            new ItemStack(Objects.requireNonNull(BuiltInRegistries.ITEM.getOptional(outRl).orElse(null)), directConsume),
+                            new ItemStack(
+                                    Objects.requireNonNull(BuiltInRegistries.ITEM.getOptional(outRl).orElse(null)),
+                                    directConsume),
                             IO.OUT);
                 }
             }
@@ -229,7 +231,9 @@ public class FissionFuelManager {
             verifiedTypes.add(rod.getFuelKey());
             ResourceLocation rl = ResourceLocation.tryParse(rod.getFuelKey());
             if (rl == null || !BuiltInRegistries.ITEM.containsKey(rl) ||
-                    !machine.executeItemIO(new ItemStack(Objects.requireNonNull(BuiltInRegistries.ITEM.getOptional(rl).orElse(null)), 1),
+                    !machine.executeItemIO(
+                            new ItemStack(Objects.requireNonNull(BuiltInRegistries.ITEM.getOptional(rl).orElse(null)),
+                                    1),
                             IO.IN, true))
                 return false;
         }

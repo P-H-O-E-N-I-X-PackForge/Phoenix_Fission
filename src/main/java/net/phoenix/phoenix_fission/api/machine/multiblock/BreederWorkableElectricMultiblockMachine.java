@@ -1,32 +1,28 @@
 package net.phoenix.phoenix_fission.api.machine.multiblock;
 
 import com.gregtechceu.gtceu.api.blockentity.BlockEntityCreationInfo;
-import com.gregtechceu.gtceu.api.sync_system.annotations.SaveField;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.api.recipe.modifier.ModifierFunction;
+import com.gregtechceu.gtceu.api.sync_system.annotations.SaveField;
 import com.gregtechceu.gtceu.data.recipe.builder.GTRecipeBuilder;
 
-
-import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.network.chat.Component;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Containers;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.phoenix.phoenix_fission.api.PhoenixAPI;
 import net.phoenix.phoenix_fission.api.block.iface.IFissionBlanketType;
 import net.phoenix.phoenix_fission.api.block.iface.IFissionFuelRodType;
 import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
 
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -35,7 +31,6 @@ import java.util.stream.Collectors;
 
 @MethodsReturnNonnullByDefault
 public class BreederWorkableElectricMultiblockMachine extends DynamicFissionReactorMachine {
-
 
     private transient List<IFissionBlanketType> activeBlankets = new ArrayList<>();
 
@@ -179,7 +174,7 @@ public class BreederWorkableElectricMultiblockMachine extends DynamicFissionReac
         if (stack.isEmpty()) return true;
         GTRecipe dummy = GTRecipeBuilder.ofRaw()
                 .inputItems(stack)
-                .buildRawRecipe();
+                .build();
         return RecipeHelper.matchRecipe(this, dummy).isSuccess();
     }
 
@@ -208,13 +203,7 @@ public class BreederWorkableElectricMultiblockMachine extends DynamicFissionReac
         ItemStack is = resolveKeyToItem(key, amount);
         assert is != null;
         if (!is.isEmpty()) {
-            GTRecipe dummy = GTRecipeBuilder.ofRaw()
-                    .outputItems(is)
-                    .buildRawRecipe();
-
-            var result = RecipeHelper.handleRecipeIO(this, dummy, IO.OUT, getRecipeLogic().getChanceCaches());
-
-            if (!result.isSuccess() && getLevel() != null) {
+            if (!executeItemIO(is, IO.OUT, false) && getLevel() != null) {
                 Containers.dropItemStack(
                         getLevel(),
                         getBlockPos().getX(), getBlockPos().getY(), getBlockPos().getZ(),
@@ -242,13 +231,7 @@ public class BreederWorkableElectricMultiblockMachine extends DynamicFissionReac
     private boolean tryConsumeItem(ItemStack stack) {
         if (stack.isEmpty()) return true;
 
-        GTRecipe dummy = GTRecipeBuilder.ofRaw()
-                .inputItems(stack)
-                .buildRawRecipe();
-
-        if (!RecipeHelper.matchRecipe(this, dummy).isSuccess()) return false;
-
-        return RecipeHelper.handleRecipeIO(this, dummy, IO.IN, getRecipeLogic().getChanceCaches()).isSuccess();
+        return executeItemIO(stack, IO.IN, false);
     }
 
     private record WeightedKey(String key, double weight, int instability) {}
@@ -315,5 +298,4 @@ public class BreederWorkableElectricMultiblockMachine extends DynamicFissionReac
         }
         return result;
     }
-
 }

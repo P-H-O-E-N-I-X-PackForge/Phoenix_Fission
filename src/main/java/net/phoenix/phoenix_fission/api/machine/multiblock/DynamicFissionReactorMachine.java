@@ -6,13 +6,11 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.modifier.ModifierFunction;
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
 
-
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.phoenix.phoenix_fission.api.machine.multiblock.managers.FissionFuelManager;
 
 @MethodsReturnNonnullByDefault
 public class DynamicFissionReactorMachine extends FissionWorkableElectricMultiblockMachine {
-
 
     public DynamicFissionReactorMachine(BlockEntityCreationInfo holder, Object... args) {
         super(holder);

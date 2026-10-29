@@ -1,9 +1,6 @@
 package net.phoenix.phoenix_fission.integration.jade.provider;
 
-import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.data.chemical.material.Material;
-import com.gregtechceu.gtceu.common.data.GTMaterials;
-
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
@@ -14,7 +11,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.phoenix.phoenix_fission.PhoenixFission;
 import net.phoenix.phoenix_fission.api.block.iface.IFissionBlanketType;
 import net.phoenix.phoenix_fission.api.machine.multiblock.BreederWorkableElectricMultiblockMachine;
@@ -57,8 +53,7 @@ public class FissionMachineProvider implements IBlockComponentProvider, IServerD
     public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
         if (!config.get(UID)) return;
 
-        if (!(accessor.getBlockEntity() instanceof MetaMachineBlockEntity metaBE &&
-                metaBE.getMetaMachine() instanceof FissionWorkableElectricMultiblockMachine)) {
+        if (!(accessor.getBlockEntity() instanceof FissionWorkableElectricMultiblockMachine)) {
             return;
         }
 
@@ -178,8 +173,7 @@ public class FissionMachineProvider implements IBlockComponentProvider, IServerD
 
     @Override
     public void appendServerData(CompoundTag tag, BlockAccessor accessor) {
-        if (!(accessor.getBlockEntity() instanceof MetaMachineBlockEntity metaBE &&
-                metaBE.getMetaMachine() instanceof FissionWorkableElectricMultiblockMachine machine)) {
+        if (!(accessor.getBlockEntity() instanceof FissionWorkableElectricMultiblockMachine machine)) {
             return;
         }
 
@@ -274,16 +268,6 @@ public class FissionMachineProvider implements IBlockComponentProvider, IServerD
     private static Component resolveKeyToDisplayName(String key) {
         if (key == null || key.isEmpty() || "none".equalsIgnoreCase(key)) {
             return Component.literal("None");
-        }
-
-        Material mat = GTMaterials.get(key);
-        if (mat != GTMaterials.NULL) {
-
-            String transKey = mat.getDefaultTranslation();
-            if (transKey != null && !transKey.isEmpty()) {
-                return Component.translatable(transKey);
-            }
-            return Component.literal(key);
         }
 
         ResourceLocation rl = ResourceLocation.tryParse(key);

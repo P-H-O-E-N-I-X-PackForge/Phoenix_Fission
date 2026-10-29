@@ -1,6 +1,5 @@
 package net.phoenix.phoenix_fission.api.block.iface;
 
-
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.StringRepresentable;
 
@@ -34,7 +33,6 @@ public interface IFissionModeratorType extends StringRepresentable {
     double getHeatMultiplier();
 
     int getParallelBonus();
-
 
     ResourceLocation getTexture();
 

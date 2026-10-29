@@ -1,7 +1,5 @@
 package net.phoenix.phoenix_fission.api.machine.multiblock.managers;
 
-import com.gregtechceu.gtceu.api.data.chemical.material.Material;
-
 import net.minecraft.resources.ResourceLocation;
 import net.phoenix.phoenix_fission.api.block.iface.IFissionCoolerType;
 import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
@@ -41,7 +39,6 @@ class FissionThermalManagerTest {
                 return conductivity;
             }
 
-
             @Override
             public ResourceLocation getTexture() {
                 return null;
@@ -77,9 +74,9 @@ class FissionThermalManagerTest {
         hm.coolantReferenceHeatRemovalHUt = 100.0;
 
         assertEquals(10, FissionThermalManager.scaledCoolantAmount(10, 1, 100.0, hm));
-        
+
         assertEquals(20, FissionThermalManager.scaledCoolantAmount(10, 1, 200.0, hm));
-        
+
         assertEquals(1, FissionThermalManager.scaledCoolantAmount(10, 1, 10.0, hm));
     }
 

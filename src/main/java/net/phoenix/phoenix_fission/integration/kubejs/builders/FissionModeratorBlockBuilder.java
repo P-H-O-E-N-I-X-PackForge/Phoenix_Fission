@@ -1,6 +1,5 @@
 package net.phoenix.phoenix_fission.integration.kubejs.builders;
 
-
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.phoenix.phoenix_fission.api.PhoenixAPI;
@@ -85,7 +84,6 @@ public class FissionModeratorBlockBuilder extends FissionTintedBlockBuilder {
         public @NotNull String getSerializedName() {
             return getName();
         }
-
     }
 
     @Override

@@ -51,6 +51,11 @@ public class FissionComponentManager {
     }
 
     public void onStructureFormed() {
+        // Only the server owns the pattern cache; the client mirrors the synced persisted IDs instead.
+        if (machine.getLevel() != null && machine.getLevel().isClientSide) {
+            resolvePersistedComponents();
+            return;
+        }
         activeCoolers.clear();
         activeModerators.clear();
         activeFuelRods.clear();
@@ -101,7 +106,6 @@ public class FissionComponentManager {
     }
 
     public void resolvePersistedComponents() {
-
         activeCoolers.clear();
         activeModerators.clear();
         activeFuelRods.clear();
@@ -159,8 +163,15 @@ public class FissionComponentManager {
      * components from Java, the default set and KubeJS alike.
      */
     private void classifyFormedBlocks() {
-        for (var info : machine.getDefaultPatternState().getCache().values()) {
-            Block block = info.getBlockState().getBlock();
+        var level = machine.getLevel();
+        // The pattern cache can hold the predicate's candidate rather than the placed block (an "or" of coolers and
+        // fuel rods would then look alike), so prefer the real block from the world and fall back to the cache.
+        for (var entry : machine.getDefaultPatternState().getCache().long2ObjectEntrySet()) {
+            Block block = entry.getValue().getBlockState().getBlock();
+            if (level != null) {
+                Block placed = level.getBlockState(net.minecraft.core.BlockPos.of(entry.getLongKey())).getBlock();
+                if (!placed.defaultBlockState().isAir()) block = placed;
+            }
             if (block instanceof FissionCoolerBlock b) activeCoolers.add(b.getCoolerType());
             else if (block instanceof FissionModeratorBlock b) activeModerators.add(b.getModeratorType());
             else if (block instanceof FissionFuelRodBlock b) activeFuelRods.add(b.getFuelRodType());

@@ -1,28 +1,27 @@
 package net.phoenix.phoenix_fission.api.machine.multiblock;
 
-import com.gregtechceu.gtceu.api.blockentity.BlockEntityCreationInfo;
-import com.gregtechceu.gtceu.api.sync_system.annotations.SaveField;
-import com.gregtechceu.gtceu.api.sync_system.annotations.SyncToClient;
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.blockentity.BlockEntityCreationInfo;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.machine.trait.recipe.RecipeLogic;
-
+import com.gregtechceu.gtceu.api.sync_system.annotations.SaveField;
+import com.gregtechceu.gtceu.api.sync_system.annotations.SyncToClient;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.phoenix.phoenix_fission.api.block.iface.IMSRCoreLinerType;
+import net.phoenix.phoenix_fission.client.gui.CanvasPainter;
+import net.phoenix.phoenix_fission.client.gui.MsrHud;
 import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -30,7 +29,6 @@ import java.util.stream.Collectors;
 
 @MethodsReturnNonnullByDefault
 public class MoltenSaltReactorMultiblockMachine extends FissionWorkableElectricMultiblockMachine {
-
 
     @SaveField
     @SyncToClient
@@ -258,5 +256,10 @@ public class MoltenSaltReactorMultiblockMachine extends FissionWorkableElectricM
                 .append(Component.literal(" (").withStyle(ChatFormatting.GRAY))
                 .append(Component.literal(GTValues.VNF[tier]))
                 .append(Component.literal(")").withStyle(ChatFormatting.GRAY));
+    }
+
+    @Override
+    protected CanvasPainter createHudPainter() {
+        return new MsrHud(this);
     }
 }

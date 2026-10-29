@@ -145,5 +145,4 @@ public class NukePrimedEntity extends Entity {
         tag.putInt("WipeIndex", wipeIndex);
         tag.putLong("WipeCenter", wipeCenter.asLong());
     }
-
 }

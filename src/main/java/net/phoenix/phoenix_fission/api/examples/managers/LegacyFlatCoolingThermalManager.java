@@ -4,12 +4,12 @@ import com.gregtechceu.gtceu.api.capability.recipe.IO;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.phoenix.phoenix_fission.api.block.FissionFuelRodBlock;
 import net.phoenix.phoenix_fission.api.block.FissionModeratorBlock;
 import net.phoenix.phoenix_fission.api.block.iface.IFissionCoolerType;
@@ -210,13 +210,12 @@ public class LegacyFlatCoolingThermalManager extends FissionThermalManager {
         float power = computeExplosionPower(
                 exp.baseExplosionPower, exp.explosionPowerPerFuelRod, exp.explosionPowerPerHeatUnit);
 
-        var pos = machine.getPos();
+        var pos = machine.getBlockPos();
 
-        java.util.List<BlockPos> cached = new java.util.ArrayList<>(
-                machine.getMultiblockState().getCache() != null ? machine.getMultiblockState().getCache() :
-                        java.util.List.of());
+        java.util.List<BlockPos> cached = new java.util.ArrayList<>();
+        machine.getDefaultPatternState().getCache().keySet().forEach(l -> cached.add(BlockPos.of(l)));
 
-        machine.onStructureInvalid();
+        machine.invalidateAllStructures();
 
         if (exp.destructiveExplosion) {
             for (var targetPos : cached) {

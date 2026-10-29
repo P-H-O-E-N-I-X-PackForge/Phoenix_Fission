@@ -9,13 +9,11 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.level.BlockGetter;
 import net.phoenix.phoenix_fission.PhoenixFission;
 import net.phoenix.phoenix_fission.api.block.iface.IFissionModeratorType;
 
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.function.Supplier;
@@ -34,7 +32,8 @@ public class FissionModeratorBlock extends ActiveBlock {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip,
+                                TooltipFlag flag) {
         if (!GTUtil.isShiftDown()) {
             tooltip.add(Component.translatable("block.phoenix_fission.fission_moderator.shift")
                     .withStyle(ChatFormatting.GRAY));
@@ -112,6 +111,5 @@ public class FissionModeratorBlock extends ActiveBlock {
         public @NotNull String getSerializedName() {
             return name;
         }
-
     }
 }

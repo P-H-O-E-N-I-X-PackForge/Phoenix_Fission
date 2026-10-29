@@ -1,7 +1,6 @@
 package net.phoenix.phoenix_fission.common.data.block;
 
 import com.gregtechceu.gtceu.GTCEu;
-import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.BlockItem;
@@ -30,7 +29,8 @@ import static net.phoenix.phoenix_fission.PhoenixFission.PHOENIX_REGISTRATE;
  * against the RATED heat model so a tier-matched build settles at a comfortable fraction of the safe limit.
  * Turn it off with {@code fission.defaultComponentsEnabled = false} to define everything yourself (KubeJS).
  *
- * <p>Reference loadouts for the Pressurized Fission Reactor (48 rod/cooler slots, 14 moderator slots),
+ * <p>
+ * Reference loadouts for the Pressurized Fission Reactor (48 rod/cooler slots, 14 moderator slots),
  * stable heat = production / total rated cooling, under 100% is safe:
  * <ul>
  * <li>8 rods + 40 same-tier coolers, no moderators: roughly 50%</li>
@@ -48,9 +48,9 @@ public class PhoenixFissionDefaultComponents {
     public record ModeratorTier(String name, String display, int euBoost, int fuelDiscount, int tint) {}
 
     public static final List<FuelTier> FUEL_TIERS = List.of(
-            new FuelTier("t1_fuel_rod", "Tier 1 Fuel Rod", 10, "gtceu:uranium_dust", "gtceu:lead_dust", 1200,
+            new FuelTier("t1_fuel_rod", "Tier 1 Fuel Rod", 10, "gtceu:uranium_238_dust", "gtceu:lead_dust", 1200,
                     0xFF8FBF5A),
-            new FuelTier("t2_fuel_rod", "Tier 2 Fuel Rod", 25, "gtceu:uranium_235_dust", "gtceu:uranium_dust", 1000,
+            new FuelTier("t2_fuel_rod", "Tier 2 Fuel Rod", 25, "gtceu:uranium_235_dust", "gtceu:uranium_238_dust", 1000,
                     0xFF5ABF8F),
             new FuelTier("t3_fuel_rod", "Tier 3 Fuel Rod", 60, "gtceu:plutonium_dust", "gtceu:uranium_dust", 900,
                     0xFF5A9FBF),
@@ -214,7 +214,6 @@ public class PhoenixFissionDefaultComponents {
             return t.ratedHUt();
         }
 
-
         @Override
         public ResourceLocation getTexture() {
             return PhoenixFission.id("block/fission/coolers/" + t.name());
@@ -252,7 +251,6 @@ public class PhoenixFissionDefaultComponents {
         public int getParallelBonus() {
             return 0;
         }
-
 
         @Override
         public ResourceLocation getTexture() {

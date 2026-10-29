@@ -2,9 +2,9 @@ package net.phoenix.phoenix_fission.api.examples.managers;
 
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.phoenix.phoenix_fission.api.block.iface.IFissionFuelRodType;
 import net.phoenix.phoenix_fission.api.block.iface.IFissionModeratorType;
 import net.phoenix.phoenix_fission.api.machine.multiblock.FissionWorkableElectricMultiblockMachine;
@@ -130,7 +130,8 @@ public class LegacyPhysicsFuelManager extends FissionFuelManager {
             if (outRl != null && BuiltInRegistries.ITEM.containsKey(outRl)) {
                 machine.executeItemIO(
                         new ItemStack(
-                                Objects.requireNonNull(BuiltInRegistries.ITEM.getOptional(outRl).orElse(null)), toConsume),
+                                Objects.requireNonNull(BuiltInRegistries.ITEM.getOptional(outRl).orElse(null)),
+                                toConsume),
                         IO.OUT);
             }
         }

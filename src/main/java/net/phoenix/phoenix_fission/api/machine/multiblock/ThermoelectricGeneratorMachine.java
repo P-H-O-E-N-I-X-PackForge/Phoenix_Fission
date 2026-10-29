@@ -1,41 +1,44 @@
 package net.phoenix.phoenix_fission.api.machine.multiblock;
 
-import com.gregtechceu.gtceu.api.blockentity.BlockEntityCreationInfo;
-import com.gregtechceu.gtceu.api.sync_system.annotations.SaveField;
-import com.gregtechceu.gtceu.api.sync_system.annotations.SyncToClient;
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.blockentity.BlockEntityCreationInfo;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKeys;
 import com.gregtechceu.gtceu.api.machine.ConditionalSubscriptionHandler;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.ITieredMachine;
-import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
+import com.gregtechceu.gtceu.api.machine.mui.MachineUIPanelBuilder;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
+import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
-import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.api.recipe.modifier.ModifierFunction;
+import com.gregtechceu.gtceu.api.sync_system.annotations.SaveField;
+import com.gregtechceu.gtceu.api.sync_system.annotations.SyncToClient;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.machine.multiblock.part.EnergyHatchPartMachine;
-import com.gregtechceu.gtceu.data.recipe.builder.GTRecipeBuilder;
 import com.gregtechceu.gtceu.utils.GTUtil;
-
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.network.chat.Component;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.phoenix.phoenix_fission.client.gui.CanvasWidget;
+import net.phoenix.phoenix_fission.client.gui.FissionPanelUi;
+import net.phoenix.phoenix_fission.client.gui.FissionTabbedScreen;
+import net.phoenix.phoenix_fission.client.gui.TegHud;
+import net.phoenix.phoenix_fission.client.gui.ThermoelectricGeneratorMathPage;
 import net.phoenix.phoenix_fission.common.data.block.PhoenixFissionBlocks;
 import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
 
+import brachy.modularui.factory.PosGuiData;
+import brachy.modularui.screen.ModularPanel;
+import brachy.modularui.screen.UISettings;
+import brachy.modularui.value.sync.PanelSyncManager;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,7 +47,6 @@ import java.util.List;
 import java.util.Objects;
 
 public class ThermoelectricGeneratorMachine extends WorkableElectricMultiblockMachine implements ITieredMachine {
-
 
     @Getter
     @SyncToClient
@@ -211,18 +213,10 @@ public class ThermoelectricGeneratorMachine extends WorkableElectricMultiblockMa
         var heliumInput = GTMaterials.Helium.getFluid(FluidStorageKeys.LIQUID, heliumAmount);
         var heliumOutput = GTMaterials.Helium.getFluid(heliumAmount);
 
-        var heliumRecipe = GTRecipeBuilder.ofRaw()
-                .inputFluids(heliumInput)
-                .outputFluids(heliumOutput)
-                .buildRawRecipe();
-
-        if (RecipeHelper.matchRecipe(this, heliumRecipe).isSuccess()) {
-            if (RecipeHelper.handleRecipeIO(this, heliumRecipe, IO.IN, getRecipeLogic().getChanceCaches())
-                    .isSuccess()) {
-                this.heliumActive = true;
-                return RecipeHelper.handleRecipeIO(this, heliumRecipe, IO.OUT, getRecipeLogic().getChanceCaches())
-                        .isSuccess();
-            }
+        if (HatchIO.fluid(this, heliumInput, IO.IN, true) && HatchIO.fluid(this, heliumOutput, IO.OUT, true) &&
+                HatchIO.fluid(this, heliumInput, IO.IN, false)) {
+            this.heliumActive = true;
+            return HatchIO.fluid(this, heliumOutput, IO.OUT, false);
         }
 
         this.heliumActive = false;
@@ -231,17 +225,9 @@ public class ThermoelectricGeneratorMachine extends WorkableElectricMultiblockMa
         FluidStack hotOut = resolveConfiguredFluid(cfg.hotCoolantFluidId, coolantAmount);
         if (coldIn == null || hotOut == null) return false;
 
-        var coolantRecipe = GTRecipeBuilder.ofRaw()
-                .inputFluids(coldIn)
-                .outputFluids(hotOut)
-                .buildRawRecipe();
-
-        if (RecipeHelper.matchRecipe(this, coolantRecipe).isSuccess()) {
-            if (RecipeHelper.handleRecipeIO(this, coolantRecipe, IO.IN, getRecipeLogic().getChanceCaches())
-                    .isSuccess()) {
-                return RecipeHelper.handleRecipeIO(this, coolantRecipe, IO.OUT, getRecipeLogic().getChanceCaches())
-                        .isSuccess();
-            }
+        if (HatchIO.fluid(this, coldIn, IO.IN, true) && HatchIO.fluid(this, hotOut, IO.OUT, true) &&
+                HatchIO.fluid(this, coldIn, IO.IN, false)) {
+            return HatchIO.fluid(this, hotOut, IO.OUT, false);
         }
 
         return false;
@@ -256,4 +242,22 @@ public class ThermoelectricGeneratorMachine extends WorkableElectricMultiblockMa
         return new FluidStack(fluid, Math.max(1, amount));
     }
 
+    private FissionTabbedScreen createFissionScreen() {
+        return new FissionTabbedScreen(java.util.List.of(
+                new FissionTabbedScreen.Tab("H", new TegHud(this)),
+                new FissionTabbedScreen.Tab("M", new ThermoelectricGeneratorMathPage(this))));
+    }
+
+    @Override
+    public ModularPanel<?> buildUI(PosGuiData data, PanelSyncManager syncManager, UISettings settings) {
+        FissionTabbedScreen screen = getLevel() != null && getLevel().isClientSide ? createFissionScreen() : null;
+        var panel = MachineUIPanelBuilder.panelBuilder(this).attachInventory(false).addTitleBar(false)
+                .drawGTLogo(false)
+                .mainContents(main -> {
+                    if (screen != null) main.child(new CanvasWidget(screen).size(198, 190));
+                    FissionPanelUi.addInventory(main, 198, 190);
+                }).build(syncManager, settings);
+        if (screen != null) FissionPanelUi.apply(panel, screen);
+        return panel;
+    }
 }

@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.api.capability.recipe.IO;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -12,7 +13,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.material.Fluid;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.phoenix.phoenix_fission.api.block.FissionFuelRodBlock;
 import net.phoenix.phoenix_fission.api.block.FissionModeratorBlock;
 import net.phoenix.phoenix_fission.api.block.iface.IFissionCoolerType;
@@ -321,7 +321,8 @@ public class FissionThermalManager {
             if (whole > 0 && outId != null) {
                 ResourceLocation outRl = ResourceLocation.tryParse(outId);
                 if (outRl != null && BuiltInRegistries.ITEM.containsKey(outRl)) {
-                    machine.executeItemIO(new ItemStack(Objects.requireNonNull(BuiltInRegistries.ITEM.getOptional(outRl).orElse(null)),
+                    machine.executeItemIO(new ItemStack(
+                            Objects.requireNonNull(BuiltInRegistries.ITEM.getOptional(outRl).orElse(null)),
                             whole), IO.OUT);
                 }
             }
@@ -385,10 +386,11 @@ public class FissionThermalManager {
         if (inAmount <= 0) return true;
 
         ResourceLocation inRl = ResourceLocation.tryParse(inId);
-        if (inRl == null) return false;
-
-        Fluid inFluid = BuiltInRegistries.FLUID.getOptional(inRl).orElse(null);
-        if (inFluid == null) return false;
+        Fluid inFluid = inRl == null ? null : BuiltInRegistries.FLUID.getOptional(inRl).orElse(null);
+        if (inFluid == null) {
+            warnUnknownCoolantFluid(inId);
+            return false;
+        }
 
         FluidStack inStack = new FluidStack(inFluid, inAmount);
         if (!machine.executeFluidIO(inStack, IO.IN, !execute)) return false;
@@ -402,6 +404,16 @@ public class FissionThermalManager {
         }
 
         return true;
+    }
+
+    private long lastUnknownFluidWarn = Long.MIN_VALUE;
+
+    private void warnUnknownCoolantFluid(String id) {
+        long now = machine.getLevel() == null ? 0 : machine.getLevel().getGameTime();
+        if (now - lastUnknownFluidWarn < 200) return;
+        lastUnknownFluidWarn = now;
+        net.phoenix.phoenix_fission.PhoenixFission.LOGGER.warn(
+                "Cooler coolant fluid '{}' is not a registered fluid; coolant will always read as missing.", id);
     }
 
     private void handleOvercooledRefund(Fluid inFluid, int inAmount) {
@@ -487,11 +499,11 @@ public class FissionThermalManager {
         meltdownInProgress = true;
 
         if (machine.getLevel() instanceof ServerLevel world) {
-            BlockPos pos = machine.getPos();
-            List<BlockPos> cachedBlocks = new ArrayList<>(machine.getMultiblockState().getCache() != null ?
-                    machine.getMultiblockState().getCache() : List.of());
+            BlockPos pos = machine.getBlockPos();
+            List<BlockPos> cachedBlocks = new ArrayList<>();
+            machine.getDefaultPatternState().getCache().keySet().forEach(l -> cachedBlocks.add(BlockPos.of(l)));
 
-            machine.onStructureInvalid();
+            machine.invalidateAllStructures();
 
             if (PhoenixFissionConfigs.INSTANCE.fission.explosion.destructiveExplosion) {
                 for (BlockPos targetPos : cachedBlocks) {
@@ -527,7 +539,6 @@ public class FissionThermalManager {
     }
 
     public void addDisplayText(List<Component> textList) {
-
         textList.add(Component
                 .translatable("phoenix_fission.current_heat_display",
                         String.format("%.1f", machine.getHeat()),

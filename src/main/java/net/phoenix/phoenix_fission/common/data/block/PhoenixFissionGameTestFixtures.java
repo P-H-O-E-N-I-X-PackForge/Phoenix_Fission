@@ -1,7 +1,6 @@
 package net.phoenix.phoenix_fission.common.data.block;
 
 import com.gregtechceu.gtceu.GTCEu;
-import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.BlockItem;
@@ -145,7 +144,6 @@ public class PhoenixFissionGameTestFixtures {
             return true;
         }
 
-
         @Override
         public ResourceLocation getTexture() {
             return PhoenixFission.id("block/fission/cooler_base");
@@ -178,7 +176,6 @@ public class PhoenixFissionGameTestFixtures {
         public int getParallelBonus() {
             return 0;
         }
-
 
         @Override
         public ResourceLocation getTexture() {

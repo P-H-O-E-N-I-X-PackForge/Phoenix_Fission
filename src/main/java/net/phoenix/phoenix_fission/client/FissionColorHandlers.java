@@ -3,8 +3,8 @@ package net.phoenix.phoenix_fission.client;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.phoenix.phoenix_fission.api.PhoenixAPI;
 
 import java.util.function.Supplier;

@@ -86,6 +86,13 @@ repositories {
         )
         filter { includeGroup('dev.toma.configuration') }
     }
+    maven {
+        name = 'JitPack'
+        url = 'https://jitpack.io'
+        content {
+            includeGroup 'com.github.rtyley'
+        }
+    }
     flatDir {
         dir 'libs'
     }

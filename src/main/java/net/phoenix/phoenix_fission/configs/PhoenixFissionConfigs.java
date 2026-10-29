@@ -113,6 +113,9 @@ public class PhoenixFissionConfigs {
         public ThermoelectricGeneratorConfigs thermoelectricGenerator = new ThermoelectricGeneratorConfigs();
 
         @Configurable
+        public RtgConfigs rtg = new RtgConfigs();
+
+        @Configurable
         @Configurable.Comment("Cube radius in blocks. Total affected volume is (2r+1)^3.")
         public int nukeCubeRadius = 16;
 
@@ -351,5 +354,19 @@ public class PhoenixFissionConfigs {
                         "base * (1 + (columns - 1) * 0.2)."
         })
         public int baseCoolantAmount = 100;
+    }
+
+    public static class RtgConfigs {
+
+        @Configurable
+        @Configurable.Comment("Multiplies the EU/t every RTG cell produces.")
+        public double euMultiplier = 1.0;
+
+        @Configurable
+        @Configurable.Comment({
+                "Multiplies how long RTG cells last. Applied when items register, so changing it needs a restart.",
+                "Set very high for effectively indefinite cells."
+        })
+        public double lifespanMultiplier = 1.0;
     }
 }

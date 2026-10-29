@@ -56,6 +56,7 @@ public class PhoenixFission {
         PhoenixFissionEntities.init();
         PhoenixRecipeTypes.init();
         PhoenixFissionBlocks.init();
+        net.phoenix.phoenix_fission.common.data.item.PhoenixFissionItems.init();
         PhoenixFissionDefaultComponents.init();
         PhoenixFissionGameTestFixtures.init();
         PhoenixDatagen.init();

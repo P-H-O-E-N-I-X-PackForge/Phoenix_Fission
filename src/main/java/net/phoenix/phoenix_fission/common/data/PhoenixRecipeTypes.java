@@ -18,6 +18,8 @@ public class PhoenixRecipeTypes {
     public static GTRecipeTypeEntry ADVANCED_PRESSURIZED_FISSION_REACTOR_RECIPES;
     public static GTRecipeTypeEntry PRESSURIZED_FISSION_REACTOR_RECIPES;
     public static GTRecipeTypeEntry THERMOELECTRIC_GENERATOR_RECIPES;
+    /** Placeholder so the RTG Array is a normal multiblock; it has no recipes, the cells are the fuel. */
+    public static GTRecipeTypeEntry RTG_ARRAY_RECIPES;
 
     public static void init() {
         HIGH_PERFORMANCE_BREEDER_REACTOR_RECIPES = PHOENIX_REGISTRATE
@@ -65,6 +67,12 @@ public class PhoenixRecipeTypes {
                         .texture(PhoenixGuiTextures.PROGRESS_BAR_FISSION, ProgressDrawable.Direction.RIGHT)
                         .size(20)))
                 .setSound(GTSoundEntries.MIXER)
+                .register();
+
+        RTG_ARRAY_RECIPES = PHOENIX_REGISTRATE
+                .recipeType("rtg_array", MULTIBLOCK)
+                .setMaxIOSize(0, 0, 0, 0)
+                .setEUIO(IO.OUT)
                 .register();
     }
 }

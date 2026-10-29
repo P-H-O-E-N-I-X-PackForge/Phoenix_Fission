@@ -5,7 +5,7 @@ import net.minecraft.resources.ResourceLocation;
 import dev.latvian.mods.kubejs.block.BlockBuilder;
 import dev.latvian.mods.kubejs.client.ModelGenerator;
 import dev.latvian.mods.kubejs.client.VariantBlockStateGenerator;
-import dev.latvian.mods.kubejs.generator.AssetJsonGenerator;
+import dev.latvian.mods.kubejs.generator.KubeAssetGenerator;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
@@ -44,7 +44,8 @@ public abstract class FissionTintedBlockBuilder extends BlockBuilder {
     protected ResourceLocation manualTexture(boolean active) {
         String t = active && !activeTexture.isEmpty() ? activeTexture : texture;
         ResourceLocation rl = ResourceLocation.tryParse(t);
-        return rl != null ? rl : ResourceLocation.fromNamespaceAndPath("phoenix_fission", "block/fission/" + kind() + "_base");
+        return rl != null ? rl :
+                ResourceLocation.fromNamespaceAndPath("phoenix_fission", "block/fission/" + kind() + "_base");
     }
 
     protected ResourceLocation sharedBase() {
@@ -61,11 +62,11 @@ public abstract class FissionTintedBlockBuilder extends BlockBuilder {
 
     private void model(ModelGenerator m, boolean active) {
         if (isTextureManual()) {
-            m.parent("minecraft:block/cube_all");
+            m.parent(ResourceLocation.withDefaultNamespace("block/cube_all"));
             m.texture("all", manualTexture(active).toString());
             m.texture("particle", manualTexture(active).toString());
         } else {
-            m.parent("phoenix_fission:block/cube_2_layer_all_tinted");
+            m.parent(ResourceLocation.fromNamespaceAndPath("phoenix_fission", "block/cube_2_layer_all_tinted"));
             m.texture("bot_all", sharedBase().toString());
             // Moderators only have one mask; every other kind has a separate active mask.
             m.texture("top_all", maskName(active && hasActiveState()));
@@ -73,7 +74,7 @@ public abstract class FissionTintedBlockBuilder extends BlockBuilder {
     }
 
     @Override
-    protected void generateBlockModelJsons(AssetJsonGenerator gen) {
+    protected void generateBlockModels(KubeAssetGenerator gen) {
         gen.blockModel(id, m -> model(m, false));
         if (hasActiveState()) {
             gen.blockModel(ResourceLocation.fromNamespaceAndPath(id.getNamespace(), id.getPath() + "_active"),
@@ -82,18 +83,18 @@ public abstract class FissionTintedBlockBuilder extends BlockBuilder {
     }
 
     @Override
-    protected void generateBlockStateJson(VariantBlockStateGenerator gen) {
-        String model = id.getNamespace() + ":block/" + id.getPath();
+    protected void generateBlockState(VariantBlockStateGenerator gen) {
+        ResourceLocation model = ResourceLocation.fromNamespaceAndPath(id.getNamespace(), "block/" + id.getPath());
         if (hasActiveState()) {
             gen.simpleVariant("active=false", model);
-            gen.simpleVariant("active=true", model + "_active");
+            gen.simpleVariant("active=true", model.withSuffix("_active"));
         } else {
             gen.simpleVariant("", model);
         }
     }
 
     @Override
-    protected void generateItemModelJson(ModelGenerator m) {
-        m.parent(id.getNamespace() + ":block/" + id.getPath());
+    protected void generateItemModel(ModelGenerator m) {
+        m.parent(ResourceLocation.fromNamespaceAndPath(id.getNamespace(), "block/" + id.getPath()));
     }
 }

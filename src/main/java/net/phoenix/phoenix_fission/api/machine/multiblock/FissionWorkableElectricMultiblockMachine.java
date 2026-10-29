@@ -1,19 +1,16 @@
 package net.phoenix.phoenix_fission.api.machine.multiblock;
 
 import com.gregtechceu.gtceu.api.blockentity.BlockEntityCreationInfo;
-import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
-import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.machine.ConditionalSubscriptionHandler;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
+import com.gregtechceu.gtceu.api.machine.mui.MachineUIPanelBuilder;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
-import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.api.recipe.modifier.ModifierFunction;
 import com.gregtechceu.gtceu.api.sync_system.annotations.ClientFieldChangeListener;
 import com.gregtechceu.gtceu.api.sync_system.annotations.SaveField;
 import com.gregtechceu.gtceu.api.sync_system.annotations.SyncToClient;
-import com.gregtechceu.gtceu.data.recipe.builder.GTRecipeBuilder;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.world.item.ItemStack;
@@ -24,8 +21,19 @@ import net.phoenix.phoenix_fission.api.machine.multiblock.managers.FissionTherma
 import net.phoenix.phoenix_fission.api.machine.multiblock.part.AdvancedFissionScramHatchPart;
 import net.phoenix.phoenix_fission.api.machine.multiblock.part.FissionScramHatchPart;
 import net.phoenix.phoenix_fission.api.machine.multiblock.part.SensorHatchPartMachine;
+import net.phoenix.phoenix_fission.client.gui.CanvasPainter;
+import net.phoenix.phoenix_fission.client.gui.CanvasWidget;
+import net.phoenix.phoenix_fission.client.gui.FissionGraphsPage;
+import net.phoenix.phoenix_fission.client.gui.FissionMathPage;
+import net.phoenix.phoenix_fission.client.gui.FissionPanelUi;
+import net.phoenix.phoenix_fission.client.gui.FissionReactorHud;
+import net.phoenix.phoenix_fission.client.gui.FissionTabbedScreen;
 import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
 
+import brachy.modularui.factory.PosGuiData;
+import brachy.modularui.screen.ModularPanel;
+import brachy.modularui.screen.UISettings;
+import brachy.modularui.value.sync.PanelSyncManager;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -61,27 +69,27 @@ public class FissionWorkableElectricMultiblockMachine extends WorkableElectricMu
 
     @SaveField
     @SyncToClient
-        @Getter
+    @Getter
     protected List<String> persistedCoolerIDs = new ArrayList<>();
     @SaveField
     @SyncToClient
-        @Getter
+    @Getter
     protected List<String> persistedModeratorIDs = new ArrayList<>();
     @SaveField
     @SyncToClient
-        @Getter
+    @Getter
     protected List<String> persistedFuelRodIDs = new ArrayList<>();
     @SaveField
     @SyncToClient
-        @Getter
+    @Getter
     protected List<String> persistedBlanketIDs = new ArrayList<>();
     @SaveField
     @SyncToClient
-        @Getter
+    @Getter
     protected List<String> persistedStabilityIDs = new ArrayList<>();
     @SaveField
     @SyncToClient
-        @Getter
+    @Getter
     protected List<String> persistedSensorIDs = new ArrayList<>();
     @SaveField
     @SyncToClient
@@ -225,7 +233,15 @@ public class FissionWorkableElectricMultiblockMachine extends WorkableElectricMu
         fuelManager.onStructureFormed();
 
         reactorTickHandler.updateSubscription();
+        markComponentListsDirty();
         setChanged();
+    }
+
+    private void markComponentListsDirty() {
+        for (String f : new String[] { "persistedCoolerIDs", "persistedModeratorIDs", "persistedFuelRodIDs",
+                "persistedBlanketIDs", "persistedStabilityIDs", "persistedSensorIDs" }) {
+            getSyncDataHolder().markClientSyncFieldDirty(f);
+        }
     }
 
     @Override
@@ -261,7 +277,35 @@ public class FissionWorkableElectricMultiblockMachine extends WorkableElectricMu
         thermalManager.tickThermalLogic(running);
 
         tickPeripheralHatches();
+        markLiveStatsDirty();
         setChanged();
+    }
+
+    private final java.util.Map<String, Object> lastSyncedStats = new java.util.HashMap<>();
+
+    /**
+     * The managers write these fields from outside this class, which the sync system's own write tracking does not
+     * see, so flag whichever ones actually changed for the client ourselves.
+     */
+    private void markLiveStatsDirty() {
+        syncIfChanged("lastRequiredCooling", lastRequiredCooling);
+        syncIfChanged("lastProvidedCooling", lastProvidedCooling);
+        syncIfChanged("lastHasCoolant", lastHasCoolant);
+        syncIfChanged("lastParallels", lastParallels);
+        syncIfChanged("lastGeneratedEUt", lastGeneratedEUt);
+        syncIfChanged("lastHeatGainedPerTick", lastHeatGainedPerTick);
+        syncIfChanged("lastHeatRemovedPerTick", lastHeatRemovedPerTick);
+        syncIfChanged("isOverCooled", isOverCooled);
+        syncIfChanged("meltdownTimerTicks", meltdownTimerTicks);
+        syncIfChanged("meltdownTimerMax", meltdownTimerMax);
+        syncIfChanged("multiBlockCount", multiBlockCount);
+        syncIfChanged("heat", heat);
+    }
+
+    private void syncIfChanged(String field, Object value) {
+        if (!java.util.Objects.equals(lastSyncedStats.put(field, value), value)) {
+            getSyncDataHolder().markClientSyncFieldDirty(field);
+        }
     }
 
     protected boolean shouldRunReactor() {
@@ -297,28 +341,7 @@ public class FissionWorkableElectricMultiblockMachine extends WorkableElectricMu
     }
 
     public boolean executeFluidIO(FluidStack stack, IO type, boolean simulate) {
-        if (stack.isEmpty()) return false;
-
-        GTRecipeBuilder builder = GTRecipeBuilder.ofRaw();
-
-        if (type == IO.IN) {
-            builder.input(FluidRecipeCapability.CAP,
-                    RecipeHelper.makeSizedFluidIngredient(stack));
-        } else {
-            builder.output(FluidRecipeCapability.CAP,
-                    RecipeHelper.makeSizedFluidIngredient(stack));
-        }
-
-        GTRecipe dummy = builder.buildRawRecipe();
-
-        if (type == IO.IN) {
-            boolean matches = RecipeHelper.matchRecipe(this, dummy).isSuccess();
-            if (simulate || !matches) return matches;
-        }
-
-        if (simulate) return true;
-
-        return RecipeHelper.handleRecipeIO(this, dummy, type, getRecipeLogic().getChanceCaches()).isSuccess();
+        return HatchIO.fluid(this, stack, type, simulate);
     }
 
     public void executeItemIO(ItemStack stack, IO type) {
@@ -326,33 +349,40 @@ public class FissionWorkableElectricMultiblockMachine extends WorkableElectricMu
     }
 
     public boolean executeItemIO(ItemStack stack, IO type, boolean simulate) {
-        if (stack.isEmpty()) return false;
-
-        GTRecipeBuilder builder = GTRecipeBuilder.ofRaw();
-
-        if (type == IO.IN) {
-            builder.input(ItemRecipeCapability.CAP,
-                    RecipeHelper.makeSizedIngredient(stack));
-        } else {
-            builder.output(ItemRecipeCapability.CAP,
-                    RecipeHelper.makeSizedIngredient(stack));
-        }
-
-        GTRecipe dummy = builder.buildRawRecipe();
-
-        if (type == IO.IN) {
-            boolean matches = RecipeHelper.matchRecipe(this, dummy).isSuccess();
-            if (simulate || !matches) return matches;
-        }
-
-        if (simulate) return true;
-
-        return RecipeHelper.handleRecipeIO(this, dummy, type, getRecipeLogic().getChanceCaches()).isSuccess();
+        return HatchIO.item(this, stack, type, simulate);
     }
 
     public static ModifierFunction recipeModifier(MetaMachine machine, GTRecipe recipe) {
         if (!(machine instanceof FissionWorkableElectricMultiblockMachine m) || !m.isFormed())
             return ModifierFunction.IDENTITY;
         return FissionFuelManager.buildRecipeModifier(m);
+    }
+
+    protected static final int UI_WIDTH = 264;
+    protected static final int UI_HEIGHT = 230;
+
+    /** The screen painter for this reactor (client only). Subclasses swap the HUD page. */
+    protected CanvasPainter createHudPainter() {
+        return new FissionReactorHud(this);
+    }
+
+    protected FissionTabbedScreen createFissionScreen() {
+        return new FissionTabbedScreen(List.of(
+                new FissionTabbedScreen.Tab("H", createHudPainter()),
+                new FissionTabbedScreen.Tab("M", new FissionMathPage(this)),
+                new FissionTabbedScreen.Tab("~", new FissionGraphsPage(this))));
+    }
+
+    @Override
+    public ModularPanel<?> buildUI(PosGuiData data, PanelSyncManager syncManager, UISettings settings) {
+        FissionTabbedScreen screen = getLevel() != null && getLevel().isClientSide ? createFissionScreen() : null;
+        var panel = MachineUIPanelBuilder.panelBuilder(this).attachInventory(false).addTitleBar(false)
+                .drawGTLogo(false)
+                .mainContents(main -> {
+                    if (screen != null) main.child(new CanvasWidget(screen).size(UI_WIDTH, UI_HEIGHT));
+                    FissionPanelUi.addInventory(main, UI_WIDTH, UI_HEIGHT);
+                }).build(syncManager, settings);
+        if (screen != null) FissionPanelUi.apply(panel, screen);
+        return panel;
     }
 }

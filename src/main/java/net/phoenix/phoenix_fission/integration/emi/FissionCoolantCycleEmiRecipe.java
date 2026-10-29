@@ -149,8 +149,8 @@ public class FissionCoolantCycleEmiRecipe implements EmiRecipe {
     }
 
     private String coolingLabel() {
-        boolean rated = net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs.INSTANCE.fission.heatModel
-                .thermalModel == net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs.ThermalModel.RATED;
+        boolean rated = net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs.INSTANCE.fission.heatModel.thermalModel ==
+                net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs.ThermalModel.RATED;
         if (rated && type.getRatedCoolingHUt() >= 0) {
             return String.format(Locale.ROOT, "%.0f HU/t rated", type.getRatedCoolingHUt());
         }

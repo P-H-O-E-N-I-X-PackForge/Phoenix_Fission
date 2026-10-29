@@ -1,7 +1,5 @@
 package net.phoenix.phoenix_fission.integration.kubejs.builders;
 
-import com.gregtechceu.gtceu.api.data.chemical.material.Material;
-
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.phoenix.phoenix_fission.api.PhoenixAPI;
@@ -155,7 +153,6 @@ public class FissionCoolerBlockBuilder extends FissionTintedBlockBuilder {
         public @NotNull String getSerializedName() {
             return getName();
         }
-
     }
 
     @Override
