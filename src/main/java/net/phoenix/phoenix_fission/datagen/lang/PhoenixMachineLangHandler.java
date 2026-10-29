@@ -184,6 +184,7 @@ public class PhoenixMachineLangHandler {
         provider.add("config.jade.plugin_phoenix_fission.plasma_furnace_info", "High-Pressure Plasma Arc Furnace Info");
         provider.add("config.jade.plugin_phoenix_fission.tesla_network_info", "Tesla Network Information");
         provider.add("config.jade.plugin_phoenix_fission.fission_machine_info", "Fission Machine Info");
+        provider.add("config.jade.plugin_phoenix_fission.rtg_array_info", "RTG Array Info");
 
         provider.add("phoenix_fission.machine.fission_advanced_stability_sensor.tooltip",
                 "§bAdvanced Thermal Monitor§r: Emits a highly customizable redstone payload.");
