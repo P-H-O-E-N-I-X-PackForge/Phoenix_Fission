@@ -1,7 +1,7 @@
 {
   "loader": "forge:obj",
   "flip_v": true,
-  "model": "phoenix_fission:models/obj/rings.obj",
+  "model": "phoenix_fission:models/machine/rings.obj",
   "textures": {
     "texture0": "phoenix_fission:block/obj/purple_star_layer",
     "texture1": "phoenix_fission:block/obj/purple_star_layer",

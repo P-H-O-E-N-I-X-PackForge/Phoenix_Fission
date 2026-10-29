@@ -1,7 +1,7 @@
 {
   "flip_v": true,
   "loader": "forge:obj",
-  "model": "phoenix_fission:models/obj/star.obj",
+  "model": "phoenix_fission:models/machine/star.obj",
   "textures": {
     "texture0": "gtceu:block/dim_markers/overworld/west",
     "particle":"gtceu:block/dim_markers/overworld/west"
