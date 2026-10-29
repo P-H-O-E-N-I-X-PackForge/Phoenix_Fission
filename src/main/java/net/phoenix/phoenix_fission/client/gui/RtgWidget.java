@@ -30,11 +30,24 @@ public class RtgWidget extends Widget {
     private static final int C_GOLD = 0xFF_FFC040;
     private static final int C_RED = 0xFF_FF4444;
 
+    public static final int TAB_W = 16;
+    public static final int CONTENT_W = 198;
+    public static final int CONTENT_H = 190;
+    private static final int TAB_H = 16;
+    private static final int GAP = 2;
+
     private static final int ROW_H = 26;
     private static final int TITLE_H = 16;
+    private static final int HISTORY_LEN = 120;
 
     private final RtgArrayMachine machine;
     private int scroll = 0;
+    private int tab = 0;
+    private final double[] outputHistory = new double[HISTORY_LEN];
+    private final double[] lifeHistory = new double[HISTORY_LEN];
+    private int historyHead = 0;
+    private int historyFilled = 0;
+    private long lastSampleMs = 0;
 
     public RtgWidget(RtgArrayMachine machine, int width, int height) {
         super(0, 0, width, height);
@@ -45,9 +58,120 @@ public class RtgWidget extends Widget {
     @Override
     @OnlyIn(Dist.CLIENT)
     public void drawInBackground(@Nonnull GuiGraphics g, int mouseX, int mouseY, float dt) {
-        int ox = getPosition().x, oy = getPosition().y;
-        int w = getSize().width, h = getSize().height;
+        int fx = getPosition().x, fy = getPosition().y;
+        int fw = getSize().width, fh = getSize().height;
         Font font = Minecraft.getInstance().font;
+
+        sampleIfDue();
+        DrawerHelper.drawGradientRect(g, fx, fy, fw, fh, BG_TOP, BG_BOT, false);
+
+        // tab column on the left
+        String[] labels = { "H", "~" };
+        for (int i = 0; i < labels.length; i++) {
+            int ty = fy + 6 + i * (TAB_H + GAP);
+            boolean active = i == tab;
+            boolean hover = mouseX >= fx && mouseX < fx + TAB_W && mouseY >= ty && mouseY < ty + TAB_H;
+            g.fill(fx, ty, fx + TAB_W, ty + TAB_H, active ? 0xFF_002830 : hover ? 0xFF_061825 : 0xFF_010810);
+            DrawerHelper.drawBorder(g, fx, ty, TAB_W, TAB_H,
+                    active ? 0xFF_00AAA0 : hover ? 0xCC_00E5CC : 0x66_00E5CC, 1);
+            g.drawString(font, labels[i], fx + (TAB_W - font.width(labels[i])) / 2 + 1,
+                    ty + (TAB_H - font.lineHeight) / 2 + 1, active ? C_CYAN : hover ? C_WHITE : C_DIM, false);
+        }
+
+        int ox = fx + TAB_W + GAP, oy = fy;
+        int w = CONTENT_W, h = CONTENT_H;
+        if (tab == 1) {
+            drawGraphs(g, font, ox, oy, w, h);
+            drawInventorySection(g, ox, oy + h, w, fh - h);
+            return;
+        }
+        drawHud(g, font, ox, oy, w, h);
+        drawInventorySection(g, ox, oy + h, w, fh - h);
+    }
+
+    private void drawInventorySection(GuiGraphics g, int x, int y, int w, int h) {
+        g.fill(x, y + 3, x + w, y + h - 3, 0xCC_010A12);
+        DrawerHelper.drawBorder(g, x, y + 3, w, h - 6, 0x88_00B8A5, 1);
+    }
+
+    private void sampleIfDue() {
+        long now = System.currentTimeMillis();
+        if (now - lastSampleMs < 500) return;
+        lastSampleMs = now;
+
+        double lifeSum = 0;
+        int n = 0;
+        var cells = machine.getCellInfo();
+        if (cells != null) {
+            for (String entry : cells) {
+                String[] p = entry.split("\\|");
+                if (p.length < 3) continue;
+                long max = parse(p[2]);
+                if (max > 0) {
+                    lifeSum += parse(p[1]) / (double) max;
+                    n++;
+                }
+            }
+        }
+        outputHistory[historyHead] = machine.isFormed() ? machine.getGeneratedEUt() : 0;
+        lifeHistory[historyHead] = n == 0 ? 0 : lifeSum / n;
+        historyHead = (historyHead + 1) % HISTORY_LEN;
+        historyFilled = Math.min(HISTORY_LEN, historyFilled + 1);
+    }
+
+    private int historyIndex(int i) {
+        return (historyHead - historyFilled + i + HISTORY_LEN * 2) % HISTORY_LEN;
+    }
+
+    private void drawGraphs(GuiGraphics g, Font font, int ox, int oy, int w, int h) {
+        g.fill(ox, oy, ox + w, oy + 16, BG_TOP);
+        g.fill(ox + 3, oy + 3, ox + 6, oy + 13, C_TEAL);
+        g.drawString(font, "RTG GRAPHS", ox + 10, oy + 4, C_CYAN, false);
+        g.fill(ox, oy + 15, ox + w, oy + 16, 0x44_00E5CC);
+
+        int x = ox + 8, cw = w - 16;
+        int plotH = (h - 16 - 30 - 20) / 2;
+        int y = oy + 24;
+        double peak = 1;
+        for (int i = 0; i < historyFilled; i++) peak = Math.max(peak, outputHistory[historyIndex(i)]);
+        plot(g, font, x, y, cw, plotH, outputHistory, peak * 1.1, C_GOLD, "OUTPUT EU/t",
+                machine.getGeneratedEUt() + " EU/t");
+        y += plotH + 22;
+        double latestLife = historyFilled == 0 ? 0 : lifeHistory[historyIndex(historyFilled - 1)];
+        plot(g, font, x, y, cw, plotH, lifeHistory, 1.0, C_GREEN, "AVERAGE CELL LIFE",
+                Math.round(latestLife * 100) + "%");
+        DrawerHelper.drawBorder(g, ox, oy, w, h, C_TEAL, 1);
+    }
+
+    private void plot(GuiGraphics g, Font font, int x, int y, int w, int h, double[] data, double max, int color,
+                      String label, String value) {
+        g.drawString(font, label, x, y, C_MID, false);
+        g.drawString(font, value, x + w - font.width(value), y, C_WHITE, false);
+        int top = y + 11;
+        g.fill(x, top, x + w, top + h, 0x33_000000);
+        DrawerHelper.drawBorder(g, x, top, w, h, 0x66_00B8A5, 1);
+        for (int q = 1; q < 4; q++) g.fill(x + 1, top + h * q / 4, x + w - 1, top + h * q / 4 + 1, 0x14_FFFFFF);
+
+        if (historyFilled < 2) {
+            g.drawString(font, "collecting...", x + 4, top + h / 2 - 4, C_DIM, false);
+            return;
+        }
+        int inner = w - 2, innerH = h - 2;
+        int prev = -1;
+        for (int col = 0; col < inner; col++) {
+            int i = (int) ((long) col * (historyFilled - 1) / Math.max(1, inner - 1));
+            double v = Math.max(0, Math.min(1, data[historyIndex(i)] / max));
+            int bar = (int) Math.round(v * (innerH - 1));
+            int px = x + 1 + col;
+            int base = top + h - 1;
+            g.fill(px, base - bar, px + 1, base, (0x33 << 24) | (color & 0xFFFFFF));
+            int lo = prev < 0 ? bar : Math.min(prev, bar), hi = prev < 0 ? bar : Math.max(prev, bar);
+            g.fill(px, base - hi - 1, px + 1, base - lo, color);
+            prev = bar;
+        }
+    }
+
+    private void drawHud(GuiGraphics g, Font font, int ox, int oy, int w, int h) {
 
         DrawerHelper.drawGradientRect(g, ox, oy, w, h, BG_TOP, BG_BOT, false);
 
@@ -125,8 +249,23 @@ public class RtgWidget extends Widget {
     }
 
     @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        int fx = getPosition().x, fy = getPosition().y;
+        if (button == 0 && mouseX >= fx && mouseX < fx + TAB_W) {
+            for (int i = 0; i < 2; i++) {
+                int ty = fy + 6 + i * (TAB_H + GAP);
+                if (mouseY >= ty && mouseY < ty + TAB_H) {
+                    tab = i;
+                    return true;
+                }
+            }
+        }
+        return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    @Override
     public boolean mouseWheelMove(double mouseX, double mouseY, double wheelDelta) {
-        if (!isMouseOverElement(mouseX, mouseY)) return false;
+        if (tab != 0 || !isMouseOverElement(mouseX, mouseY)) return false;
         scroll = Math.max(0, scroll - (int) Math.signum(wheelDelta));
         return true;
     }

@@ -7,6 +7,10 @@ import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
+import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
+import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
+import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
+import com.lowdragmc.lowdraglib.gui.widget.SlotWidget;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
@@ -34,8 +38,6 @@ public class RtgArrayMachine extends WorkableElectricMultiblockMachine {
     protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(
             RtgArrayMachine.class, WorkableElectricMultiblockMachine.MANAGED_FIELD_HOLDER);
 
-    public static final int UI_WIDTH = 198;
-    public static final int UI_HEIGHT = 190;
 
     @Getter
     @DescSynced
@@ -122,7 +124,28 @@ public class RtgArrayMachine extends WorkableElectricMultiblockMachine {
 
     @Override
     public @NotNull ModularUI createUI(@NotNull Player entityPlayer) {
-        return new ModularUI(UI_WIDTH, UI_HEIGHT, this, entityPlayer).widget(new RtgWidget(this, UI_WIDTH,
-                UI_HEIGHT));
+        int sectionH = 92;
+        int totalW = RtgWidget.TAB_W + 2 + RtgWidget.CONTENT_W;
+        int totalH = RtgWidget.CONTENT_H + sectionH;
+        var ui = new ModularUI(totalW, totalH, this, entityPlayer)
+                .widget(new RtgWidget(this, totalW, totalH));
+
+        // Player inventory in its own section under the screen, with dark HUD-style cells.
+        var cellTexture = new GuiTextureGroup(new ColorRectTexture(0xAA_010A12),
+                new ColorBorderTexture(-1, 0x55_00E5CC));
+        int invX = RtgWidget.TAB_W + 2 + (RtgWidget.CONTENT_W - 162) / 2;
+        int invY = RtgWidget.CONTENT_H + 11;
+        var inv = entityPlayer.getInventory();
+        for (int row = 0; row < 3; row++) {
+            for (int col = 0; col < 9; col++) {
+                ui.widget(new SlotWidget(inv, 9 + row * 9 + col, invX + col * 18, invY + row * 18, true, true)
+                        .setBackgroundTexture(cellTexture));
+            }
+        }
+        for (int col = 0; col < 9; col++) {
+            ui.widget(new SlotWidget(inv, col, invX + col * 18, invY + 58, true, true)
+                    .setBackgroundTexture(cellTexture));
+        }
+        return ui;
     }
 }
