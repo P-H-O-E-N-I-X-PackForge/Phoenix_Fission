@@ -1,0 +1,31 @@
+package net.phoenix.phoenix_fission.api.block;
+
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.level.block.Block;
+import net.phoenix.phoenix_fission.api.block.iface.IFusionComputeType;
+
+import lombok.Getter;
+
+import java.util.List;
+
+public class FusionComputeBlock extends Block {
+
+    @Getter
+    private final IFusionComputeType computeType;
+
+    public FusionComputeBlock(Properties properties, IFusionComputeType type) {
+        super(properties);
+        this.computeType = type;
+    }
+
+    @Override
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip,
+                                TooltipFlag flag) {
+        tooltip.add(Component.literal("Fusion compute module").withStyle(ChatFormatting.LIGHT_PURPLE));
+        tooltip.add(Component.literal("Compute: " + computeType.getCompute()).withStyle(ChatFormatting.GRAY));
+    }
+}
