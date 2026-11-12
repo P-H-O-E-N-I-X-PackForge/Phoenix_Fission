@@ -5,17 +5,13 @@ import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.IRecipeCapabilityHolder;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.machine.trait.notifiable.NotifiableFluidTank;
+import com.gregtechceu.gtceu.api.machine.trait.notifiable.NotifiableItemStackHandler;
 
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.items.IItemHandler;
 
-/**
- * Direct item and fluid IO against a multiblock's hatches and busses. Going through a dummy GTRecipe and
- * RecipeHelper.matchRecipe/handleRecipeIO stopped finding stacks on 1.21.1, so machines that move stuff in or out
- * on their own (fuel, coolant, blanket products) use this instead.
- */
 public final class HatchIO {
 
     private HatchIO() {}
@@ -78,17 +74,16 @@ public final class HatchIO {
             for (var items : handlers) {
                 for (int slot = 0; slot < items.getSlots() && remaining > 0; slot++) {
                     if (!ItemStack.isSameItem(items.getStackInSlot(slot), stack)) continue;
-                    remaining -= items.extractItem(slot, remaining, false).getCount();
+                    remaining -= extract(items, slot, remaining).getCount();
                 }
             }
             return remaining <= 0;
         }
 
-        // Outputs: make sure everything fits before inserting anything.
         ItemStack left = stack.copy();
         for (var items : handlers) {
             for (int slot = 0; slot < items.getSlots() && !left.isEmpty(); slot++) {
-                left = items.insertItem(slot, left, true);
+                left = insert(items, slot, left, true);
             }
         }
         if (!left.isEmpty()) return false;
@@ -96,14 +91,22 @@ public final class HatchIO {
         left = stack.copy();
         for (var items : handlers) {
             for (int slot = 0; slot < items.getSlots() && !left.isEmpty(); slot++) {
-                left = items.insertItem(slot, left, false);
+                left = insert(items, slot, left, false);
             }
         }
         return left.isEmpty();
     }
 
-    // Hatch tanks police outside access by their capability IO (an input hatch refuses to be drained), but the
-    // machine owning them is not "outside", so use the internal entry points.
+    private static ItemStack extract(IItemHandler handler, int slot, int amount) {
+        return handler instanceof NotifiableItemStackHandler h ? h.extractItemInternal(slot, amount, false) :
+                handler.extractItem(slot, amount, false);
+    }
+
+    private static ItemStack insert(IItemHandler handler, int slot, ItemStack stack, boolean simulate) {
+        return handler instanceof NotifiableItemStackHandler h ? h.insertItemInternal(slot, stack, simulate) :
+                handler.insertItem(slot, stack, simulate);
+    }
+
     private static FluidStack drain(IFluidHandler tank, FluidStack stack, IFluidHandler.FluidAction action) {
         return tank instanceof NotifiableFluidTank t ? t.drainInternal(stack, action) : tank.drain(stack, action);
     }

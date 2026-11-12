@@ -18,8 +18,10 @@ public class PhoenixRecipeTypes {
     public static GTRecipeTypeEntry ADVANCED_PRESSURIZED_FISSION_REACTOR_RECIPES;
     public static GTRecipeTypeEntry PRESSURIZED_FISSION_REACTOR_RECIPES;
     public static GTRecipeTypeEntry THERMOELECTRIC_GENERATOR_RECIPES;
-    /** Placeholder so the RTG Array is a normal multiblock; it has no recipes, the cells are the fuel. */
+
     public static GTRecipeTypeEntry RTG_ARRAY_RECIPES;
+
+    public static GTRecipeTypeEntry FUSION_REACTOR_RECIPES;
 
     public static void init() {
         HIGH_PERFORMANCE_BREEDER_REACTOR_RECIPES = PHOENIX_REGISTRATE
@@ -73,6 +75,12 @@ public class PhoenixRecipeTypes {
                 .recipeType("rtg_array", MULTIBLOCK)
                 .setMaxIOSize(0, 0, 0, 0)
                 .setEUIO(IO.OUT)
+                .register();
+
+        FUSION_REACTOR_RECIPES = PHOENIX_REGISTRATE
+                .recipeType("fusion_reactor", MULTIBLOCK)
+                .setMaxIOSize(0, 0, 3, 3)
+                .setEUIO(IO.IN)
                 .register();
     }
 }

@@ -79,6 +79,43 @@ public class PhoenixMachineLangHandler {
         provider.add("jade.phoenix_fission.rtg_cells", "Cells: %s");
         provider.add("jade.phoenix_fission.rtg_shortest", "Shortest remaining: %s");
         provider.add("jade.phoenix_fission.rtg_no_cells", "No RTG cells loaded");
+        provider.add("phoenix.multiblock.pattern.info.fusion_inner_coils", "Any Fusion Inner Plasma Coil");
+        provider.add("phoenix.multiblock.pattern.info.fusion_outer_coils",
+                "Any GT heating coil (cupronickel and up) or fusion outer coil");
+        provider.add("phoenix.multiblock.pattern.info.fusion_compute_modules",
+                "Any Fusion Compute Module (compute rack)");
+        provider.add("config.jade.plugin_phoenix_fission.fusion_reactor_info", "Fusion Reactor Info");
+        provider.add("jade.phoenix_fission.fusion_scrammed", "SCRAMMED");
+        provider.add("jade.phoenix_fission.fusion_quenched", "QUENCHED - restarting in %ss");
+        provider.add("jade.phoenix_fission.fusion_output", "Output: %s EU/t");
+        provider.add("jade.phoenix_fission.fusion_standby", "Plasma off");
+        provider.add("jade.phoenix_fission.fusion_field", "Field integrity: %s%%  confinement %sx");
+        provider.add("jade.phoenix_fission.fusion_throttle", "Throttle: %s%%");
+        provider.add("jade.phoenix_fission.fusion_no_coolant", "Coils overheating - no coolant");
+        provider.add("jade.phoenix_fission.fusion_contamination", "Contamination: %s%%");
+        provider.add("jade.phoenix_fission.fusion_compute", "Compute rack L%s, compute %s, recipe tier %s");
+        provider.add("jade.phoenix_fission.fusion_lanes", "x%s parallel, %s threads, OC x%s");
+        provider.add("jade.phoenix_fission.fusion_pressure", "Pressure: %s (needs %s)");
+        provider.add("jade.phoenix_fission.fusion_no_gas", "No pressure gas");
+        provider.add("jade.phoenix_fission.fusion_irradiated", "Plasma irradiated");
+        provider.add("phoenix_fission.machine.fusion_reactor.tooltip1",
+                "§dMagnetic-confinement fusion. Keep the plasma field steady while it burns deuterium and tritium.");
+        provider.add("phoenix_fission.machine.fusion_reactor.tooltip2",
+                "§7Inner coils (fusion coils) make plasma power. Outer coils (superconducting coils) hold the field and cost EU/t.");
+        provider.add("phoenix_fission.machine.fusion_reactor.tooltip3",
+                "§7Field ratio must stay above §f1.0x§7. Hold pressure near §fthrottle x 0.8§7 with nitrogen. Both are set on the screen.");
+        provider.add("phoenix_fission.machine.fusion_reactor.tooltip4",
+                "§7Each coil type has its own coolant. Waste goes to an item output hatch; air purges contamination.");
+        provider.add("phoenix_fission.machine.fusion_reactor.tooltip5",
+                "§bCompute: the computer room (basic modules) is part of the build. Upgrades are banks of module slots beside it, about 25-29 blocks behind the controller and 7-11 down.");
+        provider.add("phoenix_fission.machine.fusion_reactor.tooltip6",
+                "§7More energy hatches overclock recipes: §f2§7 hatches give one level, §f8§7 give two.");
+        provider.add("phoenix_fission.machine.fusion_reactor.tooltip7",
+                "§8A SCRAM hatch stops the plasma safely. A stability sensor reads field drift.");
+        provider.add("phoenix_fission.machine.rtg_array.tooltip1",
+                "§6Radioisotope power. Load RTG cells into an item input bus.");
+        provider.add("phoenix_fission.machine.rtg_array.tooltip2",
+                "§7Each cell adds its EU/t and wears one point per second. Spent cells stay in the bus.");
         provider.add("phoenix_fission.summary", "Cooling: %s / %s HU/t");
         provider.add("phoenix_fission.cooling_power", "§bCooling Capacity: §f%s HU/t");
 

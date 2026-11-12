@@ -8,10 +8,6 @@ import net.minecraft.world.item.TooltipFlag;
 
 import java.util.List;
 
-/**
- * A radioisotope cell for the RTG Array. Wear is the stack's damage: one point per second spent in a running array,
- * so the durability bar doubles as the cell's remaining half-life.
- */
 public class RtgCellItem extends Item {
 
     private final long euPerTick;

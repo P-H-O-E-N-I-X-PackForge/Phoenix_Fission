@@ -162,17 +162,38 @@ public class FissionFuelManager {
                 .sum();
     }
 
+    public double getFuelItemsPerTick(IFissionFuelRodType rod, long count, double reactivity) {
+        if (rod.getAmountPerCycle() <= 0 || count <= 0) return 0.0;
+        var hm = PhoenixFissionConfigs.INSTANCE.fission.heatModel;
+        int totalRods = machine.getComponentManager().getActiveFuelRods().size();
+        double heatScalar = computeFuelConsumptionThermalScalar(machine.getHeat(), machine.getMaxSafeHeatHU(),
+                hm.fuelConsumptionExponent);
+        return computeFuelConsumptionForRodGroup(rod, count, computeRodInteractionFactor(totalRods), heatScalar,
+                computeModeratorFuelDiscountMultiplier(), reactivity);
+    }
+
+    public static String formatInterval(double seconds) {
+        if (!(seconds > 0) || Double.isInfinite(seconds)) return "never";
+        long s = Math.round(seconds);
+        if (s < 120) return s + "s";
+        long m = s / 60;
+        if (m < 120) return m + "m " + (s % 60) + "s";
+        return (m / 60) + "h " + (m % 60) + "m";
+    }
+
+    private static final double CHARGE_EPSILON = 1.0e-9;
+
+    private static final int MAX_WITHDRAWALS_PER_TICK = 64;
+
+    private static int itemsLoaded(double charge) {
+        return charge <= CHARGE_EPSILON ? 0 : (int) Math.ceil(charge - CHARGE_EPSILON);
+    }
+
     public void consumeFuelTick(int ignoredMachineParallels) {
         var comp = machine.getComponentManager();
         if (comp.getActiveFuelRods().isEmpty() || machine.getReactivityFactor() <= 0.0) return;
 
-        var hm = PhoenixFissionConfigs.INSTANCE.fission.heatModel;
-        int totalRods = comp.getActiveFuelRods().size();
-        double rodInteractionFactor = computeRodInteractionFactor(totalRods);
-        double heatScalar = computeFuelConsumptionThermalScalar(machine.getHeat(), machine.getMaxSafeHeatHU(),
-                hm.fuelConsumptionExponent);
         double reactivity = machine.getReactivityFactor();
-        double discountMulti = computeModeratorFuelDiscountMultiplier();
 
         Map<IFissionFuelRodType, Long> fuelRodThreads = comp.getActiveFuelRods().stream()
                 .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
@@ -183,52 +204,48 @@ public class FissionFuelManager {
 
             if (fuelType.getAmountPerCycle() <= 0) continue;
 
-            double perTickConsumption = computeFuelConsumptionForRodGroup(
-                    fuelType, countOfThisType,
-                    rodInteractionFactor, heatScalar,
-                    discountMulti, reactivity);
+            String itemIn = fuelType.getFuelKey();
+
+            if (hasNoItemFuel(itemIn)) continue;
+
+            double perTick = getFuelItemsPerTick(fuelType, countOfThisType, reactivity);
+            if (perTick <= 0.0) continue;
 
             String key = fuelType.getName();
-            double remainder = machine.fuelRemainderPerType.getOrDefault(key, 0.0) + perTickConsumption;
-            int directConsume = (int) Math.floor(remainder);
+            double charge = machine.fuelRemainderPerType.getOrDefault(key, 0.0);
 
-            if (directConsume <= 0) {
-                machine.fuelRemainderPerType.put(key, remainder);
-                continue;
+            for (int i = 0; charge < perTick && i < MAX_WITHDRAWALS_PER_TICK; i++) {
+                if (!processItemConsumption(itemIn, 1)) break;
+                charge += 1.0;
             }
 
-            String itemIn = fuelType.getFuelKey();
-            if (itemIn.isEmpty()) {
+            int loadedBeforeBurn = itemsLoaded(charge);
+            charge = Math.max(0.0, charge - perTick);
+            if (charge <= CHARGE_EPSILON) charge = 0.0;
+            int finished = loadedBeforeBurn - itemsLoaded(charge);
 
-                machine.fuelRemainderPerType.put(key, remainder);
-                continue;
-            }
+            machine.fuelRemainderPerType.put(key, charge);
 
-            if (!processItemConsumption(itemIn, directConsume)) {
-
-                machine.fuelRemainderPerType.put(key, remainder);
-                continue;
-            }
-
-            String itemOut = fuelType.getOutputKey();
-            if (!itemOut.isEmpty() && !"none".equalsIgnoreCase(itemOut) && !itemOut.equalsIgnoreCase(itemIn)) {
-                ResourceLocation outRl = ResourceLocation.tryParse(itemOut);
-                if (outRl != null && BuiltInRegistries.ITEM.containsKey(outRl)) {
-                    machine.executeItemIO(
-                            new ItemStack(
-                                    Objects.requireNonNull(BuiltInRegistries.ITEM.getOptional(outRl).orElse(null)),
-                                    directConsume),
-                            IO.OUT);
-                }
-            }
+            if (finished > 0) outputDepletedFuel(fuelType, itemIn, finished);
         }
+    }
+
+    private void outputDepletedFuel(IFissionFuelRodType fuelType, String itemIn, int count) {
+        String itemOut = fuelType.getOutputKey();
+        if (itemOut.isEmpty() || "none".equalsIgnoreCase(itemOut) || itemOut.equalsIgnoreCase(itemIn)) return;
+        ResourceLocation outRl = ResourceLocation.tryParse(itemOut);
+        if (outRl == null || !BuiltInRegistries.ITEM.containsKey(outRl)) return;
+        machine.executeItemIO(
+                new ItemStack(Objects.requireNonNull(BuiltInRegistries.ITEM.getOptional(outRl).orElse(null)), count),
+                IO.OUT);
     }
 
     public boolean hasFuelAvailableForNextTick() {
         Set<String> verifiedTypes = new HashSet<>();
         for (IFissionFuelRodType rod : machine.getComponentManager().getActiveFuelRods()) {
-            if (rod.getFuelKey().isEmpty() || verifiedTypes.contains(rod.getFuelKey())) continue;
-            verifiedTypes.add(rod.getFuelKey());
+            if (hasNoItemFuel(rod.getFuelKey()) || !verifiedTypes.add(rod.getName())) continue;
+            if (machine.fuelRemainderPerType.getOrDefault(rod.getName(), 0.0) > CHARGE_EPSILON) continue;
+
             ResourceLocation rl = ResourceLocation.tryParse(rod.getFuelKey());
             if (rl == null || !BuiltInRegistries.ITEM.containsKey(rl) ||
                     !machine.executeItemIO(
@@ -238,6 +255,12 @@ public class FissionFuelManager {
                 return false;
         }
         return true;
+    }
+
+    private static boolean hasNoItemFuel(String key) {
+        if (key == null || key.isEmpty()) return true;
+        ResourceLocation rl = ResourceLocation.tryParse(key);
+        return rl != null && rl.equals(BuiltInRegistries.ITEM.getDefaultKey());
     }
 
     private boolean processItemConsumption(String id, int count) {

@@ -9,11 +9,6 @@ import net.phoenix.phoenix_fission.api.PhoenixAPI;
 
 import java.util.function.Supplier;
 
-/**
- * Tints every fission component block and its item with its type's {@code getTintColor()}. Applies to both
- * Java-registered and KubeJS-registered components, since both land in the {@link PhoenixAPI} maps. Types that use
- * a manual texture simply have no tinted faces in their model, so the tint has no visible effect on them.
- */
 @OnlyIn(Dist.CLIENT)
 public final class FissionColorHandlers {
 

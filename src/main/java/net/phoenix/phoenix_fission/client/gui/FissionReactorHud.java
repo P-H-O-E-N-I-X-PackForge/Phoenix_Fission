@@ -715,7 +715,7 @@ public class FissionReactorHud implements CanvasPainter {
             String cycle = prettyName(e.getKey().getFuelKey()) + " ->" + prettyName(e.getKey().getOutputKey());
             List<String> lines = wrapText(font, cycle, textW);
             cards.add(new FuelCard(e.getKey(), e.getValue(), lines));
-            totalH += 33 + lines.size() * 9;
+            totalH += 42 + lines.size() * 9;
         }
 
         int contentStart = y;
@@ -727,7 +727,7 @@ public class FissionReactorHud implements CanvasPainter {
         int iy = y - scroll;
         for (FuelCard card : cards) {
             IFissionFuelRodType f = card.type();
-            int cardH = 33 + card.cycleLines().size() * 9;
+            int cardH = 42 + card.cycleLines().size() * 9;
             if (iy + cardH > contentStart && iy < contentStart + H - 4) {
                 g.fill(x, iy, x + 2, iy + cardH - 2, f.getTintColor() | 0xFF000000);
 
@@ -743,12 +743,22 @@ public class FissionReactorHud implements CanvasPainter {
                 g.drawString(font, totalStr, x + W - font.width(totalStr) - 6, iy + 12, 0xFF_FFBB66, false);
 
                 double durSec = f.getDurationTicks() / 20.0;
-                String durStr = String.format(java.util.Locale.ROOT, "%.0fs cycle", durSec);
+                String durStr = String.format(java.util.Locale.ROOT, "%.0fs base cycle", durSec);
                 String amtStr = "x" + f.getAmountPerCycle() + " per cycle";
                 g.drawString(font, durStr, x + 5, iy + 21, C_MID, false);
                 g.drawString(font, amtStr, x + W - font.width(amtStr) - 6, iy + 21, C_DIM, false);
 
-                int ly = iy + 30;
+                double perTick = reactor.getFuelManager().getFuelItemsPerTick(f, cnt, 1.0);
+                int disc = reactor.getFuelManager().calcFuelDiscount();
+                String burnStr = perTick > 0 ?
+                        "burns 1 per " + net.phoenix.phoenix_fission.api.machine.multiblock.managers.FissionFuelManager
+                                .formatInterval(1.0 / (perTick * 20.0)) :
+                        "burns nothing";
+                String discStr = disc > 0 ? "-" + disc + "% fuel" : "no discount";
+                g.drawString(font, burnStr, x + 5, iy + 30, 0xFF_FFBB66, false);
+                g.drawString(font, discStr, x + W - font.width(discStr) - 6, iy + 30, C_DIM, false);
+
+                int ly = iy + 39;
                 for (String line : card.cycleLines()) {
                     g.drawString(font, line, x + 5, ly, C_DIM, false);
                     ly += 9;

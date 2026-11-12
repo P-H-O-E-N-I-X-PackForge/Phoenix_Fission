@@ -8,10 +8,6 @@ import dev.latvian.mods.kubejs.item.ItemBuilder;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
-/**
- * event.create('my_cell', 'rtg_cell').euPerTick(64).lifespanSeconds(7200) — an RTG Array cell. Wear is durability, so
- * the remaining life shows on the item's bar.
- */
 @Accessors(chain = true, fluent = true)
 public class RtgCellItemBuilder extends ItemBuilder {
 

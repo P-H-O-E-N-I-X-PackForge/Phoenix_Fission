@@ -4,10 +4,8 @@ import com.gregtechceu.gtceu.api.blockentity.BlockEntityCreationInfo;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
-import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.api.recipe.modifier.ModifierFunction;
 import com.gregtechceu.gtceu.api.sync_system.annotations.SaveField;
-import com.gregtechceu.gtceu.data.recipe.builder.GTRecipeBuilder;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -172,10 +170,7 @@ public class BreederWorkableElectricMultiblockMachine extends DynamicFissionReac
 
     private boolean canConsumeItem(ItemStack stack) {
         if (stack.isEmpty()) return true;
-        GTRecipe dummy = GTRecipeBuilder.ofRaw()
-                .inputItems(stack)
-                .build();
-        return RecipeHelper.matchRecipe(this, dummy).isSuccess();
+        return executeItemIO(stack, IO.IN, true);
     }
 
     public static ModifierFunction recipeModifier(MetaMachine machine, GTRecipe recipe) {

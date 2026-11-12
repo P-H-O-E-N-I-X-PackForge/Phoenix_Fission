@@ -68,6 +68,22 @@ public class FissionFuelRodBlock extends ActiveBlock {
                         .withStyle(ChatFormatting.GOLD))
                 .withStyle(ChatFormatting.GRAY));
 
+        var cfg = net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs.INSTANCE;
+        if (cfg != null && fuelRodType.getAmountPerCycle() > 0) {
+            double perItemSec = seconds / fuelRodType.getAmountPerCycle();
+            double maxDisc = Math.max(0, Math.min(100, cfg.fission.maxFuelDiscountPercent));
+            String best = maxDisc >= 100 ? "never" :
+                    net.phoenix.phoenix_fission.api.machine.multiblock.managers.FissionFuelManager
+                            .formatInterval(perItemSec / (1.0 - maxDisc / 100.0));
+            tooltip.add(Component.literal("Per item, lone rod: " +
+                    net.phoenix.phoenix_fission.api.machine.multiblock.managers.FissionFuelManager
+                            .formatInterval(perItemSec) +
+                    ", up to " + best + " at max moderator discount (" + (int) maxDisc + "%)")
+                    .withStyle(ChatFormatting.GRAY));
+            tooltip.add(Component.literal("Each rod burns (rods + 1) / 2 times faster in a full reactor")
+                    .withStyle(ChatFormatting.DARK_GRAY));
+        }
+
         int bias = fuelRodType.getNeutronBias();
         tooltip.add(Component.translatable("phoenix_fission.neutron_bias",
                 Component.literal((bias >= 0 ? "+" : "") + bias + "%")

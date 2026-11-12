@@ -72,18 +72,15 @@ public class FissionThermalManager {
         return hm.thermalModel == PhoenixFissionConfigs.ThermalModel.RATED;
     }
 
-    /** 0 at/below ambient, 1 at/above the safe-heat limit, linear in between. */
     public static double ratedFraction(double heat, double ambientHU, double maxSafeHU) {
         double span = Math.max(1e-6, maxSafeHU - ambientHU);
         return Math.max(0.0, Math.min(1.0, (heat - ambientHU) / span));
     }
 
-    /** HU/t one cooler block removes right now under the RATED model. */
     public static double ratedCoolingDelivered(double ratedHUt, double heat, double ambientHU, double maxSafeHU) {
         return Math.max(0.0, ratedHUt) * ratedFraction(heat, ambientHU, maxSafeHU);
     }
 
-    /** Full rated HU/t of one cooler block - explicit if set, else what the CONDUCTIVE model gave at the limit. */
     public static double resolveRatedCooling(IFissionCoolerType cooler, PhoenixFissionConfigs.HeatModelConfigs hm,
                                              double heatCapacity) {
         double r = cooler.getRatedCoolingHUt();
@@ -114,7 +111,7 @@ public class FissionThermalManager {
                 double frac = ratedFraction(machine.getHeat(), ambientHU, maxSafeHU);
                 removal.put(cooler, ratedCoolingDelivered(resolveRatedCooling(cooler, hm, heatCapacity),
                         machine.getHeat(), ambientHU, maxSafeHU) * count);
-                // Coolant use tracks how much of the cooler's rating is in use.
+
                 usage.put(cooler, frac * refHU);
             } else {
                 double total = computeActiveCoolerHeatRemoval(cooler, machine.getHeat(), count,
@@ -126,10 +123,6 @@ public class FissionThermalManager {
         return new CoolerLoad(counts, removal, usage);
     }
 
-    /**
-     * counts: active cooler blocks per type. removal: total HU/t removed per type. usage: per-block heat-removal
-     * equivalent that coolant/item consumption is scaled from (see scaledCoolantAmount).
-     */
     protected record CoolerLoad(Map<IFissionCoolerType, Long> counts, Map<IFissionCoolerType, Double> removal,
                                 Map<IFissionCoolerType, Double> usage) {}
 
@@ -226,7 +219,7 @@ public class FissionThermalManager {
         CoolerLoad load = computeCoolerLoad();
 
         if (requiresActiveCooling && PhoenixFissionConfigs.INSTANCE.fission.coolingRequiresCoolant) {
-            // Simulate fluid and item coolant first so neither is consumed if the other is missing.
+
             machine.lastHasCoolant = processCoolantAction(false, load) && processItemCoolantAction(false, load) &&
                     processCoolantAction(true, load) && processItemCoolantAction(true, load);
         }
@@ -270,10 +263,8 @@ public class FissionThermalManager {
         return (int) Math.round(Math.max(0.0, scaled));
     }
 
-    // Items are discrete but consumption is fractional per tick, so carry the remainder like fuel does.
     private final Map<String, Double> itemCoolantRemainder = new HashMap<>();
 
-    // Package-private for tests: fractional items consumed this tick for one cooler type.
     static double scaledItemAmount(double itemsPerTickPerBlock, long count, double removalForType,
                                    PhoenixFissionConfigs.HeatModelConfigs hm) {
         if (itemsPerTickPerBlock <= 0 || count <= 0 || removalForType <= 0) return 0.0;
@@ -309,7 +300,7 @@ public class FissionThermalManager {
             var item = Objects.requireNonNull(BuiltInRegistries.ITEM.getOptional(rl).orElse(null));
 
             if (!execute) {
-                // Don't stall the reactor on a zero-item tick, only when a whole item is actually due.
+
                 if (whole > 0 && !machine.executeItemIO(new ItemStack(item, whole), IO.IN, true)) return false;
                 continue;
             }

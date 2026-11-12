@@ -4,6 +4,8 @@ import net.phoenix.phoenix_fission.api.block.FissionBlanketBlock;
 import net.phoenix.phoenix_fission.api.block.FissionCoolerBlock;
 import net.phoenix.phoenix_fission.api.block.FissionFuelRodBlock;
 import net.phoenix.phoenix_fission.api.block.FissionModeratorBlock;
+import net.phoenix.phoenix_fission.api.block.FusionCoilBlock;
+import net.phoenix.phoenix_fission.api.block.FusionComputeBlock;
 import net.phoenix.phoenix_fission.api.block.MSRCoreLinerBlock;
 import net.phoenix.phoenix_fission.api.block.iface.*;
 import net.phoenix.phoenix_fission.api.machine.multiblock.part.FissionScramHatchPart;
@@ -28,4 +30,7 @@ public class PhoenixAPI {
     public static final Map<IFissionStabilityHatchType, Supplier<FissionScramHatchPart>> FISSION_STABILITY_HATCHES = new HashMap<>();
     public static final Map<IFissionSensorHatchType, Supplier<FissionStabilitySensorPart>> FISSION_SENSOR_HATCHES = new HashMap<>();
     public static final Map<IMSRCoreLinerType, Supplier<MSRCoreLinerBlock>> MSR_LINERS = new HashMap<>();
+    public static final Map<IFusionCoilType, Supplier<FusionCoilBlock.Inner>> FUSION_INNER_COILS = new HashMap<>();
+    public static final Map<IFusionCoilType, Supplier<FusionCoilBlock.Outer>> FUSION_OUTER_COILS = new HashMap<>();
+    public static final Map<IFusionComputeType, Supplier<FusionComputeBlock>> FUSION_COMPUTE_MODULES = new HashMap<>();
 }

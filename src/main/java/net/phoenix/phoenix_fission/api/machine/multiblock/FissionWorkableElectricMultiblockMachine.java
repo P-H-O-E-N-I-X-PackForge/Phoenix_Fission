@@ -40,7 +40,8 @@ import lombok.Setter;
 import java.util.*;
 
 @MethodsReturnNonnullByDefault
-public class FissionWorkableElectricMultiblockMachine extends WorkableElectricMultiblockMachine {
+public class FissionWorkableElectricMultiblockMachine extends WorkableElectricMultiblockMachine
+                                                      implements IStabilityMonitored {
 
     @Getter
     private final FissionComponentManager componentManager;
@@ -129,6 +130,8 @@ public class FissionWorkableElectricMultiblockMachine extends WorkableElectricMu
     private boolean ambientHeatInitialized = false;
 
     protected final ConditionalSubscriptionHandler reactorTickHandler;
+
+    @SaveField
     public final Map<String, Double> fuelRemainderPerType = new HashMap<>();
 
     public FissionWorkableElectricMultiblockMachine(BlockEntityCreationInfo holder, Object... args) {
@@ -189,9 +192,6 @@ public class FissionWorkableElectricMultiblockMachine extends WorkableElectricMu
         reactorTickHandler.unsubscribe();
     }
 
-    // The component manager's active lists are resolved from these persisted ID lists, but that only otherwise
-    // runs once at onLoad(). formStructure/invalidateStructure keep the SERVER's copy live; the client only sees
-    // the synced ID lists change, so re-resolve whenever one of them does.
     @ClientFieldChangeListener(fieldName = "persistedCoolerIDs")
     private void onCoolerIDsChanged() {
         componentManager.resolvePersistedComponents();
@@ -283,10 +283,6 @@ public class FissionWorkableElectricMultiblockMachine extends WorkableElectricMu
 
     private final java.util.Map<String, Object> lastSyncedStats = new java.util.HashMap<>();
 
-    /**
-     * The managers write these fields from outside this class, which the sync system's own write tracking does not
-     * see, so flag whichever ones actually changed for the client ourselves.
-     */
     private void markLiveStatsDirty() {
         syncIfChanged("lastRequiredCooling", lastRequiredCooling);
         syncIfChanged("lastProvidedCooling", lastProvidedCooling);
@@ -309,7 +305,7 @@ public class FissionWorkableElectricMultiblockMachine extends WorkableElectricMu
     }
 
     protected boolean shouldRunReactor() {
-        if (!isFormed() || !getRecipeLogic().isWorkingEnabled() || !getRecipeLogic().isWorking() ||
+        if (!isFormed() || !getRecipeLogic().isWorkingEnabled() ||
                 componentManager.getActiveFuelRods().isEmpty() || isScramActive())
             return false;
 
@@ -319,6 +315,12 @@ public class FissionWorkableElectricMultiblockMachine extends WorkableElectricMu
         }
 
         return fuelManager.hasFuelAvailableForNextTick();
+    }
+
+    @Override
+    public double getStabilityPercent() {
+        double maxSafe = getMaxSafeHeatHU();
+        return maxSafe <= 0 ? 0 : getHeat() / maxSafe * 100.0;
     }
 
     public boolean isScramActive() {
@@ -361,7 +363,6 @@ public class FissionWorkableElectricMultiblockMachine extends WorkableElectricMu
     protected static final int UI_WIDTH = 264;
     protected static final int UI_HEIGHT = 230;
 
-    /** The screen painter for this reactor (client only). Subclasses swap the HUD page. */
     protected CanvasPainter createHudPainter() {
         return new FissionReactorHud(this);
     }

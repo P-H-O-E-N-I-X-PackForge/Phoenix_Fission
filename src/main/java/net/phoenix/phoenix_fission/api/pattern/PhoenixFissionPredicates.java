@@ -1,9 +1,11 @@
 package net.phoenix.phoenix_fission.api.pattern;
 
+import com.gregtechceu.gtceu.api.GTCEuAPI;
 import com.gregtechceu.gtceu.api.multiblock.MultiPredicate;
 import com.gregtechceu.gtceu.api.multiblock.Predicates;
 import com.gregtechceu.gtceu.api.multiblock.error.PlaceholderError;
 import com.gregtechceu.gtceu.api.multiblock.util.BlockInfo;
+import com.gregtechceu.gtceu.common.block.CoilBlock;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.Block;
@@ -17,11 +19,6 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-/**
- * Pattern predicates that accept any fission component block. They match by block class, so components registered
- * from Java, the default set or KubeJS all work without needing to be in a fixed list; the formed structure is then
- * classified by the machine itself (see FissionComponentManager).
- */
 public class PhoenixFissionPredicates {
 
     private static BlockInfo emptyComponentFallback() {
@@ -93,5 +90,39 @@ public class PhoenixFissionPredicates {
     public static MultiPredicate msrCoreLiner() {
         return componentPredicate("msr_core_liner", MSRCoreLinerBlock.class, PhoenixAPI.MSR_LINERS.values(),
                 "phoenix.multiblock.pattern.info.multiple_liners");
+    }
+
+    public static MultiPredicate fusionInnerCoils() {
+        return componentPredicate("fusion_inner_coil", FusionCoilBlock.Inner.class,
+                PhoenixAPI.FUSION_INNER_COILS.values(), "phoenix.multiblock.pattern.info.fusion_inner_coils");
+    }
+
+    public static MultiPredicate fusionOuterCoils() {
+        List<BlockInfo> candidates = new ArrayList<>();
+        GTCEuAPI.HEATING_COILS.entrySet().stream()
+                .sorted(Comparator.comparingInt(e -> e.getKey().getTier()))
+                .map(e -> safeGet(e.getValue()))
+                .filter(Objects::nonNull)
+                .forEach(b -> candidates.add(BlockInfo.fromBlockState(b.defaultBlockState())));
+        PhoenixAPI.FUSION_OUTER_COILS.values().stream().map(PhoenixFissionPredicates::safeGet)
+                .filter(Objects::nonNull)
+                .forEach(b -> candidates.add(BlockInfo.fromBlockState(b.defaultBlockState())));
+        if (candidates.isEmpty()) candidates.add(emptyComponentFallback());
+
+        Predicate<com.gregtechceu.gtceu.api.multiblock.PredicateContext> test = ctx -> {
+            Block block = ctx.state().getBlock();
+            return block instanceof FusionCoilBlock.Outer || block instanceof CoilBlock;
+        };
+        return Predicates.builder("fusion_outer_coil")
+                .candidates(candidates)
+                .predicate(test)
+                .errorFunction(ctx -> PlaceholderError.instance())
+                .toMultiPredicate()
+                .addTooltips(Component.translatable("phoenix.multiblock.pattern.info.fusion_outer_coils"));
+    }
+
+    public static MultiPredicate fusionComputeModules() {
+        return componentPredicate("fusion_compute_module", FusionComputeBlock.class,
+                PhoenixAPI.FUSION_COMPUTE_MODULES.values(), "phoenix.multiblock.pattern.info.fusion_compute_modules");
     }
 }

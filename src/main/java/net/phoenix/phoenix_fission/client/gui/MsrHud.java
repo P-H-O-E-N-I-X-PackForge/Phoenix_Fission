@@ -5,6 +5,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
+import net.phoenix.phoenix_fission.api.PhoenixAPI;
 import net.phoenix.phoenix_fission.api.machine.multiblock.MoltenSaltReactorMultiblockMachine;
 
 import java.util.Locale;
@@ -227,9 +228,19 @@ public class MsrHud implements CanvasPainter {
                 hasLiner ? C_CYAN : C_DIM);
 
         int flowTotal = Math.max(1, msr.structuralLinerCount) * msr.linerFlowRate;
-        y = row(g, font, x, y, W, "Flow",
-                msr.linerFlowRate > 0 ? flowTotal + " mb/t" : "---",
+        y = row(g, font, x, y, W, "Fuel burn",
+                msr.linerFlowRate > 0 ? String.format(Locale.ROOT, "%,d mB/t  (%,d mB/s)", flowTotal,
+                        flowTotal * 20L) : "---",
                 C_BLUE);
+
+        String saltStr = "---";
+        for (var liner : PhoenixAPI.MSR_LINERS.keySet()) {
+            if (liner.getName().equals(msr.linerName)) {
+                saltStr = prettyName(liner.getInputFluidId()) + " > " + prettyName(liner.getOutputFluidId());
+                break;
+            }
+        }
+        y = row(g, font, x, y, W, "Fuel salt", truncate(font, saltStr, W - font.width("Fuel salt") - 8), C_SALT);
         y = row(g, font, x, y, W, "Parallels",
                 String.valueOf(msr.lastParallels), C_SALT);
 
@@ -259,6 +270,23 @@ public class MsrHud implements CanvasPainter {
             g.fill(x, y + 2, x + 5, y + 7, C_RED);
             g.drawString(font, "  SCRAM ENGAGED", x, y, C_RED, false);
         }
+    }
+
+    private static String prettyName(String key) {
+        if (key == null || key.isEmpty()) return "Unknown";
+        String path = key.contains(":") ? key.substring(key.indexOf(':') + 1) : key;
+        StringBuilder sb = new StringBuilder();
+        for (String p : path.split("[_\\s]+")) {
+            if (p.isEmpty()) continue;
+            sb.append(Character.toUpperCase(p.charAt(0))).append(p.substring(1)).append(' ');
+        }
+        return sb.toString().trim();
+    }
+
+    private static String truncate(Font font, String text, int maxW) {
+        if (font.width(text) <= maxW) return text;
+        while (text.length() > 1 && font.width(text + "..") > maxW) text = text.substring(0, text.length() - 1);
+        return text + "..";
     }
 
     private static int drawPill(GuiGraphics g, Font font, int x, int y, String label, int color) {

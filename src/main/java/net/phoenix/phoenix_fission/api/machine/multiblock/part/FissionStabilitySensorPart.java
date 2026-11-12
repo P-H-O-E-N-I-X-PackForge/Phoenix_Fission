@@ -7,7 +7,7 @@ import com.gregtechceu.gtceu.api.sync_system.annotations.SaveField;
 
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
-import net.phoenix.phoenix_fission.api.machine.multiblock.FissionWorkableElectricMultiblockMachine;
+import net.phoenix.phoenix_fission.api.machine.multiblock.IStabilityMonitored;
 
 import brachy.modularui.factory.PosGuiData;
 import brachy.modularui.screen.UISettings;
@@ -40,12 +40,9 @@ public class FissionStabilitySensorPart extends SensorHatchPartMachine implement
     @Override
     public int getOutputSignal(@Nullable Direction direction) {
         var controller = getController();
-        if (!(controller instanceof FissionWorkableElectricMultiblockMachine fission)) return 0;
+        if (!(controller instanceof IStabilityMonitored monitored)) return 0;
 
-        double maxSafe = fission.getMaxSafeHeatHU();
-        if (maxSafe <= 0) return 0;
-
-        double heatPct = (fission.getHeat() / maxSafe) * 100.0;
+        double heatPct = monitored.getStabilityPercent();
 
         int strength = (int) Math.round((heatPct / 200.0) * 15.0);
         strength = Mth.clamp(strength, 0, 15);
@@ -63,9 +60,8 @@ public class FissionStabilitySensorPart extends SensorHatchPartMachine implement
         main.child(PartUi.text(10, 8, "§6Fission Stability Sensor"));
         main.child(PartUi.dynamic(10, 24, () -> {
             var controller = getController();
-            if (controller instanceof FissionWorkableElectricMultiblockMachine fission) {
-                double maxSafe = fission.getMaxSafeHeatHU();
-                double pct = maxSafe > 0 ? (fission.getHeat() / maxSafe) * 100.0 : 0.0;
+            if (controller instanceof IStabilityMonitored monitored) {
+                double pct = monitored.getStabilityPercent();
                 int sig = getOutputSignal(null);
                 String sigColor = sig > 0 ? "§a" : "§c";
                 return "§7Heat: §f" + String.format(java.util.Locale.ROOT, "%.1f", pct) + "%   §7Signal: " +

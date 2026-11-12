@@ -2,7 +2,6 @@ package net.phoenix.phoenix_fission.client.gui;
 
 import net.minecraft.client.gui.GuiGraphics;
 
-/** Small drawing helpers the old LDLib DrawerHelper used to provide. */
 public final class GuiDraw {
 
     private GuiDraw() {}
@@ -32,10 +31,6 @@ public final class GuiDraw {
         g.fill(x + w - thickness, y + thickness, x + w, y + h - thickness, color);
     }
 
-    /**
-     * Vanilla 1.21.1 scissors in absolute GUI coordinates and ignores the pose stack, so local drawing code has to
-     * push the current translation/scale into the rectangle itself.
-     */
     public static void enableScissor(GuiGraphics g, int x1, int y1, int x2, int y2) {
         var m = g.pose().last().pose();
         int ax = Math.round(m.m00() * x1 + m.m30()), ay = Math.round(m.m11() * y1 + m.m31());

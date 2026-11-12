@@ -28,6 +28,7 @@ import net.phoenix.phoenix_fission.api.machine.PhoenixPartAbility;
 import net.phoenix.phoenix_fission.api.machine.multiblock.BreederWorkableElectricMultiblockMachine;
 import net.phoenix.phoenix_fission.api.machine.multiblock.DynamicFissionReactorMachine;
 import net.phoenix.phoenix_fission.api.machine.multiblock.FissionWorkableElectricMultiblockMachine;
+import net.phoenix.phoenix_fission.api.machine.multiblock.FusionReactorMachine;
 import net.phoenix.phoenix_fission.api.machine.multiblock.MoltenSaltReactorMultiblockMachine;
 import net.phoenix.phoenix_fission.api.machine.multiblock.RtgArrayMachine;
 import net.phoenix.phoenix_fission.api.machine.multiblock.ThermoelectricGeneratorMachine;
@@ -392,6 +393,9 @@ public class PhoenixFissionMachines {
             .rotationState(RotationState.NON_Y_AXIS)
             .recipeType(PhoenixRecipeTypes.RTG_ARRAY_RECIPES)
             .appearanceBlock(PhoenixFissionBlocks.FISSILE_REACTION_SAFE_CASING)
+            .tooltips(
+                    Component.translatable("phoenix_fission.machine.rtg_array.tooltip1"),
+                    Component.translatable("phoenix_fission.machine.rtg_array.tooltip2"))
             .pattern(definition -> MultiblockPatternBuilder
                     .start(RelativeDirection.BACK, RelativeDirection.UP, RelativeDirection.LEFT)
                     .slice("BBB", "BGB", "BBB")
@@ -405,6 +409,30 @@ public class PhoenixFissionMachines {
                     .where('C', Predicates.blocks(PhoenixFissionBlocks.FISSILE_HEAT_SAFE_CASING.get()))
                     .where('G', Predicates.controller(definition))
                     .build())
+            .workableCasingModel(
+                    PhoenixFission.id("block/fission/fissile_reaction_safe_casing"),
+                    GTCEu.id("block/multiblock/fusion_reactor"))
+            .register();
+
+    public static final MachineEntry<MultiblockMachineDefinition> FUSION_REACTOR = PHOENIX_REGISTRATE
+            .multiblock("fusion_reactor", FusionReactorMachine::new)
+            .langValue("§dTokamak Fusion Reactor")
+            .rotationState(RotationState.NON_Y_AXIS)
+            .recipeType(PhoenixRecipeTypes.FUSION_REACTOR_RECIPES)
+            .recipeModifiers(FusionReactorMachine::recipeModifier)
+            .appearanceBlock(PhoenixFissionBlocks.FISSILE_REACTION_SAFE_CASING)
+            .tooltips(
+                    Component.translatable("phoenix_fission.machine.fusion_reactor.tooltip1"),
+                    Component.translatable("phoenix_fission.machine.fusion_reactor.tooltip2"),
+                    Component.translatable("phoenix_fission.machine.fusion_reactor.tooltip3"),
+                    Component.translatable("phoenix_fission.machine.fusion_reactor.tooltip4"),
+                    Component.translatable("phoenix_fission.machine.fusion_reactor.tooltip5"),
+                    Component.translatable("phoenix_fission.machine.fusion_reactor.tooltip6"),
+                    Component.translatable("phoenix_fission.machine.fusion_reactor.tooltip7"))
+            .pattern(definition -> FusionStructure.build(definition, 0))
+            .pattern("compute_1", definition -> FusionStructure.build(definition, 1))
+            .pattern("compute_2", definition -> FusionStructure.build(definition, 2))
+            .pattern("compute_3", definition -> FusionStructure.build(definition, 3))
             .workableCasingModel(
                     PhoenixFission.id("block/fission/fissile_reaction_safe_casing"),
                     GTCEu.id("block/multiblock/fusion_reactor"))

@@ -8,10 +8,6 @@ import static net.phoenix.phoenix_fission.common.data.block.PhoenixFissionDefaul
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * Pins the built-in progression to the balance it was tuned for, using the RATED model's math directly:
- * production = rods * baseHeat * (rods+1)/2, stable heat fraction = production / total rated cooling.
- */
 class PhoenixFissionDefaultComponentsTest {
 
     private static double stableFraction(int rods, int rodTier, int coolers, int coolerTier, double boostPct) {
@@ -35,7 +31,6 @@ class PhoenixFissionDefaultComponentsTest {
 
     @Test
     void comfortableBuild_settlesAroundHalfTheSafeLimit_atEveryTier() {
-        // 8 rods + 40 same-tier coolers, no moderators.
         for (int tier = 0; tier < FUEL_TIERS.size(); tier++) {
             double f = stableFraction(8, tier, 40, tier, 0);
             assertTrue(f > 0.40 && f < 0.50, "tier " + (tier + 1) + " comfortable build = " + f);
@@ -44,7 +39,6 @@ class PhoenixFissionDefaultComponentsTest {
 
     @Test
     void pushedBuild_isStableOneCoolerTierUp_butOverheatsOnTheSameTier() {
-        // 16 rods + 32 coolers: big reactors carry real risk, but a better cooler tier keeps them stable.
         for (int tier = 0; tier < FUEL_TIERS.size(); tier++) {
             double sameTier = stableFraction(16, tier, 32, tier, 0);
             double oneUp = stableFraction(16, tier, 32, tier + 1, 0);
@@ -55,7 +49,6 @@ class PhoenixFissionDefaultComponentsTest {
 
     @Test
     void moderators_makeAComfortableBuildHotterButNotUnsafe_atLowTiers() {
-        // Six graphite moderators (+60% heat) on a comfortable build.
         double f = stableFraction(8, 0, 40, 0, 6 * MODERATOR_TIERS.get(0).euBoost());
         assertEquals(0.72, f, 0.02);
     }

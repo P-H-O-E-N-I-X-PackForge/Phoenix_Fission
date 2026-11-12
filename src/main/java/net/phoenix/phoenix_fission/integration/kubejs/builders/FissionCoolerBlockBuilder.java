@@ -122,7 +122,6 @@ public class FissionCoolerBlockBuilder extends FissionTintedBlockBuilder {
 
         @Override
         public boolean isPassive() {
-            // "none" fluid only means passive if there's no item coolant either (item-only coolers are active).
             boolean noFluid = "none".equalsIgnoreCase(requiredCoolantMaterialId);
             boolean hasItem = !itemCoolantId.isEmpty() && !"none".equalsIgnoreCase(itemCoolantId) &&
                     itemCoolantSeconds > 0.0;

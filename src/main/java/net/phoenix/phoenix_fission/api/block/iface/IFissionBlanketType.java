@@ -22,10 +22,6 @@ public interface IFissionBlanketType extends StringRepresentable {
     @NotNull
     String getRequiredFuelKey();
 
-    /**
-     * False (default): the block uses the shared blanket texture and is tinted with {@link #getTintColor()}.
-     * True: {@link #getTexture()} (and {@link #getActiveTexture()}) are used as-is, with no tinting.
-     */
     default boolean isTextureManual() {
         return false;
     }

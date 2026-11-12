@@ -79,7 +79,7 @@ public class FissionCoolantCycleEmiRecipe implements EmiRecipe {
     @Override
     public int getDisplayHeight() {
         if (type.isPassive()) return 58;
-        // Fluid cooler layout is 74 tall; an item-coolant row adds one slot row, an item-only cooler is shorter.
+
         return type.hasFluidCoolant() ? (type.hasItemCoolant() ? 100 : 74) : 74;
     }
 

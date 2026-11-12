@@ -7,7 +7,6 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.phoenix.phoenix_fission.api.machine.multiblock.RtgArrayMachine;
 
-/** Output and average cell life over the last minute. */
 @OnlyIn(Dist.CLIENT)
 public class RtgGraphsPage implements CanvasPainter {
 

@@ -6,10 +6,6 @@ import net.minecraft.client.gui.GuiGraphics;
 
 import java.util.List;
 
-/**
- * Tab strip (HUD / MATH / GRAPHS) over the fission screens, styled like the old side tabs: dark cell, cyan border,
- * accent when active. Replaces GTCEu's 1.20 "fancy pages" side tab column, which no longer exists.
- */
 public class FissionTabbedScreen implements CanvasPainter {
 
     public record Tab(String label, CanvasPainter painter) {}
@@ -32,11 +28,14 @@ public class FissionTabbedScreen implements CanvasPainter {
         this.tabs = tabs;
     }
 
+    public int getActive() {
+        return active;
+    }
+
     public int stripHeight() {
         return tabs.size() * (TAB_H + GAP) - GAP;
     }
 
-    /** The vertical tab column, meant to hang off the left edge of the panel. */
     public CanvasPainter stripPainter() {
         return new CanvasPainter() {
 

@@ -138,7 +138,6 @@ class FissionThermalManagerTest {
 
     @Test
     void ratedModel_stableHeatFractionIsProductionOverRatedCooling() {
-        // Production 600 HU/t against 1000 HU/t rated: cooling matches production at 60% of the span.
         double ambient = 293.0, safe = 1000.0, rated = 1000.0, production = 600.0;
         double stable = ambient + (production / rated) * (safe - ambient);
         assertEquals(production, FissionThermalManager.ratedCoolingDelivered(rated, stable, ambient, safe), 1e-6);

@@ -9,18 +9,12 @@ import dev.latvian.mods.kubejs.generator.KubeAssetGenerator;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
-/**
- * Shared look for fission component blocks. By default the block uses the shared texture for its kind and is
- * tinted with {@link #tintColor}; calling {@code texture(...)} switches to a fully manual texture with no
- * tinting ({@code activeTexture(...)} optionally gives the active state its own).
- */
 @Accessors(chain = true, fluent = true)
 public abstract class FissionTintedBlockBuilder extends BlockBuilder {
 
-    /** RGB, e.g. 0x44AAFF. */
     @Setter
     public transient int tintColor = 0xFFFFFF;
-    /** Empty = use the shared tinted look. Otherwise a texture id like "gtceu:block/casings/solid/uv". */
+
     @Setter
     public transient String texture = "";
     @Setter
@@ -30,7 +24,6 @@ public abstract class FissionTintedBlockBuilder extends BlockBuilder {
         super(id);
     }
 
-    /** "cooler", "fuel_rod", "moderator" or "blanket" - picks the shared base and masks. */
     protected abstract String kind();
 
     protected boolean hasActiveState() {
@@ -68,7 +61,7 @@ public abstract class FissionTintedBlockBuilder extends BlockBuilder {
         } else {
             m.parent(ResourceLocation.fromNamespaceAndPath("phoenix_fission", "block/cube_2_layer_all_tinted"));
             m.texture("bot_all", sharedBase().toString());
-            // Moderators only have one mask; every other kind has a separate active mask.
+
             m.texture("top_all", maskName(active && hasActiveState()));
         }
     }

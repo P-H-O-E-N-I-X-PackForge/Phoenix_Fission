@@ -51,7 +51,6 @@ public class FissionComponentManager {
     }
 
     public void onStructureFormed() {
-        // Only the server owns the pattern cache; the client mirrors the synced persisted IDs instead.
         if (machine.getLevel() != null && machine.getLevel().isClientSide) {
             resolvePersistedComponents();
             return;
@@ -158,14 +157,9 @@ public class FissionComponentManager {
                 .map(Map.Entry::getKey).orElse(null);
     }
 
-    /**
-     * Sorts every block of the formed structure into the component lists. Works on the block classes, so it covers
-     * components from Java, the default set and KubeJS alike.
-     */
     private void classifyFormedBlocks() {
         var level = machine.getLevel();
-        // The pattern cache can hold the predicate's candidate rather than the placed block (an "or" of coolers and
-        // fuel rods would then look alike), so prefer the real block from the world and fall back to the cache.
+
         for (var entry : machine.getDefaultPatternState().getCache().long2ObjectEntrySet()) {
             Block block = entry.getValue().getBlockState().getBlock();
             if (level != null) {

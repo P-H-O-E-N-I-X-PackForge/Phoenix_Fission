@@ -29,10 +29,6 @@ import lombok.Getter;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Holds RTG cells in its item inputs and trickles their EU/t into the energy output. No fuel or coolant: each cell
- * wears one durability point per second and is left in place, spent, when it runs out.
- */
 public class RtgArrayMachine extends WorkableElectricMultiblockMachine {
 
     @Getter
@@ -42,7 +38,6 @@ public class RtgArrayMachine extends WorkableElectricMultiblockMachine {
     @SyncToClient
     private int activeCells = 0;
 
-    /** One "item_id|remaining|max|eu" entry per loaded cell, refreshed about once a second for the screen. */
     @Getter
     @SyncToClient
     private List<String> cellInfo = new ArrayList<>();

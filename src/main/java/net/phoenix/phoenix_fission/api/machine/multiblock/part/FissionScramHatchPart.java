@@ -11,7 +11,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.phoenix.phoenix_fission.api.machine.multiblock.FissionWorkableElectricMultiblockMachine;
 
 import brachy.modularui.factory.PosGuiData;
 import brachy.modularui.screen.UISettings;
@@ -66,9 +65,7 @@ public class FissionScramHatchPart extends TieredPartMachine implements IMuiMach
 
     private void notifyController() {
         for (var controller : getControllers()) {
-            if (controller instanceof FissionWorkableElectricMultiblockMachine fission) {
-                fission.setChanged();
-            }
+            controller.setChanged();
         }
     }
 

@@ -17,12 +17,10 @@ import java.util.function.IntConsumer;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
-/** Tiny layout helpers for the fission hatch/sensor screens (absolute positions, like the old LDLib layouts). */
 final class PartUi {
 
     private PartUi() {}
 
-    /** Text with legacy section-sign colour codes, as the old labels used. */
     static TextWidget<?> text(int x, int y, String legacyText) {
         return new TextWidget<>(Component.literal(legacyText)).pos(x, y);
     }

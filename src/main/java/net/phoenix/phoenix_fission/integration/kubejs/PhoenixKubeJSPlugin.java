@@ -41,13 +41,14 @@ public class PhoenixKubeJSPlugin implements KubeJSPlugin {
 
     @Override
     public void registerBuilderTypes(BuilderTypeRegistry registry) {
-        // Registered under the kubejs namespace so scripts keep writing event.create('id', 'fission_cooler').
         registry.of(Registries.BLOCK, callback -> {
             callback.add("fission_fuel_rod", FissionFuelRodBlockBuilder.class, FissionFuelRodBlockBuilder::new);
             callback.add("fission_cooler", FissionCoolerBlockBuilder.class, FissionCoolerBlockBuilder::new);
             callback.add("fission_moderator", FissionModeratorBlockBuilder.class, FissionModeratorBlockBuilder::new);
             callback.add("fission_blanket", FissionBlanketRodBlockBuilder.class, FissionBlanketRodBlockBuilder::new);
             callback.add("msr_core_liner", MSRCoreLinerBlockBuilder.class, MSRCoreLinerBlockBuilder::new);
+            callback.add("fusion_coil", FusionCoilBlockBuilder.class, FusionCoilBlockBuilder::new);
+            callback.add("fusion_compute", FusionComputeBlockBuilder.class, FusionComputeBlockBuilder::new);
         });
         registry.of(Registries.ITEM, callback -> callback.add("rtg_cell", RtgCellItemBuilder.class,
                 RtgCellItemBuilder::new));

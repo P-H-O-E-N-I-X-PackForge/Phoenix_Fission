@@ -2,7 +2,6 @@ package net.phoenix.phoenix_fission.client.gui;
 
 import net.phoenix.phoenix_fission.api.machine.multiblock.RtgArrayMachine;
 
-/** Rolling client-side samples of an RTG Array's output and average cell life, shared by its screen tabs. */
 public class RtgHistory {
 
     public static final int LEN = 120;
@@ -39,7 +38,6 @@ public class RtgHistory {
         filled = Math.min(LEN, filled + 1);
     }
 
-    /** Sample i counted from the oldest of the filled ones. */
     public int index(int i) {
         return (head - filled + i + LEN * 2) % LEN;
     }

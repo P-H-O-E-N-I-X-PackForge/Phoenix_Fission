@@ -8,7 +8,6 @@ import brachy.modularui.widget.ParentWidget;
 import brachy.modularui.widget.Widget;
 import brachy.modularui.widgets.SlotGroupWidget;
 
-/** Shared panel chrome for the fission screens: dark HUD background and the tab column outside the left edge. */
 public final class FissionPanelUi {
 
     private FissionPanelUi() {}
@@ -17,7 +16,6 @@ public final class FissionPanelUi {
     private static final int BG_BOT = 0xFF_010508;
     private static final int C_TEAL = 0xFF_00B8A5;
 
-    /** Draws the whole panel (screen area and inventory) in the HUD style. */
     public static final IDrawable BACKGROUND = (ctx, x, y, w, h, theme) -> {
         GuiGraphics g = ctx.getGraphics();
         GuiDraw.drawGradientRect(g, x, y, w, h, BG_TOP, BG_BOT, false);
@@ -48,10 +46,6 @@ public final class FissionPanelUi {
         g.fill(x, y, x + 3, y + 8, 0xFF_00B8A5);
     };
 
-    /**
-     * A separate inventory section below the screen area (which ends at {@code top}), with dark HUD-style cells.
-     * Add on both sides so the slots exist on the server.
-     */
     public static void addInventory(ParentWidget<?> main, int width, int top) {
         main.child(new Widget<>().pos(0, top + 3).size(width, 92).background(SECTION));
         main.child(SlotGroupWidget.playerInventory((index, slot) -> {

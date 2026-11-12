@@ -1,5 +1,6 @@
 package net.phoenix.phoenix_fission.common.data.item;
 
+import net.minecraft.world.item.Item;
 import net.phoenix.phoenix_fission.api.item.RtgCellItem;
 import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
 
@@ -15,7 +16,6 @@ public class PhoenixFissionItems {
 
     public record RtgTier(String id, String name, long euPerTick, int lifespanSeconds) {}
 
-    /** Default cells, weakest to strongest. They are meant to come out of fission by-products. */
     public static final List<RtgTier> RTG_TIERS = List.of(
             new RtgTier("rtg_cell_sr90", "Strontium-90 RTG Cell", 8, 6 * 3600),
             new RtgTier("rtg_cell_am241", "Americium-241 RTG Cell", 32, 12 * 3600),
@@ -24,14 +24,23 @@ public class PhoenixFissionItems {
 
     public static final List<ItemEntry<RtgCellItem>> RTG_CELLS = new ArrayList<>();
 
+    public static ItemEntry<Item> FUSION_WASTE;
+
     public static void init() {
+        FUSION_WASTE = PHOENIX_REGISTRATE.item("fusion_waste", Item::new)
+                .lang("Activated Fusion Waste")
+                .model(NonNullBiConsumer.noop())
+                .register();
+
+        var rtgCfg = PhoenixFissionConfigs.INSTANCE.fission.rtg;
+        if (!rtgCfg.defaultCellsEnabled && !com.gregtechceu.gtceu.GTCEu.isDataGen()) return;
         double lifespanMul = Math.max(0.01, PhoenixFissionConfigs.INSTANCE.fission.rtg.lifespanMultiplier);
         for (RtgTier tier : RTG_TIERS) {
             int lifespan = (int) Math.min(Integer.MAX_VALUE - 1, Math.max(1, tier.lifespanSeconds() * lifespanMul));
             RTG_CELLS.add(PHOENIX_REGISTRATE
                     .item(tier.id(), props -> new RtgCellItem(props, tier.euPerTick(), lifespan))
                     .lang(tier.name())
-                    // The model json and texture are plain resources (item/generated parent).
+
                     .model(NonNullBiConsumer.noop())
                     .register());
         }

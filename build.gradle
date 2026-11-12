@@ -175,6 +175,12 @@ dependencies {
     // Optional integrations
     compileOnly "dev.emi:emi-neoforge:${emi_version}+${minecraft_version}"
     localRuntime "dev.emi:emi-neoforge:${emi_version}+${minecraft_version}"
+
+    // Phantasia (runtime only, for its substructure support). It is not published anywhere public, so only pull it
+    // in when it has been installed to the local maven (./gradlew publishToMavenLocal in the Phantasia project).
+    if (file("${System.getProperty('user.home')}/.m2/repository/net/phoenix/core/phantasia_neoforge/${phantasia_version}").exists()) {
+        localRuntime("net.phoenix.core:phantasia_neoforge:${phantasia_version}") { transitive = false }
+    }
     compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
     compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
     implementation "maven.modrinth:jade:15.10.6+neoforge"

@@ -10,7 +10,6 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.phoenix.phoenix_fission.api.machine.multiblock.RtgArrayMachine;
 
-/** Screen for the RTG Array: output, cell count and a wear bar per loaded cell. */
 @OnlyIn(Dist.CLIENT)
 public class RtgHud implements CanvasPainter {
 

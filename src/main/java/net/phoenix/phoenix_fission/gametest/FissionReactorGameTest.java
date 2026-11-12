@@ -90,9 +90,6 @@ public class FissionReactorGameTest {
                 return;
             }
 
-            // No fuel hatches or running recipe exist in this bare structure, so the reactor's own tick loop
-            // never considers it "running". Drive one thermal tick directly with running=true instead: it
-            // exercises the real production formula against the detected rods/moderators/coolers.
             reactor.getThermalManager().tickThermalLogic(true);
             double produced = reactor.lastHeatGainedPerTick;
             if (!(produced > 0.0)) {
@@ -166,7 +163,8 @@ public class FissionReactorGameTest {
 
             reactor.setReactivityFactor(1.0);
             String fuelKey = comp.getActiveFuelRods().get(0).getName();
-            reactor.fuelRemainderPerType.put(fuelKey, 1.0e9);
+
+            reactor.fuelRemainderPerType.put(fuelKey, 0.0);
 
             double maxSafeHeat = reactor.getMaxSafeHeatHU();
             reactor.getThermalManager().tickThermalLogic(true);
@@ -182,10 +180,6 @@ public class FissionReactorGameTest {
         });
     }
 
-    /**
-     * Every fluid and item id the built-in progression refers to must actually exist - a typo or a material
-     * that's missing from this GTCEu version would otherwise silently leave a tier unable to run or cool.
-     */
     @GameTest(templateNamespace = PhoenixFission.MOD_ID, template = "pressurized_reactor", timeoutTicks = 20)
     public static void defaultComponentsReferenceRealFluidsAndItems(GameTestHelper helper) {
         var problems = new java.util.ArrayList<String>();
@@ -218,7 +212,6 @@ public class FissionReactorGameTest {
         }
     }
 
-    /** Places every block of the reactor's default pattern around the controller using GTM's own structure helper. */
     private static void buildStructure(GameTestHelper helper, FissionWorkableElectricMultiblockMachine reactor) {
         var blocks = new java.util.HashMap<BlockPos, com.gregtechceu.gtceu.api.multiblock.util.BlockInfo>();
         com.gregtechceu.gtceu.api.multiblock.util.AbstractStructureHelper

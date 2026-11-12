@@ -24,11 +24,6 @@ public class PhoenixFissionMachineModels {
         return PhoenixFission.id("block/fission/" + kind + "_base");
     }
 
-    /**
-     * Tinted by default: the shared kind base underneath and the (grayscale) mask on top, which the
-     * block/item colour handlers tint with the type's colour. A type that supplies its own finished
-     * texture ({@code isTextureManual}) gets a plain cube with that texture instead.
-     */
     private static void buildModels(RegistrateBlockstateProvider prov, Block block, String name, boolean manual,
                                     ResourceLocation texture, ResourceLocation activeTexture, ResourceLocation base,
                                     ResourceLocation mask, ResourceLocation maskOn) {
