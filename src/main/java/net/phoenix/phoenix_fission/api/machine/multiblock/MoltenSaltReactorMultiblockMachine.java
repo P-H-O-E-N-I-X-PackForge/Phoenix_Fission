@@ -20,6 +20,7 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.phoenix.phoenix_fission.api.block.iface.IMSRCoreLinerType;
 import net.phoenix.phoenix_fission.client.gui.MSRFancyUIWidget;
+import net.phoenix.phoenix_fission.common.FissionLang;
 import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
 
 import org.jetbrains.annotations.NotNull;
@@ -318,7 +319,7 @@ public class MoltenSaltReactorMultiblockMachine extends FissionWorkableElectricM
                     .withStyle(s -> s.withColor(xenonColor)));
         }
 
-        textList.add(Component.literal("  Xe Purge: ")
+        textList.add(FissionLang.tr("phoenix_fission.molten_salt_reactor_multiblock_machine.xe_purge")
                 .withStyle(ChatFormatting.GRAY)
                 .append(Component.literal(lastXenonPurgeSucceeded ? "OK" : "Blocked")
                         .withStyle(s -> s.withColor(lastXenonPurgeSucceeded ? 0x55FF55 : 0xFF5555))));

@@ -15,6 +15,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.phoenix.phoenix_fission.api.machine.multiblock.RtgArrayMachine;
+import net.phoenix.phoenix_fission.client.FissionText;
 
 import javax.annotation.Nonnull;
 
@@ -74,17 +75,19 @@ public class RtgFancyUIWidget extends FancyMachineUIWidget {
     }
 
     private void drawHud(GuiGraphics g, Font font, int ox, int oy, int w, int h) {
-
         DrawerHelper.drawGradientRect(g, ox, oy, w, h, BG_TOP, BG_BOT, false);
 
         g.fill(ox, oy, ox + w, oy + TITLE_H, BG_TOP);
         g.fill(ox + 3, oy + 3, ox + 6, oy + TITLE_H - 3, C_TEAL);
-        g.drawString(font, "RTG ARRAY", ox + 10, oy + (TITLE_H - font.lineHeight) / 2, C_CYAN, false);
+        g.drawString(font, FissionText.str("phoenix_fission.ui.rtg_fancy_u_i_widget.rtg_array"), ox + 10,
+                oy + (TITLE_H - font.lineHeight) / 2, C_CYAN, false);
         g.fill(ox, oy + TITLE_H - 1, ox + w, oy + TITLE_H, 0x44_00E5CC);
 
         boolean formed = machine.isFormed();
         boolean online = formed && machine.getGeneratedEUt() > 0;
-        String badge = !formed ? "OFFLINE" : online ? "ONLINE" : "NO CELLS";
+        String badge = !formed ? FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.offline") :
+                online ? FissionText.str("phoenix_fission.ui.rtg_fancy_u_i_widget.online") :
+                        FissionText.str("phoenix_fission.ui.rtg_fancy_u_i_widget.no_cells");
         int badgeColor = !formed ? C_DIM : online ? C_GREEN : C_GOLD;
         int bw = font.width(badge) + 8;
         int bx = ox + w - bw - 8, by = oy + 3;
@@ -94,7 +97,9 @@ public class RtgFancyUIWidget extends FancyMachineUIWidget {
 
         int x = ox + 8, y = oy + TITLE_H + 6, cw = w - 16;
         if (!formed) {
-            g.drawString(font, "Structure not complete", x, y, C_DIM, false);
+            g.drawString(font,
+                    FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.structure_not_complete"), x, y,
+                    C_DIM, false);
             DrawerHelper.drawBorder(g, ox, oy, w, h, C_TEAL, 1);
             return;
         }
@@ -102,17 +107,18 @@ public class RtgFancyUIWidget extends FancyMachineUIWidget {
         g.fill(x, y, x + cw, y + 30, 0x33_00E5CC);
         DrawerHelper.drawBorder(g, x, y, cw, 30, 0x88_00B8A5, 1);
         g.drawString(font, machine.getGeneratedEUt() + " EU/t", x + 6, y + 5, C_WHITE, false);
-        g.drawString(font, machine.getActiveCells() + " cell" + (machine.getActiveCells() == 1 ? "" : "s") +
-                " active", x + 6, y + 17, C_MID, false);
+        g.drawString(font, FissionText.str("phoenix_fission.ui.rtg_fancy_u_i_widget.cell_active",
+                machine.getActiveCells(), (machine.getActiveCells() == 1 ? "" : "s")), x + 6, y + 17, C_MID, false);
         y += 38;
 
-        g.drawString(font, "CELLS", x, y, C_MID, false);
+        g.drawString(font, FissionText.str("phoenix_fission.ui.rtg_fancy_u_i_widget.cells"), x, y, C_MID, false);
         g.fill(x, y + 10, x + cw, y + 11, C_TEAL);
         y += 15;
 
         var cells = machine.getCellInfo();
         if (cells == null || cells.isEmpty()) {
-            g.drawString(font, "Load RTG cells into an input bus", x, y + 2, C_DIM, false);
+            g.drawString(font, FissionText.str("phoenix_fission.ui.rtg_fancy_u_i_widget.load_rtg_cells_into_an"), x,
+                    y + 2, C_DIM, false);
             DrawerHelper.drawBorder(g, ox, oy, w, h, C_TEAL, 1);
             return;
         }

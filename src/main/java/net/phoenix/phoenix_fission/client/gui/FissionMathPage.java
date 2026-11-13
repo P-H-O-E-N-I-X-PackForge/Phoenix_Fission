@@ -23,6 +23,8 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.phoenix.phoenix_fission.api.machine.multiblock.FissionWorkableElectricMultiblockMachine;
 import net.phoenix.phoenix_fission.api.machine.multiblock.managers.FissionThermalManager;
+import net.phoenix.phoenix_fission.client.FissionText;
+import net.phoenix.phoenix_fission.common.FissionLang;
 import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
 
 import java.util.List;
@@ -47,7 +49,7 @@ public class FissionMathPage implements IFancyUIProvider {
 
     @Override
     public Component getTitle() {
-        return Component.literal("Fission Math");
+        return FissionLang.tr("phoenix_fission.fission_math_page.fission_math");
     }
 
     @Override
@@ -144,13 +146,16 @@ public class FissionMathPage implements IFancyUIProvider {
 
             double maxSafe = reactor.getMaxSafeHeatHU();
             double heatRate = fcfg.heatModel.passiveCoolingConductivity;
-            y = kv(g, font, x, y, W, "Meltdown Threshold", fmt0(maxSafe) + " HU");
-            y = kv(g, font, x, y, W, "Passive Conductivity", fmt2(heatRate), C_CYAN);
+            y = kv(g, font, x, y, W, FissionText.str("phoenix_fission.ui.fission_math_page.meltdown_threshold"),
+                    fmt0(maxSafe) + " HU");
+            y = kv(g, font, x, y, W, FissionText.str("phoenix_fission.ui.fission_math_page.passive_conductivity"),
+                    fmt2(heatRate), C_CYAN);
 
             double heatPct = reactor.getHeat() / Math.max(1, maxSafe);
             String hpStr = String.format(Locale.ROOT, "%.1f%%", heatPct * 100);
             int hpCol = heatPct > 0.85 ? C_RED : heatPct > 0.5 ? C_ORANGE : C_GREEN;
-            y = kv(g, font, x, y, W, "Current", hpStr + " of threshold", hpCol);
+            y = kv(g, font, x, y, W, FissionText.str("phoenix_fission.ui.fission_math_page.current"),
+                    FissionText.str("phoenix_fission.ui.fission_math_page.of_threshold", hpStr), hpCol);
             y += 3;
 
             y = section(g, font, x, y, W, "MELTDOWN GRACE", C_RED);
@@ -162,9 +167,12 @@ public class FissionMathPage implements IFancyUIProvider {
                     "grace = base - (base - min) * min(1, excess% * sev)",
                     String.format(Locale.ROOT,
                             " = %.0f - (%.0f - %.0f) * min(1, x * %.1f)", base, base, min, sev));
-            y = kv(g, font, x, y, W, "base", fmt1(base) + "s", C_MID);
-            y = kv(g, font, x, y, W, "min", fmt1(min) + "s", C_MID);
-            y = kv(g, font, x, y, W, "severity", fmt2(sev), C_MID);
+            y = kv(g, font, x, y, W, FissionText.str("phoenix_fission.ui.fission_math_page.base"), fmt1(base) + "s",
+                    C_MID);
+            y = kv(g, font, x, y, W, FissionText.str("phoenix_fission.ui.fission_math_page.min"), fmt1(min) + "s",
+                    C_MID);
+            y = kv(g, font, x, y, W, FissionText.str("phoenix_fission.ui.fission_math_page.severity"), fmt2(sev),
+                    C_MID);
 
             int timerTicks = reactor.meltdownTimerTicks;
             int timerMax = reactor.meltdownTimerMax;

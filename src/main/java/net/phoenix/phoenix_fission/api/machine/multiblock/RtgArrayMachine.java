@@ -9,7 +9,6 @@ import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMa
 
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
-import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.world.entity.player.Player;
@@ -17,11 +16,11 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.items.IItemHandlerModifiable;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.phoenix.phoenix_fission.api.item.RtgCellItem;
 import net.phoenix.phoenix_fission.client.gui.RtgFancyUIWidget;
 import net.phoenix.phoenix_fission.client.gui.RtgGraphsPage;
 import net.phoenix.phoenix_fission.client.gui.RtgHistory;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.phoenix.phoenix_fission.api.item.RtgCellItem;
 import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
 
 import lombok.Getter;
@@ -38,7 +37,6 @@ public class RtgArrayMachine extends WorkableElectricMultiblockMachine {
 
     protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(
             RtgArrayMachine.class, WorkableElectricMultiblockMachine.MANAGED_FIELD_HOLDER);
-
 
     @Getter
     @DescSynced

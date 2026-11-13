@@ -31,7 +31,8 @@ import static net.phoenix.phoenix_fission.PhoenixFission.PHOENIX_REGISTRATE;
  * against the RATED heat model so a tier-matched build settles at a comfortable fraction of the safe limit.
  * Turn it off with {@code fission.defaultComponentsEnabled = false} to define everything yourself (KubeJS).
  *
- * <p>Reference loadouts for the Pressurized Fission Reactor (48 rod/cooler slots, 14 moderator slots),
+ * <p>
+ * Reference loadouts for the Pressurized Fission Reactor (48 rod/cooler slots, 14 moderator slots),
  * stable heat = production / total rated cooling, under 100% is safe:
  * <ul>
  * <li>8 rods + 40 same-tier coolers, no moderators: roughly 50%</li>

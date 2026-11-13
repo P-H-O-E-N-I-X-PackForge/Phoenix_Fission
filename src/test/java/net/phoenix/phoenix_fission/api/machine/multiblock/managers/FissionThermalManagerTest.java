@@ -81,9 +81,9 @@ class FissionThermalManagerTest {
         hm.coolantReferenceHeatRemovalHUt = 100.0;
 
         assertEquals(10, FissionThermalManager.scaledCoolantAmount(10, 1, 100.0, hm));
-        
+
         assertEquals(20, FissionThermalManager.scaledCoolantAmount(10, 1, 200.0, hm));
-        
+
         assertEquals(1, FissionThermalManager.scaledCoolantAmount(10, 1, 10.0, hm));
     }
 

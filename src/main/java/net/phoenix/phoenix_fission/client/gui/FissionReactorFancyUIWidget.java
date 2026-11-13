@@ -25,6 +25,7 @@ import net.phoenix.phoenix_fission.api.block.iface.IFissionSensorHatchType;
 import net.phoenix.phoenix_fission.api.block.iface.IFissionStabilityHatchType;
 import net.phoenix.phoenix_fission.api.machine.multiblock.BreederWorkableElectricMultiblockMachine;
 import net.phoenix.phoenix_fission.api.machine.multiblock.FissionWorkableElectricMultiblockMachine;
+import net.phoenix.phoenix_fission.client.FissionText;
 import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
 
 import java.util.*;
@@ -192,7 +193,9 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
                 g.fill(x, y, x + w, contentY, BG_TOP);
                 g.fill(x + 3, y + 3, x + 6, contentY - 3, C_TEAL);
                 Font titleFont = Minecraft.getInstance().font;
-                String uiTitle = isBreeder ? "BREEDER FISSION REACTOR" : "FISSION REACTOR";
+                String uiTitle = isBreeder ?
+                        FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.breeder_fission_reactor") :
+                        FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.fission_reactor");
                 int titleY = y + (titleH - titleFont.lineHeight) / 2;
                 g.drawString(titleFont, uiTitle, x + 10, titleY, C_CYAN, false);
                 g.fill(x, contentY - 1, x + w, contentY, 0x44_00E5CC);
@@ -267,7 +270,9 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
 
         y = drawHeader(g, font, x, y, W, formed);
         if (!formed) {
-            g.drawString(font, "Structure not complete", x + 4, y + 6, C_DIM, false);
+            g.drawString(font,
+                    FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.structure_not_complete"),
+                    x + 4, y + 6, C_DIM, false);
             return;
         }
         y = drawHeatSection(g, font, x, y, W);
@@ -285,7 +290,9 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
     @OnlyIn(Dist.CLIENT)
     private int drawHeader(GuiGraphics g, Font font, int x, int y, int W,
                            boolean formed) {
-        String title = isBreeder ? "BREEDER REACTOR" : "FISSION REACTOR";
+        String title = isBreeder ?
+                FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.breeder_reactor") :
+                FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.fission_reactor");
         boolean scrammed = formed && reactor.isScramActive();
         boolean isCurrentlyRunning = formed && !scrammed && reactor.isRunningForHud();
 
@@ -298,16 +305,16 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
         String badge;
         int badgeColor;
         if (!formed) {
-            badge = "OFFLINE";
+            badge = FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.offline");
             badgeColor = C_DIM;
         } else if (scrammed) {
-            badge = "SCRAMMED";
+            badge = FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.scrammed");
             badgeColor = C_RED;
         } else if (isCurrentlyRunning) {
-            badge = "RUNNING";
+            badge = FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.running");
             badgeColor = C_GREEN;
         } else {
-            badge = "STANDBY";
+            badge = FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.standby");
             badgeColor = C_GOLD;
         }
 
@@ -356,7 +363,7 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
         String deltaStr;
         int deltaColor;
         if (Math.abs(netDelta) < 0.05) {
-            deltaStr = "~ stable";
+            deltaStr = FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.stable");
             deltaColor = C_MID;
         } else if (netDelta > 0) {
             deltaStr = String.format("+%.1f/t", netDelta);
@@ -365,7 +372,8 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
             deltaStr = String.format("%.1f/t", netDelta);
             deltaColor = C_GREEN;
         }
-        g.drawString(font, "HEAT", x, y, C_MID, false);
+        g.drawString(font, FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.heat"), x, y, C_MID,
+                false);
         g.drawString(font, deltaStr, x + W - font.width(deltaStr), y, deltaColor, false);
         y += 10;
 
@@ -382,7 +390,9 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
         g.fill(meltdownX, y - 1, meltdownX + 1, y + barH + 1, 0xAA_FFFFFF);
         y += barH + 2;
 
-        g.drawString(font, "meltdown", meltdownX - font.width("meltdown") / 2, y, 0x55_FFFFFF, false);
+        g.drawString(font, FissionText.str("phoenix_fission.ui.fission_graphs_page.meltdown_2"),
+                meltdownX - font.width(FissionText.str("phoenix_fission.ui.fission_graphs_page.meltdown_2")) / 2, y,
+                0x55_FFFFFF, false);
         y += 10;
 
         String pctStr = String.format("%.1f%%", pctOfMeltdown * 100);
@@ -400,9 +410,10 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
     private int drawTrendGraph(GuiGraphics g, Font font, int x, int y, int W) {
         int regionStart = y;
 
-        g.drawString(font, "NET HEAT / COOLANT", x, y, C_MID, false);
+        g.drawString(font, FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.net_heat_coolant"), x,
+                y, C_MID, false);
 
-        String hint = "details >";
+        String hint = FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.details");
         g.drawString(font, hint, x + W - font.width(hint), y, C_TEAL, false);
         y += 10;
 
@@ -431,7 +442,8 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
     private void drawTrendLines(GuiGraphics g, int x, int plotY, int W, int plotH) {
         if (historyFilled < 2) {
             Font font = Minecraft.getInstance().font;
-            g.drawString(font, "Collecting data...", x + 4, plotY + plotH / 2 - 4, C_DIM, false);
+            g.drawString(font, FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.collecting_data"),
+                    x + 4, plotY + plotH / 2 - 4, C_DIM, false);
             return;
         }
 
@@ -500,7 +512,8 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
         double removed = reactor.lastHeatRemovedPerTick;
         int cooling = reactor.lastProvidedCooling;
 
-        g.drawString(font, "PER TICK", x, y, C_MID, false);
+        g.drawString(font, FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.per_tick"), x, y, C_MID,
+                false);
         y += 11;
 
         y = drawStatRow(g, font, x, y, W, "Heat generated", String.format("+%.1f HU/t", gained),
@@ -533,7 +546,8 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
         DrawerHelper.drawBorder(g, x, y, W, boxH, 0x55_00E5CC, 1);
 
         String euStr = FormattingUtil.formatNumbers(reactor.lastGeneratedEUt) + " EU/t";
-        String parStr = "x" + reactor.lastParallels + " par";
+        String parStr = FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.x_par",
+                reactor.lastParallels);
         int parW = font.width(parStr);
         int euMaxW = W - parW - 4 - 6 - 4;
         g.drawString(font, truncate(font, euStr, euMaxW), x + 4, y + 3, C_WHITE, false);
@@ -547,9 +561,14 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
 
         if (reactor.isOverCooled) {
             g.fill(x, y + 1, x + 5, y + 6, pulsingColor(0xFF_44AAFF, 0xFF_AADDFF, 0.014));
-            g.drawString(font, "  OVER-COOLED  (90% coolant refund, no EU)", x, y, 0xFF_44AAFF, false);
+            g.drawString(font,
+                    FissionText
+                            .label("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.over_cooled_90_coolant_refund"),
+                    x, y, 0xFF_44AAFF, false);
         } else {
-            String coolantStr = hasCoolant ? "  Coolant OK" : "  NO COOLANT";
+            String coolantStr = hasCoolant ?
+                    FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.coolant_ok") :
+                    FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.no_coolant");
             g.fill(x, y + 1, x + 5, y + 6, hasCoolant ? C_GREEN : pulsingColor(C_RED, 0xFF_FF9966, 0.012));
             g.drawString(font, coolantStr, x, y, hasCoolant ? 0xFF_AAFFCC : C_RED, false);
         }
@@ -564,7 +583,8 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
         int boostPct = reactor.getFuelManager().calcEUBoost();
         int discPct = reactor.getFuelManager().calcFuelDiscount();
 
-        String parStr = "x" + reactor.lastParallels + " parallels";
+        String parStr = FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.x_parallels",
+                reactor.lastParallels);
         String boostStr = "+" + boostPct + "% heat";
         String discStr = "-" + discPct + "% fuel";
 
@@ -577,9 +597,14 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
 
         if (reactor.isOverCooled) {
             g.fill(x, y + 1, x + 5, y + 6, pulsingColor(0xFF_44AAFF, 0xFF_AADDFF, 0.014));
-            g.drawString(font, "  OVER-COOLED  (90% coolant refund, no EU)", x, y, 0xFF_44AAFF, false);
+            g.drawString(font,
+                    FissionText
+                            .label("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.over_cooled_90_coolant_refund"),
+                    x, y, 0xFF_44AAFF, false);
         } else {
-            String coolantStr = hasCoolant ? "  Coolant OK" : "  NO COOLANT";
+            String coolantStr = hasCoolant ?
+                    FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.coolant_ok") :
+                    FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.no_coolant");
             g.fill(x, y + 1, x + 5, y + 6, hasCoolant ? C_GREEN : pulsingColor(C_RED, 0xFF_FF9966, 0.012));
             g.drawString(font, coolantStr, x, y, hasCoolant ? 0xFF_AAFFCC : C_RED, false);
         }
@@ -611,7 +636,8 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
         int totalGap = gap * (shown.size() - 1);
         int btnW = shown.isEmpty() ? W : (W - totalGap) / shown.size();
 
-        g.drawString(font, "COMPONENTS", x, y, C_MID, false);
+        g.drawString(font, FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.components"), x, y,
+                C_MID, false);
         y += 11;
 
         for (int i = 0; i < shown.size(); i++) {
@@ -650,7 +676,7 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
         int totalStability = stabHatches.stream().mapToInt(IFissionStabilityHatchType::getStability).sum();
         int maxStability = 100;
 
-        String stabLabel = "STAB";
+        String stabLabel = FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.stab");
         int stabCount = stabHatches.size();
         g.drawString(font, stabLabel, x, y, stabCount > 0 ? C_GREEN : C_DIM, false);
 
@@ -675,7 +701,7 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
         y += 8;
 
         int sensorCount = sensorHatches.size();
-        String sensLabel = "SENS";
+        String sensLabel = FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.sens");
         g.drawString(font, sensLabel, x, y, sensorCount > 0 ? C_BLUE : C_DIM, false);
 
         int sensBarX = x + font.width(sensLabel) + 4;
@@ -715,8 +741,13 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
             if (fillW > 0) g.fill(x, y, x + fillW, y + barH, fillCol);
             DrawerHelper.drawBorder(g, x, y, W, barH, scrammed ? 0x88_AA6600 : 0x88_FF3300, 1);
 
-            String leftStr = scrammed ? "MELTDOWN" : "MELTDOWN  " + (int) Math.ceil(timerTicks / 20.0) + "s";
-            String rightStr = scrammed ? "PAUSED - SCRAM" : String.format("%.0f%%", frac * 100);
+            String leftStr = scrammed ?
+                    FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.meltdown") :
+                    FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.meltdown_s",
+                            (int) Math.ceil(timerTicks / 20.0));
+            String rightStr = scrammed ?
+                    FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.paused_scram") :
+                    String.format("%.0f%%", frac * 100);
             int rightColor = scrammed ? 0xFF_FFAA44 : C_RED;
 
             g.drawString(font, leftStr, x, y - 9, scrammed ? 0xFF_FFAA44 : pulsingColor(C_RED, 0xFF_FF9966, 0.010),
@@ -754,14 +785,17 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
                     .orElse(null);
 
             if (pb == null) {
-                g.drawString(font, "  No blanket installed", x, y, C_DIM, false);
+                g.drawString(font,
+                        FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.no_blanket_installed"), x,
+                        y, C_DIM, false);
             } else {
                 g.fill(x, y + 2, x + 5, y + 7, C_PURPLE);
                 drawWrappedFooterLine(g, font, x, y, W, "  Breeding: " + pb.getName(), C_PURPLE);
             }
         } else {
             g.fill(x, y + 2, x + 5, y + 7, C_GREEN);
-            g.drawString(font, "  Nominal", x, y, C_GREEN, false);
+            g.drawString(font, FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.nominal"), x, y,
+                    C_GREEN, false);
         }
     }
 
@@ -783,7 +817,8 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
         y = drawSubHeader(g, font, x, y, W, "FUEL RODS", A_FUEL);
 
         if (fuels.isEmpty()) {
-            g.drawString(font, "No fuel rods installed.", x, y, C_DIM, false);
+            g.drawString(font, FissionText.str("phoenix_fission.ui.fission_graphs_page.no_fuel_rods_installed"), x, y,
+                    C_DIM, false);
             return;
         }
 
@@ -819,14 +854,16 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
                 g.drawString(font, right1, x + W - r1w - 6, iy + 2, C_GOLD, false);
 
                 long cnt = card.count();
-                String heatStr = f.getBaseHeatProduction() + " HU/rod";
+                String heatStr = FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.hu_rod",
+                        f.getBaseHeatProduction());
                 String totalStr = "= " + (f.getBaseHeatProduction() * cnt) + " HU/t";
                 g.drawString(font, heatStr, x + 5, iy + 12, A_FUEL, false);
                 g.drawString(font, totalStr, x + W - font.width(totalStr) - 6, iy + 12, 0xFF_FFBB66, false);
 
                 double durSec = f.getDurationTicks() / 20.0;
                 String durStr = String.format(java.util.Locale.ROOT, "%.0fs cycle", durSec);
-                String amtStr = "x" + f.getAmountPerCycle() + " per cycle";
+                String amtStr = FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.x_per_cycle",
+                        f.getAmountPerCycle());
                 g.drawString(font, durStr, x + 5, iy + 21, C_MID, false);
                 g.drawString(font, amtStr, x + W - font.width(amtStr) - 6, iy + 21, C_DIM, false);
 
@@ -851,7 +888,9 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
         y = drawSubHeader(g, font, x, y, W, "MODERATORS", A_MODS);
 
         if (mods.isEmpty()) {
-            g.drawString(font, "No moderators installed.", x, y, C_DIM, false);
+            g.drawString(font,
+                    FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.no_moderators_installed"), x,
+                    y, C_DIM, false);
             return;
         }
 
@@ -883,7 +922,9 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
 
                 int parB = m.getParallelBonus();
                 double heatMulti = m.getHeatMultiplier();
-                String parStr = parB > 0 ? "+" + parB + " parallel" : "no par bonus";
+                String parStr = parB > 0 ?
+                        FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.parallel", parB) :
+                        FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.no_par_bonus");
                 String heatStr = String.format(java.util.Locale.ROOT, "x%.1f heat", heatMulti);
                 g.drawString(font, parStr, x + 5, iy + 21, parB > 0 ? A_MODS : C_DIM, false);
                 g.drawString(font, heatStr, x + W - font.width(heatStr) - 6, iy + 21,
@@ -906,8 +947,13 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
         y = drawSubHeader(g, font, x, y, W, "COOLERS", A_COOL);
 
         if (coolers.isEmpty()) {
-            g.drawString(font, "No cooler blocks installed.", x, y, C_DIM, false);
-            g.drawString(font, "Coolers reduce reactor temperature.", x, y + 11, C_MID, false);
+            g.drawString(font,
+                    FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.no_cooler_blocks_installed"),
+                    x, y, C_DIM, false);
+            g.drawString(font,
+                    FissionText.str(
+                            "phoenix_fission.ui.fission_reactor_fancy_u_i_widget.coolers_reduce_reactor_temperature"),
+                    x, y + 11, C_MID, false);
             return;
         }
 
@@ -946,7 +992,8 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
                 g.fill(x, iy, x + 2, iy + cardH - 2, c.getTintColor() | 0xFF000000);
 
                 if (card.passive()) {
-                    String right1 = "PASSIVE  x" + card.count();
+                    String right1 = FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.passive_x",
+                            card.count());
                     int r1w = font.width(right1);
                     g.drawString(font, truncate(font, c.getName(), W - r1w - 14), x + 5, iy + 2, C_WHITE, false);
                     g.drawString(font, right1, x + W - r1w - 6, iy + 2, 0xFF_AAFFCC, false);
@@ -956,7 +1003,9 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
                     g.drawString(font, flatStr, x + 5, iy + 12, A_COOL, false);
                     g.drawString(font, totalStr, x + W - font.width(totalStr) - 6, iy + 12, C_MID, false);
 
-                    g.drawString(font, "Always active - no coolant needed", x + 5, iy + 21, C_DIM, false);
+                    g.drawString(font, FissionText
+                            .str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.always_active_no_coolant_needed"),
+                            x + 5, iy + 21, C_DIM, false);
                 } else {
 
                     String right1 = " x" + card.count();
@@ -964,13 +1013,16 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
                     g.drawString(font, truncate(font, c.getName(), W - r1w - 14), x + 5, iy + 2, C_WHITE, false);
                     g.drawString(font, right1, x + W - r1w - 6, iy + 2, C_GOLD, false);
 
-                    String tempStr = c.getCoolerTemperature() + " K threshold";
+                    String tempStr = FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.k_threshold",
+                            c.getCoolerTemperature());
                     String mbStr = c.getCoolantUsagePerTick() + " mB/t";
                     g.drawString(font, tempStr, x + 5, iy + 12, A_COOL, false);
                     g.drawString(font, mbStr, x + W - font.width(mbStr) - 6, iy + 12, C_MID, false);
 
                     boolean activeNow = currentHeat > c.getCoolerTemperature() * reactor.getHeatCapacity();
-                    String activeStr = activeNow ? "Active now" : "Idle (heat < threshold)";
+                    String activeStr = activeNow ?
+                            FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.active_now") :
+                            FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.idle_heat_threshold");
                     g.drawString(font, activeStr, x + 5, iy + 21,
                             activeNow ? C_GREEN : C_DIM, false);
 
@@ -996,11 +1048,19 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
         List<IFissionBlanketType> blankets = reactor.getComponentManager().getActiveBlankets();
 
         if (blankets.isEmpty()) {
-            g.drawString(font, "No blanket blocks detected.", x, y, C_DIM, false);
+            g.drawString(font,
+                    FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.no_blanket_blocks_detected"),
+                    x, y, C_DIM, false);
             y += 11;
-            g.drawString(font, "Place blanket blocks inside the reactor", x, y, C_MID, false);
+            g.drawString(font,
+                    FissionText
+                            .str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.place_blanket_blocks_inside_the"),
+                    x, y, C_MID, false);
             y += 10;
-            g.drawString(font, "casing to begin breeding materials.", x, y, C_MID, false);
+            g.drawString(font,
+                    FissionText.str(
+                            "phoenix_fission.ui.fission_reactor_fancy_u_i_widget.casing_to_begin_breeding_materials"),
+                    x, y, C_MID, false);
             return;
         }
 
@@ -1039,24 +1099,31 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
 
             String inputName = prettyName(b.getInputKey());
             int amt = b.getAmountPerCycle(), dur = Math.max(1, b.getDurationTicks());
-            String rateStr = dur <= 20 ? "x" + amt + "/tick" :
+            String rateStr = dur <= 20 ?
+                    FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.x_tick", amt) :
                     "x" + amt + " / " + String.format(java.util.Locale.ROOT, "%.1fs", dur / 20.0);
-            g.drawString(font, "  Input: " + inputName, x, iy, C_MID, false);
+            g.drawString(font, FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.input", inputName),
+                    x, iy, C_MID, false);
             g.drawString(font, rateStr, x + W - font.width(rateStr), iy, C_GOLD, false);
             iy += 10;
 
             String reqFuelKey = b.getRequiredFuelKey();
-            String reqStr = reqFuelKey.isEmpty() ? "  Req. fuel: None" : "  Req. fuel: " + reqFuelKey;
+            String reqStr = reqFuelKey.isEmpty() ?
+                    FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.req_fuel_none") :
+                    FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.req_fuel", reqFuelKey);
             g.drawString(font, reqStr, x, iy, reqFuelKey.isEmpty() ? C_DIM : C_WHITE, false);
             iy += 10;
 
             List<IFissionBlanketType.BlanketOutput> outputs = b.getOutputs();
             if (outputs == null || outputs.isEmpty()) {
-                g.drawString(font, "  No outputs configured", x, iy, C_DIM, false);
+                g.drawString(font,
+                        FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.no_outputs_configured"), x,
+                        iy, C_DIM, false);
                 iy += 10;
             } else {
                 int totalW = outputs.stream().mapToInt(IFissionBlanketType.BlanketOutput::weight).sum();
-                g.drawString(font, "  Outputs:", x, iy, C_MID, false);
+                g.drawString(font, FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.outputs"), x,
+                        iy, C_MID, false);
                 iy += 10;
                 for (IFissionBlanketType.BlanketOutput out : outputs) {
                     String outName = prettyName(out.key());
@@ -1088,10 +1155,13 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
         int contentStart = y;
 
         g.fill(x, y + 1, x + 5, y + 1 + 5, C_ORANGE);
-        g.drawString(font, "heat (net)", x + 7, y, C_DIM, false);
-        int coolLabelX = x + 7 + font.width("heat (net)") + 10;
+        g.drawString(font, FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.heat_net"), x + 7, y,
+                C_DIM, false);
+        int coolLabelX = x + 7 +
+                font.width(FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.heat_net")) + 10;
         g.fill(coolLabelX, y + 1, coolLabelX + 5, y + 1 + 5, C_BLUE);
-        g.drawString(font, "cool (HU/t)", coolLabelX + 7, y, C_DIM, false);
+        g.drawString(font, FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.cool_hu_t"),
+                coolLabelX + 7, y, C_DIM, false);
         y += 11;
 
         int plotH = 48;
@@ -1134,7 +1204,7 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
         g.fill(x, y + 2, x + 5, y + 7, pulsingColor(accentColor, lerpRGB(accentColor, 0xFFFFFFFF, 0.4), 0.005));
         g.drawString(font, title, x + 9, y, accentColor, false);
 
-        String backLabel = "[< BACK]";
+        String backLabel = FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.back");
         int bw = font.width(backLabel) + 6, bh = 10;
         int bx = x + W - bw, by = y - 1;
         g.fill(bx, by, bx + bw, by + bh, 0x44_000000);
@@ -1167,7 +1237,8 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
     }
 
     private static String prettyName(String key) {
-        if (key == null || key.isEmpty()) return "Unknown";
+        if (key == null || key.isEmpty())
+            return FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.unknown");
         String path = key.contains(":") ? key.substring(key.indexOf(':') + 1) : key;
         String[] parts = path.split("[_\\s]+");
         StringBuilder sb = new StringBuilder();
@@ -1182,10 +1253,10 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
     }
 
     private static String instabilityLabel(int instability) {
-        if (instability <= 0) return "(stable)";
-        if (instability < 25) return "(low)";
-        if (instability < 50) return "(moderate)";
-        return "(high)";
+        if (instability <= 0) return FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.stable_2");
+        if (instability < 25) return FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.low");
+        if (instability < 50) return FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.moderate");
+        return FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.high");
     }
 
     private static int instabilityColor(int instability) {
@@ -1316,7 +1387,9 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
         int bx = x + 5, barW = W - 10;
         int cy = y + 10;
 
-        String header = scrammed ? "MELTDOWN  -  SCRAM ENGAGED" : "!! MELTDOWN IMMINENT !!";
+        String header = scrammed ?
+                FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.meltdown_scram_engaged") :
+                FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.meltdown_imminent");
         int headerCol = scrammed ? 0xFF_FFAA44 : lerpRGB(0xFF_FF2222, 0xFF_FF9966, (Math.sin(t * 0.010) + 1.0) * 0.5);
         int hw = font.width(header);
         int hx = x + (W - hw) / 2;
@@ -1326,7 +1399,7 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
         g.fill(bx, cy, bx + barW, cy + 1, (borderCol & 0x00FFFFFF) | 0x88_000000);
         cy += 6;
 
-        String heatLabel = "CORE HEAT";
+        String heatLabel = FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.core_heat");
         String heatVal = String.format(java.util.Locale.ROOT, "%.0f%% of threshold", heatPct * 100);
         int heatValCol = heatPct > 1.5 ? lerpRGB(0xFF_FF2222, 0xFF_FF9966, (Math.sin(t * 0.010) + 1.0) * 0.5) :
                 heatPct > 1.0 ? 0xFF_FF6633 : 0xFF_FFAA44;
@@ -1351,12 +1424,15 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
         int safeTick = bx + (int) ((1.0 / heatBarScale) * barW);
         g.fill(safeTick, cy - 1, safeTick + 1, cy + hbarH + 1, 0xCC_FFFFFF);
         cy += hbarH + 2;
-        g.drawString(font, "threshold", safeTick - font.width("threshold") / 2, cy, 0x55_FFFFFF, false);
+        g.drawString(font, FissionText.str("phoenix_fission.ui.fission_graphs_page.threshold_2"),
+                safeTick - font.width(FissionText.str("phoenix_fission.ui.fission_graphs_page.threshold_2")) / 2, cy,
+                0x55_FFFFFF, false);
         cy += font.lineHeight + 4;
         g.fill(bx, cy, bx + barW, cy + 1, 0x33_FF2222);
         cy += 5;
 
-        g.drawString(font, "COUNTDOWN", bx, cy, 0xFF_886655, false);
+        g.drawString(font, FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.countdown"), bx, cy,
+                0xFF_886655, false);
         String timeStr = scrammed ? String.format(java.util.Locale.ROOT, "%.1fs  PAUSED", timerTicks / 20.0) :
                 String.format(java.util.Locale.ROOT, "%.1fs remaining", timerTicks / 20.0);
         g.drawString(font, timeStr, bx + barW - font.width(timeStr), cy,
@@ -1390,12 +1466,15 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
         String netLabel = netRate > 0 ? String.format(java.util.Locale.ROOT, "+%.0f HU/t  (gaining heat)", netRate) :
                 String.format(java.util.Locale.ROOT, "%.0f HU/t  (cooling down)", netRate);
         int netCol = netRate > 0 ? lerpRGB(0xFF_FF4444, 0xFF_FF8844, (Math.sin(t * 0.008) + 1.0) * 0.5) : 0xFF_44DD88;
-        g.drawString(font, "Net rate", bx, cy, 0xFF_886655, false);
+        g.drawString(font, FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.net_rate"), bx, cy,
+                0xFF_886655, false);
         g.drawString(font, netLabel, bx + barW - font.width(netLabel), cy, netCol, false);
         cy += font.lineHeight + 3;
 
-        g.drawString(font, "Coolant", bx, cy, 0xFF_886655, false);
-        String coolStr = hasCoolant ? "OK" : "ABSENT";
+        g.drawString(font, FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.coolant"), bx, cy,
+                0xFF_886655, false);
+        String coolStr = hasCoolant ? "OK" :
+                FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.absent");
         int coolCol = hasCoolant ? 0xFF_44CC88 : lerpRGB(0xFF_FF2222, 0xFF_FF9966, (Math.sin(t * 0.014) + 1.0) * 0.5);
         g.drawString(font, coolStr, bx + barW - font.width(coolStr), cy, coolCol, false);
         cy += font.lineHeight + 5;
@@ -1403,14 +1482,18 @@ public class FissionReactorFancyUIWidget extends FancyMachineUIWidget {
         cy += 5;
 
         if (scrammed) {
-            String s1 = "SCRAM has paused the countdown.";
-            String s2 = "Cool the core below critical threshold.";
+            String s1 = FissionText
+                    .str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.scram_has_paused_the_countdown");
+            String s2 = FissionText
+                    .str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.cool_the_core_below_critical");
             g.drawString(font, s1, x + (W - font.width(s1)) / 2, cy, 0xFF_FFAA44, false);
             g.drawString(font, s2, x + (W - font.width(s2)) / 2, cy + 11, 0xFF_886644, false);
         } else {
             int urgency = lerpRGB(0xFF_FF4444, 0xFF_FF9966, (Math.sin(t * 0.008) + 1.0) * 0.5);
-            String s1 = "Engage SCRAM to pause the countdown.";
-            String s2 = "Structural failure imminent.";
+            String s1 = FissionText
+                    .str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.engage_scram_to_pause_the");
+            String s2 = FissionText
+                    .str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.structural_failure_imminent");
             g.drawString(font, s1, x + (W - font.width(s1)) / 2, cy, 0xFF_FF8844, false);
             g.drawString(font, s2, x + (W - font.width(s2)) / 2, cy + 11, urgency, false);
         }

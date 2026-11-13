@@ -11,6 +11,7 @@ import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
+import com.lowdragmc.lowdraglib.utils.LocalizationUtils;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -115,36 +116,37 @@ public class AdvancedFissionScramHatchPart extends TieredPartMachine {
     public Widget createUIWidget() {
         WidgetGroup group = new WidgetGroup(0, 0, 200, 175);
 
-        group.addWidget(new LabelWidget(10, 8, "§6Advanced Fission SCRAM Hatch"));
+        group.addWidget(new LabelWidget(10, 8, "phoenix_fission.ui.advanced_fission_scram_hatch"));
 
         group.addWidget(new LabelWidget(10, 24,
-                () -> isScrammed ? "§c[SCRAM] Reactor HALTED" : "§a[OK] Standby - Reactor Permitted"));
+                () -> isScrammed ? LocalizationUtils.format("phoenix_fission.ui.scram_halted") :
+                        LocalizationUtils.format("phoenix_fission.ui.scram_standby")));
 
         group.addWidget(new LabelWidget(10, 36, () -> {
             if (sustainCounter > 0 && !isScrammed) {
-                return String.format("§eArming: %d / %d ticks", sustainCounter, sustainTicks);
+                return LocalizationUtils.format("phoenix_fission.ui.scram_arming", sustainCounter, sustainTicks);
             } else if (isScrammed) {
-                return "§cArmed and triggered.";
+                return LocalizationUtils.format("phoenix_fission.ui.scram_triggered");
             }
-            return "§7Waiting for signal...";
+            return LocalizationUtils.format("phoenix_fission.ui.scram_waiting");
         }));
 
         group.addWidget(new Widget(10, 53, 180, 1).setBackground(GuiTextures.BLANK));
 
-        group.addWidget(new LabelWidget(10, 64, "§fMin Signal Strength §7(1-15):"));
+        group.addWidget(new LabelWidget(10, 64, "phoenix_fission.ui.min_signal_strength_1_15"));
         group.addWidget(new IntInputWidget(10, 76, 80, 20,
                 () -> signalThreshold,
                 val -> signalThreshold = Mth.clamp(val, 1, 15)));
 
-        group.addWidget(new LabelWidget(10, 104, "§fSustain Ticks §7(1-100):"));
+        group.addWidget(new LabelWidget(10, 104, "phoenix_fission.ui.sustain_ticks_1_100"));
         group.addWidget(new IntInputWidget(10, 116, 80, 20,
                 () -> sustainTicks,
                 val -> sustainTicks = Mth.clamp(val, 1, 100)));
 
         group.addWidget(new Widget(10, 147, 180, 1).setBackground(GuiTextures.BLANK));
 
-        group.addWidget(new LabelWidget(10, 156, "Signal must meet strength threshold"));
-        group.addWidget(new LabelWidget(10, 166, "for the full sustain duration to SCRAM."));
+        group.addWidget(new LabelWidget(10, 156, "gui.phoenix_fission.advanced_scram.hint1"));
+        group.addWidget(new LabelWidget(10, 166, "gui.phoenix_fission.advanced_scram.hint2"));
 
         return group;
     }

@@ -20,6 +20,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.phoenix.phoenix_fission.api.machine.multiblock.ThermoelectricGeneratorMachine;
+import net.phoenix.phoenix_fission.client.FissionText;
+import net.phoenix.phoenix_fission.common.FissionLang;
 
 import java.util.Locale;
 
@@ -44,7 +46,7 @@ public class ThermoelectricGeneratorMathPage implements IFancyUIProvider {
 
     @Override
     public Component getTitle() {
-        return Component.literal("Thermo Math");
+        return FissionLang.tr("phoenix_fission.thermoelectric_generator_math_page.thermo_math");
     }
 
     @Override
@@ -111,11 +113,17 @@ public class ThermoelectricGeneratorMathPage implements IFancyUIProvider {
                     "linear = 1.5 + (len - 1) * 0.25",
                     "linear *= 2  if helium active",
                     "EUt multiplier = linear^2");
-            y = kv(g, font, x, y, W, "Columns (len)", len + "", formed ? C_WHITE : C_DIM);
+            y = kv(g, font, x, y, W,
+                    FissionText.str("phoenix_fission.ui.thermoelectric_generator_math_page.columns_len"), len + "",
+                    formed ? C_WHITE : C_DIM);
             double linear = linearMultiplier(len, helium);
-            y = kv(g, font, x, y, W, "Linear multiplier", fmt2(linear) + (helium ? "  (cryo)" : ""),
+            y = kv(g, font, x, y, W,
+                    FissionText.str("phoenix_fission.ui.thermoelectric_generator_math_page.linear_multiplier"),
+                    fmt2(linear) + (helium ? "  (cryo)" : ""),
                     helium ? C_CRYO : C_MID);
-            y = kv(g, font, x, y, W, "Live EUt multiplier", "x" + fmt2(linear * linear),
+            y = kv(g, font, x, y, W,
+                    FissionText.str("phoenix_fission.ui.thermoelectric_generator_math_page.live_eut_multiplier"),
+                    "x" + fmt2(linear * linear),
                     linear * linear > 4.0 ? C_GREEN : C_MID);
             y += 3;
 
@@ -127,15 +135,23 @@ public class ThermoelectricGeneratorMathPage implements IFancyUIProvider {
                     "helium = 25 * (1 + (len - 1) * 0.2)");
             int coolantMb = throughput(baseCoolant, len);
             int heliumMb = throughput(25, len);
-            y = kv(g, font, x, y, W, "Coolant", coolantMb + " mB/s", C_MID);
-            y = kv(g, font, x, y, W, "Helium", heliumMb + " mB/s", C_CRYO);
+            y = kv(g, font, x, y, W, FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.coolant"),
+                    coolantMb + " mB/s", C_MID);
+            y = kv(g, font, x, y, W, FissionText.str("phoenix_fission.ui.thermoelectric_generator_math_page.helium"),
+                    heliumMb + " mB/s", C_CRYO);
             y += 3;
 
             y = section(g, font, x, y, W, "DYNAMO OUTPUT", C_TEAL);
             long maxOut = machine.getMaxHatchOutput();
-            String tierStr = maxOut > 0 ? GTValues.VNF[machine.getDynamoTier()] : "none";
-            y = kv(g, font, x, y, W, "Detected tier", tierStr, maxOut > 0 ? C_GREEN : C_DIM);
-            y = kv(g, font, x, y, W, "Max hatch output", maxOut > 0 ? formatEU(maxOut) : "no dynamo hatches",
+            String tierStr = maxOut > 0 ? GTValues.VNF[machine.getDynamoTier()] :
+                    FissionText.str("phoenix_fission.ui.thermoelectric_generator_math_page.none");
+            y = kv(g, font, x, y, W,
+                    FissionText.str("phoenix_fission.ui.thermoelectric_generator_math_page.detected_tier"), tierStr,
+                    maxOut > 0 ? C_GREEN : C_DIM);
+            y = kv(g, font, x, y, W,
+                    FissionText.str("phoenix_fission.ui.thermoelectric_generator_math_page.max_hatch_output"),
+                    maxOut > 0 ? formatEU(maxOut) :
+                            FissionText.str("phoenix_fission.ui.thermoelectric_generator_math_page.no_dynamo_hatches"),
                     maxOut > 0 ? C_ORANGE : C_DIM);
             y += 5;
 
@@ -147,10 +163,11 @@ public class ThermoelectricGeneratorMathPage implements IFancyUIProvider {
         private void drawMultiplierCurve(GuiGraphics g, Font font, int x, int y, int W, int currentLen,
                                          boolean helium) {
             g.fill(x, y + 3, x + 8, y + 5, C_MID);
-            g.drawString(font, "base", x + 10, y, C_MID, false);
-            int lx2 = x + 10 + font.width("base") + 8;
+            g.drawString(font, FissionText.str("phoenix_fission.ui.fission_math_page.base"), x + 10, y, C_MID, false);
+            int lx2 = x + 10 + font.width(FissionText.str("phoenix_fission.ui.fission_math_page.base")) + 8;
             g.fill(lx2, y + 3, lx2 + 8, y + 5, C_CRYO);
-            g.drawString(font, "helium", lx2 + 10, y, C_CRYO, false);
+            g.drawString(font, FissionText.str("phoenix_fission.ui.thermoelectric_generator_math_page.helium_2"),
+                    lx2 + 10, y, C_CRYO, false);
             y += 10;
 
             int plotH = 60;

@@ -23,6 +23,8 @@ import net.phoenix.phoenix_fission.api.block.iface.IFissionModeratorType;
 import net.phoenix.phoenix_fission.api.machine.multiblock.FissionWorkableElectricMultiblockMachine;
 import net.phoenix.phoenix_fission.api.machine.multiblock.MoltenSaltReactorMultiblockMachine;
 import net.phoenix.phoenix_fission.api.machine.multiblock.managers.FissionThermalManager;
+import net.phoenix.phoenix_fission.client.FissionText;
+import net.phoenix.phoenix_fission.common.FissionLang;
 import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
 
 import java.util.*;
@@ -48,7 +50,7 @@ public class FissionGraphsPage implements IFancyUIProvider {
 
     @Override
     public Component getTitle() {
-        return Component.literal("Heat Curves");
+        return FissionLang.tr("phoenix_fission.fission_graphs_page.heat_curves");
     }
 
     @Override
@@ -127,7 +129,8 @@ public class FissionGraphsPage implements IFancyUIProvider {
             Font font = Minecraft.getInstance().font;
 
             if (!reactor.isFormed()) {
-                g.drawString(font, "Reactor not formed.", x, y + 4, C_DIM, false);
+                g.drawString(font, FissionText.str("phoenix_fission.ui.fission_graphs_page.reactor_not_formed"), x,
+                        y + 4, C_DIM, false);
                 return;
             }
 
@@ -154,8 +157,11 @@ public class FissionGraphsPage implements IFancyUIProvider {
             boolean hasMSRLiners = reactor instanceof MoltenSaltReactorMultiblockMachine msr2 &&
                     msr2.linerFlowRate > 0 && msr2.linerHeatPerMb > 0;
             if (rods.isEmpty() && !hasMSRLiners) {
-                g.drawString(font, reactor instanceof MoltenSaltReactorMultiblockMachine ? "No liner installed." :
-                        "No fuel rods installed.", x, y, C_DIM, false);
+                g.drawString(font,
+                        reactor instanceof MoltenSaltReactorMultiblockMachine ?
+                                FissionText.str("phoenix_fission.ui.fission_graphs_page.no_liner_installed") :
+                                FissionText.str("phoenix_fission.ui.fission_graphs_page.no_fuel_rods_installed"),
+                        x, y, C_DIM, false);
             } else {
                 double stableT = findStableTemperature(rods, coolers, modBonus,
                         reactor.getMaxHeatClampHU());
@@ -201,10 +207,12 @@ public class FissionGraphsPage implements IFancyUIProvider {
                                          List<IFissionFuelRodType> rods, List<IFissionCoolerType> coolers,
                                          double modBonus, PhoenixFissionConfigs.HeatModelConfigs hm) {
             g.fill(x, y + 3, x + 8, y + 5, C_HEAT);
-            g.drawString(font, "production", x + 10, y, C_HEAT, false);
-            int lx2 = x + 10 + font.width("production") + 8;
+            g.drawString(font, FissionText.str("phoenix_fission.ui.fission_graphs_page.production"), x + 10, y, C_HEAT,
+                    false);
+            int lx2 = x + 10 + font.width(FissionText.str("phoenix_fission.ui.fission_graphs_page.production")) + 8;
             g.fill(lx2, y + 3, lx2 + 8, y + 5, C_COOL);
-            g.drawString(font, "cooling", lx2 + 10, y, C_COOL, false);
+            g.drawString(font, FissionText.str("phoenix_fission.ui.fission_graphs_page.cooling"), lx2 + 10, y, C_COOL,
+                    false);
             y += 10;
 
             double maxSafeHU = reactor.getMaxSafeHeatHU();
@@ -245,10 +253,12 @@ public class FissionGraphsPage implements IFancyUIProvider {
                                      List<IFissionFuelRodType> rods, List<IFissionCoolerType> coolers,
                                      double modBonus, PhoenixFissionConfigs.HeatModelConfigs hm) {
             g.fill(x, y + 3, x + 8, y + 5, C_POS);
-            g.drawString(font, "warming", x + 10, y, C_POS, false);
-            int lx2 = x + 10 + font.width("warming") + 8;
+            g.drawString(font, FissionText.str("phoenix_fission.ui.fission_graphs_page.warming"), x + 10, y, C_POS,
+                    false);
+            int lx2 = x + 10 + font.width(FissionText.str("phoenix_fission.ui.fission_graphs_page.warming")) + 8;
             g.fill(lx2, y + 3, lx2 + 8, y + 5, C_NEG);
-            g.drawString(font, "cooling", lx2 + 10, y, C_NEG, false);
+            g.drawString(font, FissionText.str("phoenix_fission.ui.fission_graphs_page.cooling"), lx2 + 10, y, C_NEG,
+                    false);
             y += 10;
 
             double maxSafeHU = reactor.getMaxSafeHeatHU();
@@ -296,26 +306,38 @@ public class FissionGraphsPage implements IFancyUIProvider {
                 long t = System.currentTimeMillis();
                 int pulse = (int) (128 + 127 * Math.sin(t * 0.006));
                 int warnColor = (0xFF << 24) | (pulse << 16) | 0x2222;
-                g.drawString(font, "!! NO STABLE TEMPERATURE", x, y, warnColor, false);
+                g.drawString(font, FissionText.str("phoenix_fission.ui.fission_graphs_page.no_stable_temperature"), x,
+                        y, warnColor, false);
                 y += 10;
-                g.drawString(font, "Reactor will always trend to meltdown.", x, y, C_DIM, false);
+                g.drawString(font,
+                        FissionText.str("phoenix_fission.ui.fission_graphs_page.reactor_will_always_trend_to"), x, y,
+                        C_DIM, false);
                 y += 13;
             } else if (stableT == 0.0) {
                 g.fill(x, y + 2, x + 5, y + 7, C_GREEN);
-                g.drawString(font, "  Stable at minimum heat (0 K)", x, y, C_GREEN, false);
-                g.drawString(font, "100% margin", x + W - font.width("100% margin"), y, C_TEAL, false);
+                g.drawString(font, FissionText.str("phoenix_fission.ui.fission_graphs_page.stable_at_minimum_heat_0"),
+                        x, y, C_GREEN, false);
+                g.drawString(font, FissionText.label("phoenix_fission.ui.fission_graphs_page.100_margin"),
+                        x + W - font.width(FissionText.label("phoenix_fission.ui.fission_graphs_page.100_margin")), y,
+                        C_TEAL, false);
                 y += 13;
             } else if (stableT >= maxSafe) {
                 g.fill(x, y + 2, x + 5, y + 7, C_RED);
-                g.drawString(font, "  STABLE ABOVE MELTDOWN THRESHOLD", x, y, C_RED, false);
+                g.drawString(font,
+                        FissionText.str("phoenix_fission.ui.fission_graphs_page.stable_above_meltdown_threshold"), x, y,
+                        C_RED, false);
                 y += 10;
-                g.drawString(font, "  Equilibrium: " + formatK(stableT / heatCap), x, y, 0xFF_FF8833, false);
+                g.drawString(font, FissionText.str("phoenix_fission.ui.fission_graphs_page.equilibrium",
+                        formatK(stableT / heatCap)), x, y, 0xFF_FF8833, false);
                 y += 10;
-                g.drawString(font, "  Reactor melts before stabilising.", x, y, C_DIM, false);
+                g.drawString(font,
+                        FissionText.str("phoenix_fission.ui.fission_graphs_page.reactor_melts_before_stabilising"), x,
+                        y, C_DIM, false);
                 y += 13;
             } else {
                 g.fill(x, y + 2, x + 5, y + 7, C_GREEN);
-                g.drawString(font, "  Stable temperature: " + formatK(stableT / heatCap), x, y, C_GREEN, false);
+                g.drawString(font, FissionText.str("phoenix_fission.ui.fission_graphs_page.stable_temperature",
+                        formatK(stableT / heatCap)), x, y, C_GREEN, false);
                 double margin = (maxSafe - stableT) / maxSafe * 100.0;
                 String marginStr = String.format("%.0f%% margin", margin);
                 g.drawString(font, marginStr, x + W - font.width(marginStr), y, C_TEAL, false);
@@ -323,10 +345,14 @@ public class FissionGraphsPage implements IFancyUIProvider {
             }
 
             g.fill(x, y + 2, x + 5, y + 7, 0xCC_FF8833);
-            g.drawString(font, "  Threshold:  " + formatK(maxSafe / heatCap), x, y, 0xFF_FF8833, false);
+            g.drawString(font,
+                    FissionText.str("phoenix_fission.ui.fission_graphs_page.threshold", formatK(maxSafe / heatCap)), x,
+                    y, 0xFF_FF8833, false);
             y += 10;
             g.fill(x, y + 2, x + 5, y + 7, C_RED);
-            g.drawString(font, "  Meltdown: " + formatK(maxClamp / heatCap), x, y, 0xCC_FF3333, false);
+            g.drawString(font,
+                    FissionText.str("phoenix_fission.ui.fission_graphs_page.meltdown", formatK(maxClamp / heatCap)), x,
+                    y, 0xCC_FF3333, false);
             y += 12;
             var hm = PhoenixFissionConfigs.INSTANCE.fission.heatModel;
             if (FissionThermalManager.isRated(hm)) {
@@ -346,7 +372,9 @@ public class FissionGraphsPage implements IFancyUIProvider {
                 int col = pct < 100.0 ? C_GREEN : C_RED;
                 g.drawString(font, load, x, y, col, false);
             } else {
-                g.drawString(font, "Assumes: reactivity=1.0, coolant present", x, y, C_DIM, false);
+                g.drawString(font,
+                        FissionText.str("phoenix_fission.ui.fission_graphs_page.assumes_reactivity_1_0_coolant"), x, y,
+                        C_DIM, false);
             }
         }
 
@@ -376,7 +404,7 @@ public class FissionGraphsPage implements IFancyUIProvider {
 
             double criticalFrac = maxSafe / xMax;
             int sx = x + (int) (criticalFrac * W);
-            String sl = "threshold";
+            String sl = FissionText.str("phoenix_fission.ui.fission_graphs_page.threshold_2");
             int sLeft = sx - font.width(sl) / 2;
             if (sLeft > zeroLabelRight + pad && sLeft + font.width(sl) < endLabelX - pad) {
                 g.drawString(font, sl, sLeft, labelY, 0xCC_FF8833, false);
@@ -384,7 +412,7 @@ public class FissionGraphsPage implements IFancyUIProvider {
 
             double meltdownFrac = maxClamp / xMax;
             int mx = x + (int) (meltdownFrac * W);
-            String ml = "meltdown";
+            String ml = FissionText.str("phoenix_fission.ui.fission_graphs_page.meltdown_2");
             int mLeft = mx - font.width(ml) / 2;
             if (mLeft > zeroLabelRight + pad && mLeft + font.width(ml) < endLabelX - pad) {
                 g.drawString(font, ml, mLeft, labelY, 0xCC_FF3333, false);

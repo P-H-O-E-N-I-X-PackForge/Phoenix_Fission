@@ -44,7 +44,8 @@ public abstract class FissionTintedBlockBuilder extends BlockBuilder {
     protected ResourceLocation manualTexture(boolean active) {
         String t = active && !activeTexture.isEmpty() ? activeTexture : texture;
         ResourceLocation rl = ResourceLocation.tryParse(t);
-        return rl != null ? rl : ResourceLocation.fromNamespaceAndPath("phoenix_fission", "block/fission/" + kind() + "_base");
+        return rl != null ? rl :
+                ResourceLocation.fromNamespaceAndPath("phoenix_fission", "block/fission/" + kind() + "_base");
     }
 
     protected ResourceLocation sharedBase() {

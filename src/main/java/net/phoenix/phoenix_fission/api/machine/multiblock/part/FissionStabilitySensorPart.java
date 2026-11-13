@@ -10,6 +10,7 @@ import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
+import com.lowdragmc.lowdraglib.utils.LocalizationUtils;
 
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
@@ -51,9 +52,9 @@ public class FissionStabilitySensorPart extends SensorHatchPartMachine {
     public Widget createUIWidget() {
         WidgetGroup group = new WidgetGroup(0, 0, 200, 160);
 
-        group.addWidget(new LabelWidget(10, 8, "§6Fission Stability Sensor"));
+        group.addWidget(new LabelWidget(10, 8, "phoenix_fission.ui.fission_stability_sensor"));
 
-        group.addWidget(new LabelWidget(10, 24, "§7Heat: --   §7Signal: --") {
+        group.addWidget(new LabelWidget(10, 24, "phoenix_fission.ui.heat_signal") {
 
             @Override
             public void updateScreen() {
@@ -68,9 +69,10 @@ public class FissionStabilitySensorPart extends SensorHatchPartMachine {
                     String sigColor = sig > 0 ? "§a" : "§c";
 
                     String formattedPct = String.format(java.util.Locale.ROOT, "%.1f", pct);
-                    text = "§7Heat: §f" + formattedPct + "%   §7Signal: " + sigColor + sig;
+                    text = LocalizationUtils.format("phoenix_fission.ui.sensor_heat_signal", formattedPct, sigColor,
+                            sig);
                 } else {
-                    text = "§7Heat: §8N/A   §7Signal: §80";
+                    text = LocalizationUtils.format("phoenix_fission.ui.sensor_heat_na");
                 }
 
                 this.setComponent(net.minecraft.network.chat.Component.literal(text));
@@ -79,27 +81,27 @@ public class FissionStabilitySensorPart extends SensorHatchPartMachine {
 
         group.addWidget(new Widget(10, 43, 180, 1).setBackground(GuiTextures.BLANK));
 
-        group.addWidget(new LabelWidget(10, 54, "§fMin Heat Percent:"));
+        group.addWidget(new LabelWidget(10, 54, "phoenix_fission.ui.min_heat_percent"));
         group.addWidget(new IntInputWidget(115, 49, 75, 20,
                 () -> minPercent,
                 val -> minPercent = Mth.clamp(val, 0, 200)));
 
-        group.addWidget(new LabelWidget(10, 78, "§fMax Heat Percent:"));
+        group.addWidget(new LabelWidget(10, 78, "phoenix_fission.ui.max_heat_percent"));
         group.addWidget(new IntInputWidget(115, 73, 75, 20,
                 () -> maxPercent,
                 val -> maxPercent = Mth.clamp(val, 0, 200)));
 
-        group.addWidget(new LabelWidget(10, 102, "§fInvert output:"));
+        group.addWidget(new LabelWidget(10, 102, "phoenix_fission.ui.invert_output"));
         group.addWidget(new ToggleButtonWidget(
                 115, 98, 18, 18,
                 GuiTextures.INVERT_REDSTONE_BUTTON,
                 this::isInverted,
                 this::setInverted)
-                .setTooltipText("Invert Signal Output"));
+                .setTooltipText("phoenix_fission.ui.invert_signal_output"));
 
         group.addWidget(new Widget(10, 127, 180, 1).setBackground(GuiTextures.BLANK));
 
-        group.addWidget(new LabelWidget(10, 138, "Emits signal on all block faces."));
+        group.addWidget(new LabelWidget(10, 138, "phoenix_fission.ui.emits_signal_on_all_block"));
 
         return group;
     }

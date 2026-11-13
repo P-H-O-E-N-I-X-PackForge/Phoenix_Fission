@@ -16,6 +16,7 @@ import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.phoenix.phoenix_fission.PhoenixFission;
 import net.phoenix.phoenix_fission.api.block.iface.IFissionFuelRodType;
+import net.phoenix.phoenix_fission.common.FissionLang;
 
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
@@ -78,7 +79,8 @@ public class FissionFuelRodBlock extends ActiveBlock {
     }
 
     public static Component getRegistryDisplayName(String key) {
-        if (key.isEmpty()) return Component.literal("None").withStyle(ChatFormatting.GRAY);
+        if (key.isEmpty())
+            return FissionLang.tr("phoenix_fission.fission_cooler_block.none").withStyle(ChatFormatting.GRAY);
 
         ResourceLocation rl = ResourceLocation.tryParse(key);
         if (rl == null) return Component.literal(key).withStyle(ChatFormatting.YELLOW);

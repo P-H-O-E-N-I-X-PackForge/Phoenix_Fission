@@ -26,6 +26,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.phoenix.phoenix_fission.api.PhoenixAPI;
 import net.phoenix.phoenix_fission.api.block.iface.IFissionBlanketType;
 import net.phoenix.phoenix_fission.api.block.iface.IFissionFuelRodType;
+import net.phoenix.phoenix_fission.common.FissionLang;
 import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
 
 import lombok.Getter;
@@ -342,10 +343,11 @@ public class BreederWorkableElectricMultiblockMachine extends DynamicFissionReac
         if (!isFormed()) return;
 
         if (activeBlankets.isEmpty()) {
-            textList.add(Component.literal("Breeding Offline - No Blankets Present")
+            textList.add(FissionLang.tr(
+                    "phoenix_fission.breeder_workable_electric_multiblock_machine.breeding_offline_no_blankets_present")
                     .withStyle(ChatFormatting.RED));
         } else {
-            textList.add(Component.literal("Breeding Active")
+            textList.add(FissionLang.tr("phoenix_fission.breeder_workable_electric_multiblock_machine.breeding_active")
                     .withStyle(ChatFormatting.GREEN));
         }
     }

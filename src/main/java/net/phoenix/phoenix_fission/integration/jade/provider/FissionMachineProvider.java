@@ -20,6 +20,7 @@ import net.phoenix.phoenix_fission.api.block.iface.IFissionBlanketType;
 import net.phoenix.phoenix_fission.api.machine.multiblock.BreederWorkableElectricMultiblockMachine;
 import net.phoenix.phoenix_fission.api.machine.multiblock.FissionWorkableElectricMultiblockMachine;
 import net.phoenix.phoenix_fission.api.machine.multiblock.MoltenSaltReactorMultiblockMachine;
+import net.phoenix.phoenix_fission.common.FissionLang;
 import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
 
 import snownee.jade.api.BlockAccessor;
@@ -92,7 +93,7 @@ public class FissionMachineProvider implements IBlockComponentProvider, IServerD
         int parallels = data.getInt(NBT_PARALLELS);
         long eut = data.getLong(NBT_EUT);
 
-        tooltip.add(Component.literal("Parallels: " + parallels));
+        tooltip.add(FissionLang.tr("phoenix_fission.fission_machine_provider.parallels", parallels));
         if (PhoenixFissionConfigs.INSTANCE.fission.enableDirectEUOutput) {
             tooltip.add(Component.literal("EU/t: " + eut));
         }
@@ -118,11 +119,12 @@ public class FissionMachineProvider implements IBlockComponentProvider, IServerD
             int rods = data.getInt(NBT_RODS);
             int coolers = data.getInt(NBT_COOLERS);
             int mods = data.getInt(NBT_MODS);
-            tooltip.add(Component.literal("Rods: " + rods + "  Mods: " + mods + "  Coolers: " + coolers));
+            tooltip.add(
+                    FissionLang.tr("phoenix_fission.fission_machine_provider.rods_mods_coolers", rods, mods, coolers));
         }
 
         int coolingPower = data.getInt(NBT_COOLING_POWER);
-        tooltip.add(Component.literal("Max Cool @ Cap: " + coolingPower + " HU/t")
+        tooltip.add(FissionLang.tr("phoenix_fission.fission_machine_provider.max_cool_cap_hu_t", coolingPower)
                 .withStyle(s -> s.withColor(0x55FFFF)));
 
         if (!isMSR && data.getBoolean(NBT_IS_BREEDER) && data.getInt(NBT_BLANKETS) > 0 &&
@@ -161,7 +163,7 @@ public class FissionMachineProvider implements IBlockComponentProvider, IServerD
                         Component outName = resolveKeyToDisplayName(key);
                         tooltip.add(Component.literal("- ")
                                 .append(outName)
-                                .append(Component.literal("  w=" + w + "  inst=" + inst)
+                                .append(FissionLang.tr("phoenix_fission.fission_machine_provider.w_inst", w, inst)
                                         .withStyle(s -> s.withColor(0x888888)))
                                 .withStyle(s -> s.withColor(0xCCCCCC)));
                     }
@@ -273,7 +275,7 @@ public class FissionMachineProvider implements IBlockComponentProvider, IServerD
 
     private static Component resolveKeyToDisplayName(String key) {
         if (key == null || key.isEmpty() || "none".equalsIgnoreCase(key)) {
-            return Component.literal("None");
+            return FissionLang.tr("phoenix_fission.fission_cooler_block.none");
         }
 
         Material mat = GTMaterials.get(key);

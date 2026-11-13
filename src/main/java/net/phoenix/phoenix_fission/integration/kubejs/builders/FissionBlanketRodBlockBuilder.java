@@ -26,7 +26,6 @@ public class FissionBlanketRodBlockBuilder extends FissionTintedBlockBuilder {
 
     public transient List<IFissionBlanketType.BlanketOutput> outputs = new ArrayList<>();
 
-
     public FissionBlanketRodBlockBuilder(ResourceLocation i) {
         super(i);
         noValidSpawns(true);

@@ -17,6 +17,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.phoenix.phoenix_fission.api.machine.multiblock.RtgArrayMachine;
+import net.phoenix.phoenix_fission.client.FissionText;
+import net.phoenix.phoenix_fission.common.FissionLang;
 
 import javax.annotation.Nonnull;
 
@@ -36,7 +38,7 @@ public class RtgGraphsPage implements IFancyUIProvider {
 
     @Override
     public Component getTitle() {
-        return Component.literal("RTG Graphs");
+        return FissionLang.tr("phoenix_fission.rtg_graphs_page.rtg_graphs");
     }
 
     @Override
@@ -75,7 +77,8 @@ public class RtgGraphsPage implements IFancyUIProvider {
             history.sampleIfDue(machine);
             int ox = getPosition().x, oy = getPosition().y, w = getSize().width, h = getSize().height;
 
-            g.drawString(font, "RTG GRAPHS", ox + 6, oy + 4, C_CYAN, false);
+            g.drawString(font, FissionText.str("phoenix_fission.ui.rtg_graphs_page.rtg_graphs"), ox + 6, oy + 4, C_CYAN,
+                    false);
             g.fill(ox, oy + 15, ox + w, oy + 16, 0x44_00E5CC);
 
             int x = ox + 8, cw = w - 16;
@@ -83,11 +86,13 @@ public class RtgGraphsPage implements IFancyUIProvider {
             int y = oy + 24;
             double peak = 1;
             for (int i = 0; i < history.filled; i++) peak = Math.max(peak, history.output[history.index(i)]);
-            plot(g, font, history, x, y, cw, plotH, history.output, peak * 1.1, C_GOLD, "OUTPUT EU/t",
+            plot(g, font, history, x, y, cw, plotH, history.output, peak * 1.1, C_GOLD,
+                    FissionText.str("phoenix_fission.ui.rtg_graphs_page.output_eu_t"),
                     machine.getGeneratedEUt() + " EU/t");
             y += plotH + 22;
             double latest = history.filled == 0 ? 0 : history.life[history.index(history.filled - 1)];
-            plot(g, font, history, x, y, cw, plotH, history.life, 1.0, C_GREEN, "AVERAGE CELL LIFE",
+            plot(g, font, history, x, y, cw, plotH, history.life, 1.0, C_GREEN,
+                    FissionText.str("phoenix_fission.ui.rtg_graphs_page.average_cell_life"),
                     Math.round(latest * 100) + "%");
         }
 
@@ -101,7 +106,8 @@ public class RtgGraphsPage implements IFancyUIProvider {
             for (int q = 1; q < 4; q++) g.fill(x + 1, top + h * q / 4, x + w - 1, top + h * q / 4 + 1, 0x14_FFFFFF);
 
             if (history.filled < 2) {
-                g.drawString(font, "collecting...", x + 4, top + h / 2 - 4, C_DIM, false);
+                g.drawString(font, FissionText.str("phoenix_fission.ui.rtg_graphs_page.collecting"), x + 4,
+                        top + h / 2 - 4, C_DIM, false);
                 return;
             }
             int inner = w - 2, innerH = h - 2;

@@ -13,6 +13,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.phoenix.phoenix_fission.api.machine.multiblock.ThermoelectricGeneratorMachine;
+import net.phoenix.phoenix_fission.client.FissionText;
 import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
 
 import javax.annotation.Nonnull;
@@ -74,7 +75,6 @@ public class ThermoelectricGeneratorFancyUIWidget extends FancyMachineUIWidget {
 
     @OnlyIn(Dist.CLIENT)
     private void drawHudIfHome(GuiGraphics g) {
-
         if (currentPage != mainPage) return;
         if (pageContainer == null || pageContainer.widgets.isEmpty()) return;
 
@@ -97,7 +97,9 @@ public class ThermoelectricGeneratorFancyUIWidget extends FancyMachineUIWidget {
 
         y = drawHeader(g, font, x, y, W, formed, working, burnt, helium);
         if (!formed) {
-            g.drawString(font, "Structure not complete", x + 4, y + 6, C_DIM, false);
+            g.drawString(font,
+                    FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.structure_not_complete"),
+                    x + 4, y + 6, C_DIM, false);
             return;
         }
 
@@ -118,19 +120,19 @@ public class ThermoelectricGeneratorFancyUIWidget extends FancyMachineUIWidget {
         String badge;
         int badgeColor;
         if (!formed) {
-            badge = "OFFLINE";
+            badge = FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.offline");
             badgeColor = C_DIM;
         } else if (burnt) {
-            badge = "BURNT OUT";
+            badge = FissionText.str("phoenix_fission.ui.thermoelectric_generator_fancy_u_i_widget.burnt_out");
             badgeColor = C_RED;
         } else if (helium) {
-            badge = "CRYO-BOOST";
+            badge = FissionText.str("phoenix_fission.ui.thermoelectric_generator_fancy_u_i_widget.cryo_boost");
             badgeColor = C_CRYO;
         } else if (working) {
-            badge = "ACTIVE";
+            badge = FissionText.str("phoenix_fission.ui.thermoelectric_generator_fancy_u_i_widget.active");
             badgeColor = C_GREEN;
         } else {
-            badge = "STANDBY";
+            badge = FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.standby");
             badgeColor = C_GOLD;
         }
 
@@ -158,7 +160,9 @@ public class ThermoelectricGeneratorFancyUIWidget extends FancyMachineUIWidget {
         int heat = machine.getHeat();
         double pct = heat / 100.0;
 
-        String label = burnt ? "CORE HEAT - BURNT OUT" : "CORE HEAT";
+        String label = burnt ?
+                FissionText.str("phoenix_fission.ui.thermoelectric_generator_fancy_u_i_widget.core_heat_burnt_out") :
+                FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.core_heat");
         g.drawString(font, label, x, y, burnt ? pulsingColor(C_RED, 0xFF_FF8844, 0.010) : C_MID, false);
 
         String pctStr = heat + "%";
@@ -189,7 +193,10 @@ public class ThermoelectricGeneratorFancyUIWidget extends FancyMachineUIWidget {
         int dangerX = x + (int) (0.75 * W);
         g.fill(dangerX, y - 1, dangerX + 1, y + barH + 1, 0xAA_FFFFFF);
         y += barH + 2;
-        g.drawString(font, "danger", dangerX - font.width("danger") / 2, y, 0x44_FFFFFF, false);
+        g.drawString(font, FissionText.str("phoenix_fission.ui.thermoelectric_generator_fancy_u_i_widget.danger"),
+                dangerX - font.width(
+                        FissionText.str("phoenix_fission.ui.thermoelectric_generator_fancy_u_i_widget.danger")) / 2,
+                y, 0x44_FFFFFF, false);
         y += 10;
 
         rule(g, x, W, y);
@@ -203,8 +210,9 @@ public class ThermoelectricGeneratorFancyUIWidget extends FancyMachineUIWidget {
         int fillW = (int) (frac * W);
         int secsLeft = (int) Math.ceil(ticks / 20.0);
 
-        String leftStr = "COOLDOWN";
-        String rightStr = secsLeft + "s remaining";
+        String leftStr = FissionText.str("phoenix_fission.ui.thermoelectric_generator_fancy_u_i_widget.cooldown");
+        String rightStr = FissionText.str("phoenix_fission.ui.thermoelectric_generator_fancy_u_i_widget.s_remaining",
+                secsLeft);
         g.drawString(font, leftStr, x, y, pulsingColor(C_RED, 0xFF_FF8844, 0.010), false);
         g.drawString(font, rightStr, x + W - font.width(rightStr), y, C_ORANGE, false);
         y += 10;
@@ -234,7 +242,9 @@ public class ThermoelectricGeneratorFancyUIWidget extends FancyMachineUIWidget {
         int coolantMb = (int) (baseCoolant * (1.0 + Math.max(0, len - 1) * 0.2));
         int heliumMb = (int) (25 * (1.0 + Math.max(0, len - 1) * 0.2));
 
-        g.drawString(font, "EXCHANGE STATS", x, y, C_MID, false);
+        g.drawString(font,
+                FissionText.str("phoenix_fission.ui.thermoelectric_generator_fancy_u_i_widget.exchange_stats"), x, y,
+                C_MID, false);
         y += 11;
 
         y = statRow(g, font, x, y, W, "Columns", len + " layers",
@@ -244,13 +254,15 @@ public class ThermoelectricGeneratorFancyUIWidget extends FancyMachineUIWidget {
         y = statRow(g, font, x, y, W, "EU multiplier", euStr,
                 helium ? C_CRYO : euMulti > 2.0 ? C_GREEN : C_MID);
 
-        String throughputStr = helium ? heliumMb + " mB/s helium  +  " + coolantMb + " mB/s coolant" :
-                coolantMb + " mB/s coolant";
+        String throughputStr = helium ?
+                FissionText.str("phoenix_fission.ui.thermoelectric_generator_fancy_u_i_widget.mb_s_helium_mb_s",
+                        heliumMb, coolantMb) :
+                FissionText.str("phoenix_fission.ui.thermoelectric_generator_fancy_u_i_widget.mb_s_coolant", coolantMb);
         y = statRow(g, font, x, y, W, "Throughput", throughputStr, C_BLUE);
 
         long maxOut = machine.getMaxHatchOutput();
         String outStr = maxOut > 0 ? GTValues.VNF[machine.getDynamoTier()] + "  (" + formatEU(maxOut) + ")" :
-                "No dynamo hatches";
+                FissionText.str("phoenix_fission.ui.thermoelectric_generator_fancy_u_i_widget.no_dynamo_hatches");
         y = statRow(g, font, x, y, W, "Dynamo output", outStr, maxOut > 0 ? C_ICE : C_DIM);
 
         rule(g, x, W, y);
@@ -262,15 +274,22 @@ public class ThermoelectricGeneratorFancyUIWidget extends FancyMachineUIWidget {
                                    boolean working, boolean helium) {
         if (!working) {
             g.fill(x, y + 2, x + 5, y + 7, C_DIM);
-            g.drawString(font, "  Idle - awaiting recipe", x, y, C_DIM, false);
+            g.drawString(font,
+                    FissionText
+                            .str("phoenix_fission.ui.thermoelectric_generator_fancy_u_i_widget.idle_awaiting_recipe"),
+                    x, y, C_DIM, false);
             return;
         }
         if (helium) {
             g.fill(x, y + 2, x + 5, y + 7, pulsingColor(C_CRYO, C_ICE, 0.006));
-            g.drawString(font, "  CRYO-BOOST ACTIVE - helium cooling", x, y, C_CRYO, false);
+            g.drawString(font, FissionText.str(
+                    "phoenix_fission.ui.thermoelectric_generator_fancy_u_i_widget.cryo_boost_active_helium_cooling"), x,
+                    y, C_CRYO, false);
         } else {
             g.fill(x, y + 2, x + 5, y + 7, C_BLUE);
-            g.drawString(font, "  Standard loop - configured coolant", x, y, C_ICE, false);
+            g.drawString(font, FissionText.str(
+                    "phoenix_fission.ui.thermoelectric_generator_fancy_u_i_widget.standard_loop_configured_coolant"), x,
+                    y, C_ICE, false);
         }
     }
 

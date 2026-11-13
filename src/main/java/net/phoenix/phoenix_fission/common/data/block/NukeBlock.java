@@ -18,6 +18,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.BlockHitResult;
 import net.phoenix.phoenix_fission.api.block.PhoenixFissionEntities;
+import net.phoenix.phoenix_fission.common.FissionLang;
 import net.phoenix.phoenix_fission.common.data.block.entity.NukePrimedEntity;
 import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
 
@@ -61,8 +62,9 @@ public class NukeBlock extends Block {
     @Override
     public void appendHoverText(@NotNull ItemStack stack, @Nullable BlockGetter level,
                                 List<Component> tooltip, @NotNull TooltipFlag flag) {
-        tooltip.add(Component.literal("Large scale nuclear explosive.").withStyle(ChatFormatting.DARK_GREEN));
-        tooltip.add(Component.literal("Handle with caution!").withStyle(ChatFormatting.RED));
+        tooltip.add(FissionLang.tr("phoenix_fission.nuke_block.large_scale_nuclear_explosive")
+                .withStyle(ChatFormatting.DARK_GREEN));
+        tooltip.add(FissionLang.tr("phoenix_fission.nuke_block.handle_with_caution").withStyle(ChatFormatting.RED));
         tooltip.add(Component.translatable("phoenix_fission.nuke_radius",
                 Component.literal(String.valueOf(PhoenixFissionConfigs.INSTANCE.fission.nukeCubeRadius))
                         .withStyle(ChatFormatting.RED)));

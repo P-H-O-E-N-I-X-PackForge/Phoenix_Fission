@@ -527,7 +527,6 @@ public class FissionThermalManager {
     }
 
     public void addDisplayText(List<Component> textList) {
-
         textList.add(Component
                 .translatable("phoenix_fission.current_heat_display",
                         String.format("%.1f", machine.getHeat()),

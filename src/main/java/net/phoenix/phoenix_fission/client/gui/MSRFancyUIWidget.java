@@ -12,6 +12,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.phoenix.phoenix_fission.api.machine.multiblock.MoltenSaltReactorMultiblockMachine;
+import net.phoenix.phoenix_fission.client.FissionText;
 
 import java.util.Locale;
 
@@ -82,7 +83,7 @@ public class MSRFancyUIWidget extends FancyMachineUIWidget {
         g.fill(x + 3, y + 3, x + 6, contentY - 3, C_AMBER);
 
         Font font = Minecraft.getInstance().font;
-        String title = "MOLTEN SALT REACTOR";
+        String title = FissionText.str("phoenix_fission.ui.m_s_r_fancy_u_i_widget.molten_salt_reactor");
         int titleY = y + (titleH - font.lineHeight) / 2;
         g.drawString(font, title, x + 10, titleY, C_SALT, false);
         g.fill(x, contentY - 1, x + w, contentY, 0x44_FFC844);
@@ -90,7 +91,6 @@ public class MSRFancyUIWidget extends FancyMachineUIWidget {
 
     @OnlyIn(Dist.CLIENT)
     private void drawHudIfHome(GuiGraphics g) {
-
         if (currentPage != mainPage) return;
         if (pageContainer == null || pageContainer.widgets.isEmpty()) return;
 
@@ -117,7 +117,9 @@ public class MSRFancyUIWidget extends FancyMachineUIWidget {
 
         y = drawStatusHeader(g, font, x, y, W, formed, working, scram);
         if (!formed) {
-            g.drawString(font, "Structure not complete", x + 4, y + 6, C_DIM, false);
+            g.drawString(font,
+                    FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.structure_not_complete"),
+                    x + 4, y + 6, C_DIM, false);
             return;
         }
 
@@ -133,16 +135,16 @@ public class MSRFancyUIWidget extends FancyMachineUIWidget {
         String badge;
         int badgeColor;
         if (!formed) {
-            badge = "OFFLINE";
+            badge = FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.offline");
             badgeColor = C_DIM;
         } else if (scram) {
-            badge = "SCRAM";
+            badge = FissionText.str("phoenix_fission.ui.m_s_r_fancy_u_i_widget.scram");
             badgeColor = C_RED;
         } else if (working) {
-            badge = "CRITICAL";
+            badge = FissionText.str("phoenix_fission.ui.m_s_r_fancy_u_i_widget.critical");
             badgeColor = C_SALT;
         } else {
-            badge = "STANDBY";
+            badge = FissionText.str("phoenix_fission.ui.fission_reactor_fancy_u_i_widget.standby");
             badgeColor = C_AMBER;
         }
 
@@ -172,7 +174,7 @@ public class MSRFancyUIWidget extends FancyMachineUIWidget {
         String effStr = String.format(Locale.ROOT, "Eff: %.0f%%", eff * 100.0);
         int effColor = eff >= 2.0 ? C_GREEN : eff >= 1.0 ? C_SALT : C_AMBER;
 
-        g.drawString(font, "SALT CORE", x, y, C_MID, false);
+        g.drawString(font, FissionText.str("phoenix_fission.ui.m_s_r_fancy_u_i_widget.salt_core"), x, y, C_MID, false);
         g.drawString(font, effStr, x + W - font.width(effStr), y, effColor, false);
         y += 10;
 
@@ -217,7 +219,8 @@ public class MSRFancyUIWidget extends FancyMachineUIWidget {
         int xenonColor = xenon < 0.05 ? C_GREEN : xenon < 0.20 ? C_SALT : xenon < 0.35 ? C_ORANGE : C_XENON;
 
         String xenonStr = String.format(Locale.ROOT, "%.1f%%", xenonPct);
-        g.drawString(font, "XENON POISON", x, y, C_MID, false);
+        g.drawString(font, FissionText.str("phoenix_fission.ui.m_s_r_fancy_u_i_widget.xenon_poison"), x, y, C_MID,
+                false);
         g.drawString(font, xenonStr, x + W - font.width(xenonStr), y, xenonColor, false);
         y += 10;
 
@@ -257,11 +260,12 @@ public class MSRFancyUIWidget extends FancyMachineUIWidget {
 
     @OnlyIn(Dist.CLIENT)
     private int drawSaltLoop(GuiGraphics g, Font font, int x, int y, int W) {
-        g.drawString(font, "SALT LOOP", x, y, C_MID, false);
+        g.drawString(font, FissionText.str("phoenix_fission.ui.m_s_r_fancy_u_i_widget.salt_loop"), x, y, C_MID, false);
         y += 11;
 
         boolean hasLiner = msr.linerName != null && !msr.linerName.isEmpty();
-        String linerLabel = hasLiner ? msr.linerName.toUpperCase() : "No liner";
+        String linerLabel = hasLiner ? msr.linerName.toUpperCase() :
+                FissionText.str("phoenix_fission.ui.m_s_r_fancy_u_i_widget.no_liner");
 
         y = row(g, font, x, y, W, "Liner", linerLabel,
                 hasLiner ? C_CYAN : C_DIM);
@@ -274,7 +278,7 @@ public class MSRFancyUIWidget extends FancyMachineUIWidget {
                 String.valueOf(msr.lastParallels), C_SALT);
 
         long eu = msr.lastGeneratedEUt;
-        String euStr = eu > 0 ? formatEU(eu) : "offline";
+        String euStr = eu > 0 ? formatEU(eu) : FissionText.str("phoenix_fission.ui.m_s_r_fancy_u_i_widget.offline");
         y = row(g, font, x, y, W, "EU output", euStr,
                 eu > 0 ? C_GREEN : C_DIM);
 
@@ -284,20 +288,22 @@ public class MSRFancyUIWidget extends FancyMachineUIWidget {
 
     @OnlyIn(Dist.CLIENT)
     private void drawChemistryStatus(GuiGraphics g, Font font, int x, int y) {
-        g.drawString(font, "CHEMISTRY", x, y, C_MID, false);
+        g.drawString(font, FissionText.str("phoenix_fission.ui.m_s_r_fancy_u_i_widget.chemistry"), x, y, C_MID, false);
         y += 11;
 
         if (msr.lastCatalystActive) {
             drawPill(g, font, x, y, "FLUORINE CATALYST  x3", C_XENON);
         } else {
             g.fill(x, y + 3, x + 5, y + 7, C_DIM);
-            g.drawString(font, "  No catalyst", x, y, C_DIM, false);
+            g.drawString(font, FissionText.str("phoenix_fission.ui.m_s_r_fancy_u_i_widget.no_catalyst"), x, y, C_DIM,
+                    false);
         }
         y += 12;
 
         if (msr.isScramActive()) {
             g.fill(x, y + 2, x + 5, y + 7, C_RED);
-            g.drawString(font, "  SCRAM ENGAGED", x, y, C_RED, false);
+            g.drawString(font, FissionText.str("phoenix_fission.ui.m_s_r_fancy_u_i_widget.scram_engaged"), x, y, C_RED,
+                    false);
         }
     }
 
