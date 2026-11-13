@@ -6,6 +6,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.phoenix.phoenix_fission.api.machine.multiblock.RtgArrayMachine;
+import net.phoenix.phoenix_fission.client.FissionText;
 
 @OnlyIn(Dist.CLIENT)
 public class RtgGraphsPage implements CanvasPainter {
@@ -36,7 +37,7 @@ public class RtgGraphsPage implements CanvasPainter {
         GuiDraw.drawGradientRect(g, 0, 0, w, h, BG_TOP, BG_BOT, false);
         g.fill(0, 0, w, 16, BG_TOP);
         g.fill(3, 3, 6, 13, C_TEAL);
-        g.drawString(font, "RTG GRAPHS", 10, 4, C_CYAN, false);
+        g.drawString(font, FissionText.str("phoenix_fission.ui.rtg_graphs_page.rtg_graphs"), 10, 4, C_CYAN, false);
         g.fill(0, 15, w, 16, 0x44_00E5CC);
 
         int x = 8, cw = w - 16;
@@ -44,10 +45,12 @@ public class RtgGraphsPage implements CanvasPainter {
         int y = 24;
         double peak = 1;
         for (int i = 0; i < history.filled; i++) peak = Math.max(peak, history.output[history.index(i)]);
-        plot(g, font, x, y, cw, plotH, history.output, peak * 1.1, C_GOLD, "OUTPUT EU/t",
+        plot(g, font, x, y, cw, plotH, history.output, peak * 1.1, C_GOLD,
+                FissionText.str("phoenix_fission.ui.fusion_graphs_page.output_eu_t"),
                 (long) machine.getGeneratedEUt() + " EU/t");
         y += plotH + 22;
-        plot(g, font, x, y, cw, plotH, history.life, 1.0, C_GREEN, "AVERAGE CELL LIFE",
+        plot(g, font, x, y, cw, plotH, history.life, 1.0, C_GREEN,
+                FissionText.str("phoenix_fission.ui.rtg_graphs_page.average_cell_life"),
                 (int) Math.round(latest(history.life) * 100) + "%");
 
         GuiDraw.drawBorder(g, 0, 0, w, h, C_TEAL, 1);
@@ -67,7 +70,8 @@ public class RtgGraphsPage implements CanvasPainter {
         for (int q = 1; q < 4; q++) g.fill(x + 1, top + h * q / 4, x + w - 1, top + h * q / 4 + 1, 0x14_FFFFFF);
 
         if (history.filled < 2) {
-            g.drawString(font, "collecting...", x + 4, top + h / 2 - 4, C_DIM, false);
+            g.drawString(font, FissionText.str("phoenix_fission.ui.ascension_graphs_page.collecting"), x + 4,
+                    top + h / 2 - 4, C_DIM, false);
             return;
         }
         int inner = w - 2, innerH = h - 2;

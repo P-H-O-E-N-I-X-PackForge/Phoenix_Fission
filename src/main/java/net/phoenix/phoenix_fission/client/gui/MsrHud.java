@@ -7,6 +7,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.phoenix.phoenix_fission.api.PhoenixAPI;
 import net.phoenix.phoenix_fission.api.machine.multiblock.MoltenSaltReactorMultiblockMachine;
+import net.phoenix.phoenix_fission.client.FissionText;
 
 import java.util.Locale;
 
@@ -54,7 +55,8 @@ public class MsrHud implements CanvasPainter {
         g.fill(x + 3, y + 3, x + 6, y + TITLE_H - 3, C_AMBER);
 
         Font font = Minecraft.getInstance().font;
-        g.drawString(font, "MOLTEN SALT REACTOR", x + 10, y + (TITLE_H - font.lineHeight) / 2, C_SALT, false);
+        g.drawString(font, FissionText.str("phoenix_fission.ui.msr_hud.molten_salt_reactor"), x + 10,
+                y + (TITLE_H - font.lineHeight) / 2, C_SALT, false);
         g.fill(x, y + TITLE_H - 1, x + w, y + TITLE_H, 0x44_FFC844);
     }
 
@@ -78,7 +80,8 @@ public class MsrHud implements CanvasPainter {
 
         y = drawStatusHeader(g, font, x, y, W, formed, working, scram);
         if (!formed) {
-            g.drawString(font, "Structure not complete", x + 4, y + 6, C_DIM, false);
+            g.drawString(font, FissionText.str("phoenix_fission.ui.ascension_hud.structure_not_complete"), x + 4, y + 6,
+                    C_DIM, false);
             return;
         }
 
@@ -94,16 +97,16 @@ public class MsrHud implements CanvasPainter {
         String badge;
         int badgeColor;
         if (!formed) {
-            badge = "OFFLINE";
+            badge = FissionText.str("phoenix_fission.ui.ascension_hud.offline");
             badgeColor = C_DIM;
         } else if (scram) {
-            badge = "SCRAM";
+            badge = FissionText.str("phoenix_fission.ui.ascension_hud.scram");
             badgeColor = C_RED;
         } else if (working) {
-            badge = "CRITICAL";
+            badge = FissionText.str("phoenix_fission.ui.msr_hud.critical");
             badgeColor = C_SALT;
         } else {
-            badge = "STANDBY";
+            badge = FissionText.str("phoenix_fission.ui.ascension_hud.standby");
             badgeColor = C_AMBER;
         }
 
@@ -133,7 +136,7 @@ public class MsrHud implements CanvasPainter {
         String effStr = String.format(Locale.ROOT, "Eff: %.0f%%", eff * 100.0);
         int effColor = eff >= 2.0 ? C_GREEN : eff >= 1.0 ? C_SALT : C_AMBER;
 
-        g.drawString(font, "SALT CORE", x, y, C_MID, false);
+        g.drawString(font, FissionText.str("phoenix_fission.ui.msr_hud.salt_core"), x, y, C_MID, false);
         g.drawString(font, effStr, x + W - font.width(effStr), y, effColor, false);
         y += 10;
 
@@ -178,7 +181,7 @@ public class MsrHud implements CanvasPainter {
         int xenonColor = xenon < 0.05 ? C_GREEN : xenon < 0.20 ? C_SALT : xenon < 0.35 ? C_ORANGE : C_XENON;
 
         String xenonStr = String.format(Locale.ROOT, "%.1f%%", xenonPct);
-        g.drawString(font, "XENON POISON", x, y, C_MID, false);
+        g.drawString(font, FissionText.str("phoenix_fission.ui.msr_hud.xenon_poison"), x, y, C_MID, false);
         g.drawString(font, xenonStr, x + W - font.width(xenonStr), y, xenonColor, false);
         y += 10;
 
@@ -218,11 +221,12 @@ public class MsrHud implements CanvasPainter {
 
     @OnlyIn(Dist.CLIENT)
     private int drawSaltLoop(GuiGraphics g, Font font, int x, int y, int W) {
-        g.drawString(font, "SALT LOOP", x, y, C_MID, false);
+        g.drawString(font, FissionText.str("phoenix_fission.ui.msr_hud.salt_loop"), x, y, C_MID, false);
         y += 11;
 
         boolean hasLiner = msr.linerName != null && !msr.linerName.isEmpty();
-        String linerLabel = hasLiner ? msr.linerName.toUpperCase() : "No liner";
+        String linerLabel = hasLiner ? msr.linerName.toUpperCase() :
+                FissionText.str("phoenix_fission.ui.msr_hud.no_liner");
 
         y = row(g, font, x, y, W, "Liner", linerLabel,
                 hasLiner ? C_CYAN : C_DIM);
@@ -240,12 +244,14 @@ public class MsrHud implements CanvasPainter {
                 break;
             }
         }
-        y = row(g, font, x, y, W, "Fuel salt", truncate(font, saltStr, W - font.width("Fuel salt") - 8), C_SALT);
+        y = row(g, font, x, y, W, "Fuel salt",
+                truncate(font, saltStr, W - font.width(FissionText.str("phoenix_fission.ui.msr_hud.fuel_salt")) - 8),
+                C_SALT);
         y = row(g, font, x, y, W, "Parallels",
                 String.valueOf(msr.lastParallels), C_SALT);
 
         long eu = msr.lastGeneratedEUt;
-        String euStr = eu > 0 ? formatEU(eu) : "offline";
+        String euStr = eu > 0 ? formatEU(eu) : FissionText.str("phoenix_fission.ui.msr_hud.offline");
         y = row(g, font, x, y, W, "EU output", euStr,
                 eu > 0 ? C_GREEN : C_DIM);
 
@@ -255,25 +261,25 @@ public class MsrHud implements CanvasPainter {
 
     @OnlyIn(Dist.CLIENT)
     private void drawChemistryStatus(GuiGraphics g, Font font, int x, int y) {
-        g.drawString(font, "CHEMISTRY", x, y, C_MID, false);
+        g.drawString(font, FissionText.str("phoenix_fission.ui.msr_hud.chemistry"), x, y, C_MID, false);
         y += 11;
 
         if (msr.lastCatalystActive) {
             drawPill(g, font, x, y, "FLUORINE CATALYST  x3", C_XENON);
         } else {
             g.fill(x, y + 3, x + 5, y + 7, C_DIM);
-            g.drawString(font, "  No catalyst", x, y, C_DIM, false);
+            g.drawString(font, FissionText.str("phoenix_fission.ui.msr_hud.no_catalyst"), x, y, C_DIM, false);
         }
         y += 12;
 
         if (msr.isScramActive()) {
             g.fill(x, y + 2, x + 5, y + 7, C_RED);
-            g.drawString(font, "  SCRAM ENGAGED", x, y, C_RED, false);
+            g.drawString(font, FissionText.str("phoenix_fission.ui.msr_hud.scram_engaged"), x, y, C_RED, false);
         }
     }
 
     private static String prettyName(String key) {
-        if (key == null || key.isEmpty()) return "Unknown";
+        if (key == null || key.isEmpty()) return FissionText.str("phoenix_fission.ui.fission_reactor_hud.unknown");
         String path = key.contains(":") ? key.substring(key.indexOf(':') + 1) : key;
         StringBuilder sb = new StringBuilder();
         for (String p : path.split("[_\\s]+")) {

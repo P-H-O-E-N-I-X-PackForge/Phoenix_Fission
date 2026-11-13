@@ -12,7 +12,6 @@ import com.gregtechceu.gtceu.api.registry.registrate.entry.MachineEntry;
 import com.gregtechceu.gtceu.common.data.GTBlocks;
 import com.gregtechceu.gtceu.common.data.GTRecipeModifiers;
 
-import net.minecraft.network.chat.Component;
 import net.phoenix.phoenix_fission.PhoenixFission;
 import net.phoenix.phoenix_fission.api.machine.PhoenixPartAbility;
 import net.phoenix.phoenix_fission.api.machine.multiblock.AscensionReactorMachine;
@@ -64,16 +63,15 @@ public final class AscensionReactorMachines {
             .rotationState(RotationState.NON_Y_AXIS)
             .appearanceBlock(PhoenixFissionBlocks.FISSILE_REACTION_SAFE_CASING)
             .tooltips(
-                    Component.literal("§bThe real fission reactor, inside a fusion ring, and neither will sit still."),
-                    Component
-                            .literal("§7The core is a full fission core: fuel rods, coolers, moderators and blankets,"),
-                    Component.literal("§7with the usual heat model, coolant, fuel recipes, SCRAM hatches and sensors."),
-                    Component.literal("§7Flux, heat and plasma are read from it, and each is pushed about by"),
-                    Component.literal("§7disturbances you can see coming. The rods set how long the core burns;"),
-                    Component.literal("§7the coils and the gas injection set the plasma; the plasma feeds back."),
-                    Component.literal("§7Hold all three in their bands to climb: ignition, coupling, sustain, ascend."),
-                    Component.literal("§7Let the field fail and the whole climb is lost. Ascended, the ring adds to"),
-                    Component.literal("§7the core's output. The core and the ring both need to be built well."))
+                    FissionLang.tr("phoenix_fission.ascension_reactor_machines.the_real_fission_reactor_inside"),
+                    FissionLang.tr("phoenix_fission.ascension_reactor_machines.the_core_is_a_full"),
+                    FissionLang.tr("phoenix_fission.ascension_reactor_machines.with_the_usual_heat_model"),
+                    FissionLang.tr("phoenix_fission.ascension_reactor_machines.flux_heat_and_plasma_are"),
+                    FissionLang.tr("phoenix_fission.ascension_reactor_machines.disturbances_you_can_see_coming"),
+                    FissionLang.tr("phoenix_fission.ascension_reactor_machines.the_coils_and_the_gas"),
+                    FissionLang.tr("phoenix_fission.ascension_reactor_machines.hold_all_three_in_their"),
+                    FissionLang.tr("phoenix_fission.ascension_reactor_machines.let_the_field_fail_and"),
+                    FissionLang.tr("phoenix_fission.ascension_reactor_machines.the_core_s_output_the"))
             .pattern(definition -> {
                 var casing = Predicates.blocks(PhoenixFissionBlocks.FISSILE_REACTION_SAFE_CASING.get());
                 var glass = Predicates.blocks(GTBlocks.FUSION_GLASS.get());

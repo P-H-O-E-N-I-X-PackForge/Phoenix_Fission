@@ -9,6 +9,7 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.phoenix.phoenix_fission.api.machine.multiblock.RtgArrayMachine;
+import net.phoenix.phoenix_fission.client.FissionText;
 
 @OnlyIn(Dist.CLIENT)
 public class RtgHud implements CanvasPainter {
@@ -44,12 +45,15 @@ public class RtgHud implements CanvasPainter {
 
         g.fill(0, 0, w, TITLE_H, BG_TOP);
         g.fill(3, 3, 6, TITLE_H - 3, C_TEAL);
-        g.drawString(font, "RTG ARRAY", 10, (TITLE_H - font.lineHeight) / 2, C_CYAN, false);
+        g.drawString(font, FissionText.str("phoenix_fission.ui.rtg_hud.rtg_array"), 10, (TITLE_H - font.lineHeight) / 2,
+                C_CYAN, false);
         g.fill(0, TITLE_H - 1, w, TITLE_H, 0x44_00E5CC);
 
         boolean formed = machine.isFormed();
         boolean online = formed && machine.getGeneratedEUt() > 0;
-        String badge = !formed ? "OFFLINE" : online ? "ONLINE" : "NO CELLS";
+        String badge = !formed ? FissionText.str("phoenix_fission.ui.ascension_hud.offline") :
+                online ? FissionText.str("phoenix_fission.ui.rtg_hud.online") :
+                        FissionText.str("phoenix_fission.ui.rtg_hud.no_cells");
         int badgeColor = !formed ? C_DIM : online ? C_GREEN : C_GOLD;
         int bw = font.width(badge) + 8;
         int bx = w - bw - 8, by = 3;
@@ -59,7 +63,8 @@ public class RtgHud implements CanvasPainter {
 
         int x = 8, y = TITLE_H + 6, cw = w - 16;
         if (!formed) {
-            g.drawString(font, "Structure not complete", x, y, C_DIM, false);
+            g.drawString(font, FissionText.str("phoenix_fission.ui.ascension_hud.structure_not_complete"), x, y, C_DIM,
+                    false);
             border(g, w, h);
             return;
         }
@@ -67,17 +72,18 @@ public class RtgHud implements CanvasPainter {
         g.fill(x, y, x + cw, y + 30, 0x33_00E5CC);
         GuiDraw.drawBorder(g, x, y, cw, 30, 0x88_00B8A5, 1);
         g.drawString(font, machine.getGeneratedEUt() + " EU/t", x + 6, y + 5, C_WHITE, false);
-        g.drawString(font, machine.getActiveCells() + " cell" + (machine.getActiveCells() == 1 ? "" : "s") +
-                " active", x + 6, y + 17, C_MID, false);
+        g.drawString(font, FissionText.str("phoenix_fission.ui.rtg_hud.cell_active", machine.getActiveCells(),
+                (machine.getActiveCells() == 1 ? "" : "s")), x + 6, y + 17, C_MID, false);
         y += 38;
 
-        g.drawString(font, "CELLS", x, y, C_MID, false);
+        g.drawString(font, FissionText.str("phoenix_fission.ui.rtg_hud.cells"), x, y, C_MID, false);
         g.fill(x, y + 10, x + cw, y + 11, C_TEAL);
         y += 15;
 
         var cells = machine.getCellInfo();
         if (cells.isEmpty()) {
-            g.drawString(font, "Load RTG cells into an input bus", x, y + 2, C_DIM, false);
+            g.drawString(font, FissionText.str("phoenix_fission.ui.rtg_hud.load_rtg_cells_into_an"), x, y + 2, C_DIM,
+                    false);
             border(g, w, h);
             return;
         }

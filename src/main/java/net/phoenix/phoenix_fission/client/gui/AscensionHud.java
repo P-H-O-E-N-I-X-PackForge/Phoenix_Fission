@@ -7,6 +7,7 @@ import net.minecraft.util.Mth;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.phoenix.phoenix_fission.api.machine.multiblock.AscensionReactorMachine;
+import net.phoenix.phoenix_fission.client.FissionText;
 
 import java.util.Locale;
 
@@ -66,22 +67,22 @@ public class AscensionHud implements CanvasPainter {
 
         g.fill(0, 0, w, 16, BG_TOP);
         g.fill(3, 3, 6, 13, C_TEAL);
-        g.drawString(font, "ASCENSION REACTOR", 10, 4, C_CYAN, false);
+        g.drawString(font, FissionText.str("phoenix_fission.ui.ascension_hud.ascension_reactor"), 10, 4, C_CYAN, false);
         g.fill(0, 15, w, 16, 0x44_00E5CC);
 
         String badge;
         int badgeColor;
         if (!m.isFormed()) {
-            badge = "OFFLINE";
+            badge = FissionText.str("phoenix_fission.ui.ascension_hud.offline");
             badgeColor = C_DIM;
         } else if (m.cooldown() > 0) {
-            badge = "SCRAMMED " + m.cooldown() + "s";
+            badge = FissionText.str("phoenix_fission.ui.ascension_hud.scrammed_s", m.cooldown());
             badgeColor = C_RED;
         } else if (m.phase() == AscensionReactorMachine.OFF) {
-            badge = "STANDBY";
+            badge = FissionText.str("phoenix_fission.ui.ascension_hud.standby");
             badgeColor = C_GOLD;
         } else if (m.phase() == AscensionReactorMachine.ASCENDED) {
-            badge = "ASCENDED";
+            badge = FissionText.str("phoenix_fission.ui.ascension_hud.ascended");
             badgeColor = 0xFF_FFFFFF;
         } else {
             badge = PHASES[m.phase() - 1];
@@ -94,7 +95,8 @@ public class AscensionHud implements CanvasPainter {
         g.drawString(font, badge, bx + 4, 4, badgeColor, false);
 
         if (!m.isFormed()) {
-            g.drawString(font, "Structure not complete", 8, 24, C_DIM, false);
+            g.drawString(font, FissionText.str("phoenix_fission.ui.ascension_hud.structure_not_complete"), 8, 24, C_DIM,
+                    false);
             GuiDraw.drawBorder(g, 0, 0, w, h, C_TEAL, 1);
             return;
         }
@@ -168,7 +170,8 @@ public class AscensionHud implements CanvasPainter {
         int x = 8;
         int cw = w - 16;
         double s = m.stability();
-        g.drawString(font, "FIELD STABILITY", x, y, C_MID, false);
+        g.drawString(font, FissionText.str("phoenix_fission.ui.ascension_graphs_page.field_stability"), x, y, C_MID,
+                false);
         String v = Math.round(s) + "%";
         g.drawString(font, v, x + cw - font.width(v), y, s < 30 ? C_RED : C_WHITE, false);
         g.fill(x, y + 10, x + cw, y + 17, 0x66_000000);
@@ -182,37 +185,40 @@ public class AscensionHud implements CanvasPainter {
         String text;
         int color;
         if (m.cooldown() > 0) {
-            text = "SCRAMMED. The core is held while it cools off.";
+            text = FissionText.str("phoenix_fission.ui.ascension_hud.scrammed_the_core_is_held");
             color = C_RED;
         } else if (m.meltdownTimerTicks >= 0) {
-            text = "!! MELTDOWN IN " + (m.meltdownTimerTicks / 20 + 1) + "s. Cool the core or SCRAM.";
+            text = FissionText.str("phoenix_fission.ui.ascension_hud.meltdown_in_s_cool_the",
+                    (m.meltdownTimerTicks / 20 + 1));
             color = C_RED;
         } else if (m.isScramActive()) {
-            text = "SCRAM hatch signal. Clear it to resume.";
+            text = FissionText.str("phoenix_fission.ui.ascension_hud.scram_hatch_signal_clear_it");
             color = C_RED;
         } else if (m.event() != AscensionReactorMachine.EVENT_NONE) {
-            text = "!! " + AscensionReactorMachine.EVENT_NAMES[m.event()] + " for " + m.eventLeft() + "s";
+            text = FissionText.str("phoenix_fission.ui.ascension_hud.for_s",
+                    AscensionReactorMachine.EVENT_NAMES[m.event()], m.eventLeft());
             color = C_RED;
         } else if (m.warnKind() != AscensionReactorMachine.EVENT_NONE) {
-            text = "Warning: " + AscensionReactorMachine.EVENT_NAMES[m.warnKind()] + " in " + m.nextEventIn() + "s";
+            text = FissionText.str("phoenix_fission.ui.ascension_hud.warning_in_s",
+                    AscensionReactorMachine.EVENT_NAMES[m.warnKind()], m.nextEventIn());
             color = C_GOLD;
         } else if (!m.lastHasCoolant) {
-            text = "No coolant reaching the coolers. The core will heat.";
+            text = FissionText.str("phoenix_fission.ui.ascension_hud.no_coolant_reaching_the_coolers");
             color = C_GOLD;
         } else if (m.phase() == AscensionReactorMachine.OFF) {
-            text = "Waiting for fuel and active rods in the core.";
+            text = FissionText.str("phoenix_fission.ui.ascension_hud.waiting_for_fuel_and_active");
             color = C_MID;
         } else if (m.phase() >= AscensionReactorMachine.COUPLING && !m.isGasOk()) {
-            text = "No injection gas in the hatches. The plasma is thin.";
+            text = FissionText.str("phoenix_fission.ui.ascension_hud.no_injection_gas_in_the");
             color = C_GOLD;
         } else if (m.phase() >= AscensionReactorMachine.COUPLING && !m.isRingPowered()) {
-            text = "Not enough power for the coils.";
+            text = FissionText.str("phoenix_fission.ui.ascension_hud.not_enough_power_for_the");
             color = C_RED;
         } else if (m.phase() == AscensionReactorMachine.ASCENDED) {
-            text = "ASCENDED: the ring adds to the core's output. Keep it steady.";
+            text = FissionText.str("phoenix_fission.ui.ascension_hud.ascended_the_ring_adds_to");
             color = 0xFF_FFFFFF;
         } else {
-            text = "Hold all gauges in their bands.";
+            text = FissionText.str("phoenix_fission.ui.ascension_hud.hold_all_gauges_in_their");
             color = C_MID;
         }
         g.drawString(font, font.plainSubstrByWidth(text, w - 16), 8, y, color, false);
@@ -234,10 +240,12 @@ public class AscensionHud implements CanvasPainter {
         }
         // the real reactor's own numbers
         int ry = y + SLIDERS * 15 + 1;
-        String cooling = m.lastHasCoolant ? "cooling " + m.lastProvidedCooling + "/" + m.lastRequiredCooling :
-                "NO COOLANT";
+        String cooling = m.lastHasCoolant ? FissionText.str("phoenix_fission.ui.ascension_hud.cooling",
+                m.lastProvidedCooling, m.lastRequiredCooling) :
+                FissionText.str("phoenix_fission.ui.ascension_hud.no_coolant");
         g.drawString(font, cooling, 8, ry, m.lastHasCoolant ? C_MID : C_RED, false);
-        String rods = "x" + m.lastParallels + " rods  ring " + m.ringCoils() + " coils";
+        String rods = FissionText.str("phoenix_fission.ui.ascension_hud.x_rods_ring_coils", m.lastParallels,
+                m.ringCoils());
         g.drawString(font, rods, w - 8 - font.width(rods), ry, C_MID, false);
 
         int by = ry + 12;
@@ -247,11 +255,14 @@ public class AscensionHud implements CanvasPainter {
         boolean over = mouseX >= scramX && mouseX < scramX + scramW && mouseY >= scramY && mouseY < scramY + 14;
         g.fill(scramX, scramY, scramX + scramW, scramY + 14, over ? 0x66_FF4444 : 0x44_FF4444);
         GuiDraw.drawBorder(g, scramX, scramY, scramW, 14, over ? C_RED : 0x99_FF4444, 1);
-        g.drawString(font, "SCRAM", scramX + (scramW - font.width("SCRAM")) / 2, scramY + 3, C_RED, false);
+        g.drawString(font, FissionText.str("phoenix_fission.ui.ascension_hud.scram"),
+                scramX + (scramW - font.width(FissionText.str("phoenix_fission.ui.ascension_hud.scram"))) / 2,
+                scramY + 3, C_RED, false);
 
         String out = m.lastGeneratedEUt + " + " + m.fusionEut() + " EU/t";
         g.drawString(font, out, 76, by + 1, m.totalEut() > 0 ? C_GOLD : C_DIM, false);
-        String stats = "runs lost " + m.scrams() + "  ascended " + m.ascensions() + "x";
+        String stats = FissionText.str("phoenix_fission.ui.ascension_hud.runs_lost_ascended_x", m.scrams(),
+                m.ascensions());
         g.drawString(font, stats, 76, by + 10, C_DIM, false);
     }
 

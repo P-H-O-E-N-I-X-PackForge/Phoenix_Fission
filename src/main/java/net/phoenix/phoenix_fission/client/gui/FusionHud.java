@@ -7,6 +7,7 @@ import net.minecraft.network.chat.Component;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.phoenix.phoenix_fission.api.machine.multiblock.FusionReactorMachine;
+import net.phoenix.phoenix_fission.client.FissionText;
 
 @OnlyIn(Dist.CLIENT)
 public class FusionHud implements CanvasPainter {
@@ -41,26 +42,27 @@ public class FusionHud implements CanvasPainter {
 
         g.fill(0, 0, w, 16, BG_TOP);
         g.fill(3, 3, 6, 13, C_TEAL);
-        g.drawString(font, "TOKAMAK FUSION REACTOR", 10, 4, C_CYAN, false);
+        g.drawString(font, FissionText.str("phoenix_fission.ui.fusion_hud.tokamak_fusion_reactor"), 10, 4, C_CYAN,
+                false);
         g.fill(0, 15, w, 16, 0x44_00E5CC);
 
         boolean formed = m.isFormed();
         String badge;
         int badgeColor;
         if (!formed) {
-            badge = "OFFLINE";
+            badge = FissionText.str("phoenix_fission.ui.ascension_hud.offline");
             badgeColor = C_DIM;
         } else if (m.isScrammed()) {
-            badge = "SCRAMMED";
+            badge = FissionText.str("jade.phoenix_fission.fusion_scrammed");
             badgeColor = C_RED;
         } else if (m.getQuenchTicks() > 0) {
-            badge = "QUENCHED";
+            badge = FissionText.str("phoenix_fission.ui.fusion_hud.quenched");
             badgeColor = C_RED;
         } else if (m.isPlasmaOn()) {
-            badge = "BURNING";
+            badge = FissionText.str("phoenix_fission.ui.fusion_hud.burning");
             badgeColor = C_GREEN;
         } else {
-            badge = "STANDBY";
+            badge = FissionText.str("phoenix_fission.ui.ascension_hud.standby");
             badgeColor = C_GOLD;
         }
         int bw = font.width(badge) + 8, bx = w - bw - 8;
@@ -70,20 +72,22 @@ public class FusionHud implements CanvasPainter {
 
         int x = 8, cw = w - 16, y = 24;
         if (!formed) {
-            g.drawString(font, "Structure not complete", x, y, C_DIM, false);
+            g.drawString(font, FissionText.str("phoenix_fission.ui.ascension_hud.structure_not_complete"), x, y, C_DIM,
+                    false);
             GuiDraw.drawBorder(g, 0, 0, w, h, C_TEAL, 1);
             return;
         }
 
         double integrity = 1.0 - m.getDrift() / 100.0;
-        g.drawString(font, "FIELD INTEGRITY", x, y, C_MID, false);
+        g.drawString(font, FissionText.str("phoenix_fission.ui.fusion_graphs_page.field_integrity"), x, y, C_MID,
+                false);
         String pct = Math.round(integrity * 100) + "%";
         g.drawString(font, pct, x + cw - font.width(pct), y, integrity < 0.3 ? C_RED : C_WHITE, false);
         bar(g, x, y + 11, cw, 8, integrity, integrity < 0.3 ? C_RED : integrity < 0.6 ? C_ORANGE : C_GREEN);
         y += 26;
 
         double ratio = m.getFieldRatio();
-        g.drawString(font, "CONFINEMENT", x, y, C_MID, false);
+        g.drawString(font, FissionText.str("phoenix_fission.ui.fusion_hud.confinement"), x, y, C_MID, false);
         String rs = String.format("%.2fx", ratio);
         g.drawString(font, rs, x + cw - font.width(rs), y, ratio < 1.0 ? C_RED : ratio < 1.25 ? C_GOLD : C_GREEN,
                 false);
@@ -94,7 +98,7 @@ public class FusionHud implements CanvasPainter {
 
         double req = m.getRequiredPressure(), cur = m.getPressure();
         double dev = Math.abs(cur - req);
-        g.drawString(font, "PRESSURE", x, y, C_MID, false);
+        g.drawString(font, FissionText.str("phoenix_fission.ui.fusion_graphs_page.pressure"), x, y, C_MID, false);
         String ps = Math.round(cur) + " / " + Math.round(req);
         g.drawString(font, ps, x + cw - font.width(ps), y, dev > 15 ? C_ORANGE : C_WHITE, false);
         bar(g, x, y + 11, cw, 6, Math.min(1.0, cur / 100.0), dev > 15 ? C_ORANGE : C_CYAN);
@@ -124,7 +128,7 @@ public class FusionHud implements CanvasPainter {
         y += boxH + 8;
 
         double contam = m.getContamination() / 100.0;
-        g.drawString(font, "CONTAMINATION", x, y, C_MID, false);
+        g.drawString(font, FissionText.str("phoenix_fission.ui.fusion_hud.contamination"), x, y, C_MID, false);
         String cs = Math.round(contam * 100) + "%";
         g.drawString(font, cs, x + cw - font.width(cs), y, contam > 0.6 ? C_RED : contam > 0.25 ? C_ORANGE : C_WHITE,
                 false);
@@ -142,31 +146,32 @@ public class FusionHud implements CanvasPainter {
         String status;
         int statusColor;
         if (m.isScrammed()) {
-            status = "SCRAMMED -- clear the SCRAM hatch signal to resume";
+            status = FissionText.str("phoenix_fission.ui.fusion_hud.scrammed_clear_the_scram_hatch");
             statusColor = C_RED;
         } else if (m.getQuenchTicks() > 0) {
-            status = "!! QUENCHED -- restarting in " + (m.getQuenchTicks() / 20 + 1) + "s";
+            status = FissionText.str("phoenix_fission.ui.fusion_hud.quenched_restarting_in_s",
+                    (m.getQuenchTicks() / 20 + 1));
             statusColor = C_RED;
         } else if (!m.isPowered()) {
-            status = "!! FIELD UNPOWERED -- supply energy to the coils";
+            status = FissionText.str("phoenix_fission.ui.fusion_hud.field_unpowered_supply_energy_to");
             statusColor = C_RED;
         } else if (!m.isFueled()) {
-            status = "No fuel -- deuterium and tritium needed";
+            status = FissionText.str("phoenix_fission.ui.fusion_hud.no_fuel_deuterium_and_tritium");
             statusColor = C_GOLD;
         } else if (!m.isGasOk()) {
-            status = "!! No pressure gas -- the chamber is losing pressure";
+            status = FissionText.str("phoenix_fission.ui.fusion_hud.no_pressure_gas_the_chamber");
             statusColor = C_ORANGE;
         } else if (!m.isCoolantOk()) {
-            status = "!! Coils overheating -- supply coolant";
+            status = FissionText.str("phoenix_fission.ui.fusion_hud.coils_overheating_supply_coolant");
             statusColor = C_ORANGE;
         } else if (m.isWasteBlocked()) {
-            status = "!! Waste backing up -- empty the output hatch";
+            status = FissionText.str("phoenix_fission.ui.fusion_hud.waste_backing_up_empty_the");
             statusColor = C_ORANGE;
         } else if (ratio < 1.0) {
-            status = "!! Field too weak -- lower the throttle or add coils";
+            status = FissionText.str("phoenix_fission.ui.fusion_hud.field_too_weak_lower_the");
             statusColor = C_ORANGE;
         } else {
-            status = "Plasma stable";
+            status = FissionText.str("phoenix_fission.ui.fusion_hud.plasma_stable");
             statusColor = C_GREEN;
         }
         int sy = y;
@@ -178,8 +183,9 @@ public class FusionHud implements CanvasPainter {
 
         g.fill(x, h - CONTROLS_H, x + cw, h - CONTROLS_H + 1, 0x44_00E5CC);
         int fieldY = h - 20;
-        g.drawString(font, "THROTTLE %", x, fieldY + 3, C_MID, false);
-        g.drawString(font, "PRESSURE %", x + cw / 2 + 4, fieldY + 3, C_MID, false);
+        g.drawString(font, FissionText.label("phoenix_fission.ui.fusion_hud.throttle"), x, fieldY + 3, C_MID, false);
+        g.drawString(font, FissionText.label("phoenix_fission.ui.fusion_hud.pressure"), x + cw / 2 + 4, fieldY + 3,
+                C_MID, false);
         GuiDraw.drawBorder(g, 0, 0, w, h, C_TEAL, 1);
     }
 

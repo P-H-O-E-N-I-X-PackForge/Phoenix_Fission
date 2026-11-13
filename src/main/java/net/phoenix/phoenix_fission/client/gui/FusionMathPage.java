@@ -6,6 +6,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.phoenix.phoenix_fission.api.machine.multiblock.FusionReactorMachine;
+import net.phoenix.phoenix_fission.client.FissionText;
 import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
 
 import java.util.Locale;
@@ -40,7 +41,7 @@ public class FusionMathPage implements CanvasPainter {
         GuiDraw.drawGradientRect(g, 0, 0, w, h, BG_TOP, BG_BOT, false);
         g.fill(0, 0, w, 16, BG_TOP);
         g.fill(3, 3, 6, 13, C_TEAL);
-        g.drawString(font, "FUSION MATH", 10, 4, C_CYAN, false);
+        g.drawString(font, FissionText.str("phoenix_fission.ui.fusion_math_page.fusion_math"), 10, 4, C_CYAN, false);
         g.fill(0, 15, w, 16, 0x44_00E5CC);
 
         int viewH = h - 18;

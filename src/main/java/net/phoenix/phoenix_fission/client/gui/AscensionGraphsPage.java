@@ -6,6 +6,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.phoenix.phoenix_fission.api.machine.multiblock.AscensionReactorMachine;
+import net.phoenix.phoenix_fission.client.FissionText;
 
 import java.util.Locale;
 
@@ -37,22 +38,28 @@ public class AscensionGraphsPage implements CanvasPainter {
         GuiDraw.drawGradientRect(g, 0, 0, w, hgt, BG_TOP, BG_BOT, false);
         g.fill(0, 0, w, 16, BG_TOP);
         g.fill(3, 3, 6, 13, C_TEAL);
-        g.drawString(font, "ASCENSION GRAPHS", 10, 4, C_CYAN, false);
+        g.drawString(font, FissionText.str("phoenix_fission.ui.ascension_graphs_page.ascension_graphs"), 10, 4, C_CYAN,
+                false);
         g.fill(0, 15, w, 16, 0x44_00E5CC);
 
         int x = 8;
         int cw = w - 16;
         int plotH = (hgt - 22 - 8 - 4 * 14) / 4;
         int y = 22;
-        plot(g, font, x, y, cw, plotH, h.flux, 0, COLORS[0], "FLUX", String.format(Locale.ROOT, "%.0f", m.flux()));
+        plot(g, font, x, y, cw, plotH, h.flux, 0, COLORS[0],
+                FissionText.str("phoenix_fission.ui.ascension_graphs_page.flux"),
+                String.format(Locale.ROOT, "%.0f", m.flux()));
         y += plotH + 14;
-        plot(g, font, x, y, cw, plotH, h.heat, 1, COLORS[1], "HEAT",
+        plot(g, font, x, y, cw, plotH, h.heat, 1, COLORS[1],
+                FissionText.str("phoenix_fission.ui.ascension_graphs_page.heat"),
                 String.format(Locale.ROOT, "%.0f", m.heatPercent()));
         y += plotH + 14;
-        plot(g, font, x, y, cw, plotH, h.plasma, 2, COLORS[2], "PLASMA",
+        plot(g, font, x, y, cw, plotH, h.plasma, 2, COLORS[2],
+                FissionText.str("phoenix_fission.ui.ascension_graphs_page.plasma"),
                 String.format(Locale.ROOT, "%.0f", m.plasma()));
         y += plotH + 14;
-        plot(g, font, x, y, cw, plotH, h.stability, -1, 0xFF_33FF88, "FIELD STABILITY",
+        plot(g, font, x, y, cw, plotH, h.stability, -1, 0xFF_33FF88,
+                FissionText.str("phoenix_fission.ui.ascension_graphs_page.field_stability"),
                 Math.round(m.stability()) + "%");
         GuiDraw.drawBorder(g, 0, 0, w, hgt, C_TEAL, 1);
     }
@@ -72,7 +79,8 @@ public class AscensionGraphsPage implements CanvasPainter {
         }
         GuiDraw.drawBorder(g, x, top, w, hh, 0x66_00B8A5, 1);
         if (h.filled < 2) {
-            g.drawString(font, "collecting...", x + 4, top + hh / 2 - 4, C_DIM, false);
+            g.drawString(font, FissionText.str("phoenix_fission.ui.ascension_graphs_page.collecting"), x + 4,
+                    top + hh / 2 - 4, C_DIM, false);
             return;
         }
         int inner = w - 2;
