@@ -1,6 +1,7 @@
 package net.phoenix.phoenix_fission.datagen;
 
 import net.phoenix.phoenix_fission.datagen.lang.PhoenixMachineLangHandler;
+import net.phoenix.phoenix_fission.datagen.lang.PhoenixUiLangHandler;
 
 import com.tterrag.registrate.providers.ProviderType;
 
@@ -10,5 +11,6 @@ public class PhoenixDatagen {
 
     public static void init() {
         PHOENIX_REGISTRATE.addDataGenerator(ProviderType.LANG, PhoenixMachineLangHandler::init);
+        PHOENIX_REGISTRATE.addDataGenerator(ProviderType.LANG, PhoenixUiLangHandler::init);
     }
 }

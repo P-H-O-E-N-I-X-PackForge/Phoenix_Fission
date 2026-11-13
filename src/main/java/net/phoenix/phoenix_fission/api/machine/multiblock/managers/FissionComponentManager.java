@@ -8,6 +8,7 @@ import net.phoenix.phoenix_fission.api.PhoenixAPI;
 import net.phoenix.phoenix_fission.api.block.*;
 import net.phoenix.phoenix_fission.api.block.iface.*;
 import net.phoenix.phoenix_fission.api.machine.multiblock.FissionWorkableElectricMultiblockMachine;
+import net.phoenix.phoenix_fission.common.FissionLang;
 
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
@@ -184,7 +185,8 @@ public class FissionComponentManager {
                                                               String header) {
         textList.add(Component.literal(header + " (" + components.size() + "):").withStyle(ChatFormatting.AQUA));
         if (components.isEmpty()) {
-            textList.add(Component.literal("  None").withStyle(ChatFormatting.DARK_GRAY));
+            textList.add(FissionLang.tr("phoenix_fission.fission_component_manager.none")
+                    .withStyle(ChatFormatting.DARK_GRAY));
             return;
         }
         components.stream()

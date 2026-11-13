@@ -225,6 +225,17 @@ tasks.withType(JavaCompile).configureEach {
     options.compilerArgs << '-Xmaxerrs' << '5000'
 }
 
+publishing {
+    publications {
+        register('mavenJava', MavenPublication) {
+            groupId = project.group
+            artifactId = 'phoenix-fission-neoforge'
+            version = project.version
+            from components.java
+        }
+    }
+}
+
 idea {
     module {
         downloadSources = true

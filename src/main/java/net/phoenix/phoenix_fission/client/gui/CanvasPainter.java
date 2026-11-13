@@ -10,6 +10,10 @@ public interface CanvasPainter {
         return false;
     }
 
+    default void drag(double mouseX, double mouseY, int button) {}
+
+    default void release(int button) {}
+
     default boolean scroll(double mouseX, double mouseY, double amount) {
         return false;
     }

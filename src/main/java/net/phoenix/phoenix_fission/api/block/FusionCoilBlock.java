@@ -7,6 +7,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.block.Block;
 import net.phoenix.phoenix_fission.api.block.iface.IFusionCoilType;
+import net.phoenix.phoenix_fission.common.FissionLang;
 
 import lombok.Getter;
 
@@ -26,13 +27,16 @@ public abstract class FusionCoilBlock extends Block {
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip,
                                 TooltipFlag flag) {
         if (coilType.isInner()) {
-            tooltip.add(Component.literal("Inner plasma coil").withStyle(ChatFormatting.GOLD));
-            tooltip.add(Component.literal("Plasma power: " + coilType.getPlasmaHeat()).withStyle(ChatFormatting.GRAY));
-        } else {
-            tooltip.add(Component.literal("Outer confinement coil").withStyle(ChatFormatting.AQUA));
-            tooltip.add(Component.literal("Field strength: " + coilType.getConfinement())
+            tooltip.add(FissionLang.tr("phoenix_fission.fusion_coil_block.inner_plasma_coil")
+                    .withStyle(ChatFormatting.GOLD));
+            tooltip.add(FissionLang.tr("phoenix_fission.fusion_coil_block.plasma_power", coilType.getPlasmaHeat())
                     .withStyle(ChatFormatting.GRAY));
-            tooltip.add(Component.literal("Upkeep: " + coilType.getUpkeepEut() + " EU/t")
+        } else {
+            tooltip.add(FissionLang.tr("phoenix_fission.fusion_coil_block.outer_confinement_coil")
+                    .withStyle(ChatFormatting.AQUA));
+            tooltip.add(FissionLang.tr("phoenix_fission.fusion_coil_block.field_strength", coilType.getConfinement())
+                    .withStyle(ChatFormatting.GRAY));
+            tooltip.add(FissionLang.tr("phoenix_fission.fusion_coil_block.upkeep_eu_t", coilType.getUpkeepEut())
                     .withStyle(ChatFormatting.GRAY));
         }
     }

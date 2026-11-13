@@ -11,6 +11,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.phoenix.phoenix_fission.PhoenixFission;
 import net.phoenix.phoenix_fission.api.block.iface.IFissionBlanketType;
+import net.phoenix.phoenix_fission.common.FissionLang;
 
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
@@ -68,7 +69,8 @@ public class FissionBlanketBlock extends ActiveBlock {
 
         List<IFissionBlanketType.BlanketOutput> outs = blanketType.getOutputs();
         if (outs == null || outs.isEmpty()) {
-            tooltip.add(Component.literal(" - (none)").withStyle(ChatFormatting.DARK_GRAY));
+            tooltip.add(
+                    FissionLang.tr("phoenix_fission.fission_blanket_block.none").withStyle(ChatFormatting.DARK_GRAY));
         } else {
             for (IFissionBlanketType.BlanketOutput o : outs) {
                 Component outName = FissionFuelRodBlock.getRegistryDisplayName(o.key());
@@ -82,7 +84,8 @@ public class FissionBlanketBlock extends ActiveBlock {
                         .append(Component.literal(" (")
                                 .append(Component.literal("W: " + o.weight()).withStyle(ChatFormatting.GRAY))
                                 .append(Component.literal(", "))
-                                .append(Component.literal("Inst: " + o.instability()).withStyle(instabilityColor))
+                                .append(FissionLang.tr("phoenix_fission.fission_blanket_block.inst", o.instability())
+                                        .withStyle(instabilityColor))
                                 .append(Component.literal(")"))));
             }
         }

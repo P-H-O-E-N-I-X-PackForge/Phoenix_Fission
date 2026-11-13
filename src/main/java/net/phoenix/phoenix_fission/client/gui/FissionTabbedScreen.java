@@ -80,6 +80,16 @@ public class FissionTabbedScreen implements CanvasPainter {
     }
 
     @Override
+    public void drag(double mouseX, double mouseY, int button) {
+        tabs.get(active).painter().drag(mouseX, mouseY, button);
+    }
+
+    @Override
+    public void release(int button) {
+        tabs.get(active).painter().release(button);
+    }
+
+    @Override
     public boolean scroll(double mouseX, double mouseY, double amount) {
         return tabs.get(active).painter().scroll(mouseX, mouseY, amount);
     }

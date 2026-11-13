@@ -2,10 +2,10 @@ package net.phoenix.phoenix_fission.integration.emi;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.phoenix.phoenix_fission.PhoenixFission;
 import net.phoenix.phoenix_fission.api.block.iface.IFissionBlanketType;
+import net.phoenix.phoenix_fission.common.FissionLang;
 
 import dev.emi.emi.api.recipe.EmiRecipe;
 import dev.emi.emi.api.recipe.EmiRecipeCategory;
@@ -103,7 +103,8 @@ public class FissionBlanketEmiRecipe implements EmiRecipe {
             double pct = totalWeight > 0 ? 100.0 * out.weight() / totalWeight : 0.0;
             String pctLabel = String.format(Locale.ROOT, "%.0f%%", pct);
             widgets.addTooltipText(
-                    List.of(Component.literal(pctLabel + " chance, " + out.instability() + " instability")),
+                    List.of(FissionLang.tr("phoenix_fission.fission_blanket_emi_recipe.chance_instability", pctLabel,
+                            out.instability())),
                     x, y, 18, 18);
         }
 

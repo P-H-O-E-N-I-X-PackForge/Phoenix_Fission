@@ -7,6 +7,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.block.Block;
 import net.phoenix.phoenix_fission.api.block.iface.IFusionComputeType;
+import net.phoenix.phoenix_fission.common.FissionLang;
 
 import lombok.Getter;
 
@@ -25,7 +26,9 @@ public class FusionComputeBlock extends Block {
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip,
                                 TooltipFlag flag) {
-        tooltip.add(Component.literal("Fusion compute module").withStyle(ChatFormatting.LIGHT_PURPLE));
-        tooltip.add(Component.literal("Compute: " + computeType.getCompute()).withStyle(ChatFormatting.GRAY));
+        tooltip.add(FissionLang.tr("phoenix_fission.fusion_compute_block.fusion_compute_module")
+                .withStyle(ChatFormatting.LIGHT_PURPLE));
+        tooltip.add(FissionLang.tr("phoenix_fission.fusion_compute_block.compute", computeType.getCompute())
+                .withStyle(ChatFormatting.GRAY));
     }
 }

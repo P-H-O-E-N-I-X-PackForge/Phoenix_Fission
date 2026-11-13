@@ -15,6 +15,7 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import net.phoenix.phoenix_fission.PhoenixFission;
 import net.phoenix.phoenix_fission.api.block.iface.IFissionFuelRodType;
+import net.phoenix.phoenix_fission.common.FissionLang;
 
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
@@ -75,12 +76,13 @@ public class FissionFuelRodBlock extends ActiveBlock {
             String best = maxDisc >= 100 ? "never" :
                     net.phoenix.phoenix_fission.api.machine.multiblock.managers.FissionFuelManager
                             .formatInterval(perItemSec / (1.0 - maxDisc / 100.0));
-            tooltip.add(Component.literal("Per item, lone rod: " +
-                    net.phoenix.phoenix_fission.api.machine.multiblock.managers.FissionFuelManager
-                            .formatInterval(perItemSec) +
-                    ", up to " + best + " at max moderator discount (" + (int) maxDisc + "%)")
+            tooltip.add(FissionLang
+                    .tr("phoenix_fission.fission_fuel_rod_block.per_item_lone_rod_up",
+                            net.phoenix.phoenix_fission.api.machine.multiblock.managers.FissionFuelManager
+                                    .formatInterval(perItemSec),
+                            best, (int) maxDisc)
                     .withStyle(ChatFormatting.GRAY));
-            tooltip.add(Component.literal("Each rod burns (rods + 1) / 2 times faster in a full reactor")
+            tooltip.add(FissionLang.tr("phoenix_fission.fission_fuel_rod_block.each_rod_burns_rods_1")
                     .withStyle(ChatFormatting.DARK_GRAY));
         }
 
@@ -92,7 +94,8 @@ public class FissionFuelRodBlock extends ActiveBlock {
     }
 
     public static Component getRegistryDisplayName(String key) {
-        if (key.isEmpty()) return Component.literal("None").withStyle(ChatFormatting.GRAY);
+        if (key.isEmpty())
+            return FissionLang.tr("phoenix_fission.fission_cooler_block.none").withStyle(ChatFormatting.GRAY);
 
         ResourceLocation rl = ResourceLocation.tryParse(key);
         if (rl == null) return Component.literal(key).withStyle(ChatFormatting.YELLOW);

@@ -20,7 +20,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.TagParser;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
@@ -41,6 +40,7 @@ import net.phoenix.phoenix_fission.client.gui.FusionGraphsPage;
 import net.phoenix.phoenix_fission.client.gui.FusionHistory;
 import net.phoenix.phoenix_fission.client.gui.FusionHud;
 import net.phoenix.phoenix_fission.client.gui.FusionMathPage;
+import net.phoenix.phoenix_fission.common.FissionLang;
 import net.phoenix.phoenix_fission.common.data.item.PhoenixFissionItems;
 import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
 
@@ -608,8 +608,8 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine impl
         if (!(machine instanceof FusionReactorMachine reactor) || !reactor.isFormed()) return ModifierFunction.IDENTITY;
         int needed = Math.max(1, recipe.data == null ? 1 : recipe.data.getInt("fusion_tier"));
         if (needed > reactor.recipeTier) {
-            return ModifierFunction.cancel(Component.literal("Needs fusion tier " + needed +
-                    " (more compute modules)"));
+            return ModifierFunction.cancel(
+                    FissionLang.tr("phoenix_fission.fusion_reactor_machine.needs_fusion_tier_more_compute", needed));
         }
         int oc = reactor.ocLevels;
         return ModifierFunction.builder()

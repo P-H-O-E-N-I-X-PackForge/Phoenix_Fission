@@ -32,6 +32,18 @@ public class CanvasWidget extends Widget<CanvasWidget> implements Interactable {
     }
 
     @Override
+    public void onMouseDrag(int mouseButton, double dragX, double dragY) {
+        ModularGuiContext ctx = getContext();
+        painter.drag(ctx.getMouseX(), ctx.getMouseY(), mouseButton);
+    }
+
+    @Override
+    public boolean onMouseReleased(int mouseButton) {
+        painter.release(mouseButton);
+        return false;
+    }
+
+    @Override
     public boolean onMouseScrolled(double scrollX, double scrollY) {
         ModularGuiContext ctx = getContext();
         return painter.scroll(ctx.getMouseX(), ctx.getMouseY(), scrollY);

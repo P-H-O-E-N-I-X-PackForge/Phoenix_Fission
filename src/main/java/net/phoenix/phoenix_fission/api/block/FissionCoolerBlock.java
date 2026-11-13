@@ -15,6 +15,7 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import net.phoenix.phoenix_fission.PhoenixFission;
 import net.phoenix.phoenix_fission.api.block.iface.IFissionCoolerType;
+import net.phoenix.phoenix_fission.common.FissionLang;
 
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
@@ -48,8 +49,9 @@ public class FissionCoolerBlock extends ActiveBlock {
                 .withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD));
 
         if (coolerType.isPassive()) {
-            tooltip.add(Component.literal("Passive: no coolant required").withStyle(ChatFormatting.GREEN));
-            tooltip.add(Component.literal("Flat cooling: ")
+            tooltip.add(FissionLang.tr("phoenix_fission.fission_cooler_block.passive_no_coolant_required")
+                    .withStyle(ChatFormatting.GREEN));
+            tooltip.add(FissionLang.tr("phoenix_fission.fission_cooler_block.flat_cooling")
                     .append(Component.literal(String.format("%.0f HU/t", coolerType.getFlatCoolingHUt()))
                             .withStyle(ChatFormatting.AQUA)));
         } else {
@@ -78,7 +80,8 @@ public class FissionCoolerBlock extends ActiveBlock {
             tooltip.add(Component.translatable("phoenix_fission.cooling_power",
                     Component.literal(String.valueOf(coolerType.getCoolerTemperature()))
                             .withStyle(ChatFormatting.BLUE))
-                    .append(Component.literal(" K threshold").withStyle(ChatFormatting.GRAY)));
+                    .append(FissionLang.tr("phoenix_fission.fission_cooler_block.k_threshold")
+                            .withStyle(ChatFormatting.GRAY)));
 
             tooltip.add(Component.translatable("phoenix_fission.conductivity",
                     Component.literal(String.format("%.2f W/m·K", coolerType.getConductivity()))
@@ -88,7 +91,7 @@ public class FissionCoolerBlock extends ActiveBlock {
 
     public static Component getFluidDisplayName(String fluidId) {
         if (fluidId.isEmpty() || "none".equalsIgnoreCase(fluidId)) {
-            return Component.literal("None").withStyle(ChatFormatting.GRAY);
+            return FissionLang.tr("phoenix_fission.fission_cooler_block.none").withStyle(ChatFormatting.GRAY);
         }
 
         ResourceLocation rl = ResourceLocation.tryParse(fluidId);

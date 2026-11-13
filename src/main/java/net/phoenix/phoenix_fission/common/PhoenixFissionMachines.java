@@ -438,5 +438,7 @@ public class PhoenixFissionMachines {
                     GTCEu.id("block/multiblock/fusion_reactor"))
             .register();
 
-    public static void init() {}
+    public static void init() {
+        AscensionReactorMachines.init();
+    }
 }

@@ -8,6 +8,7 @@ import com.gregtechceu.gtceu.api.sync_system.annotations.SaveField;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.phoenix.phoenix_fission.api.machine.multiblock.IStabilityMonitored;
+import net.phoenix.phoenix_fission.common.FissionLang;
 
 import brachy.modularui.factory.PosGuiData;
 import brachy.modularui.screen.UISettings;
@@ -57,27 +58,28 @@ public class FissionStabilitySensorPart extends SensorHatchPartMachine implement
     public void buildMainUI(ParentWidget<?> main, PosGuiData data, PanelSyncManager syncManager,
                             UISettings settings) {
         main.child(new Widget<>().pos(0, 0).size(200, 160));
-        main.child(PartUi.text(10, 8, "§6Fission Stability Sensor"));
+        main.child(PartUi.text(10, 8, "phoenix_fission.ui.fission_stability_sensor"));
         main.child(PartUi.dynamic(10, 24, () -> {
             var controller = getController();
             if (controller instanceof IStabilityMonitored monitored) {
                 double pct = monitored.getStabilityPercent();
                 int sig = getOutputSignal(null);
                 String sigColor = sig > 0 ? "§a" : "§c";
-                return "§7Heat: §f" + String.format(java.util.Locale.ROOT, "%.1f", pct) + "%   §7Signal: " +
-                        sigColor + sig;
+                return FissionLang.tr("phoenix_fission.ui.sensor_heat_signal",
+                        String.format(java.util.Locale.ROOT, "%.1f", pct), sigColor, sig);
             }
-            return "§7Heat: §8N/A   §7Signal: §80";
+            return FissionLang.tr("phoenix_fission.ui.sensor_heat_na");
         }));
         main.child(PartUi.rule(10, 43, 180));
-        main.child(PartUi.text(10, 54, "§fMin Heat Percent:"));
+        main.child(PartUi.text(10, 54, "phoenix_fission.ui.min_heat_percent"));
         main.child(PartUi.intField(115, 49, 75, 0, 200, () -> minPercent, v -> minPercent = v));
-        main.child(PartUi.text(10, 78, "§fMax Heat Percent:"));
+        main.child(PartUi.text(10, 78, "phoenix_fission.ui.max_heat_percent"));
         main.child(PartUi.intField(115, 73, 75, 0, 200, () -> maxPercent, v -> maxPercent = v));
-        main.child(PartUi.text(10, 102, "§fInvert output:"));
-        main.child(PartUi.toggle(115, 98, this::isInverted, this::setInverted, "Invert Signal Output"));
+        main.child(PartUi.text(10, 102, "phoenix_fission.ui.invert_output"));
+        main.child(
+                PartUi.toggle(115, 98, this::isInverted, this::setInverted, "phoenix_fission.ui.invert_signal_output"));
         main.child(PartUi.rule(10, 127, 180));
-        main.child(PartUi.text(10, 138, "Emits signal on all block faces."));
+        main.child(PartUi.text(10, 138, "phoenix_fission.ui.emits_signal_on_all_block"));
     }
 
     @Override

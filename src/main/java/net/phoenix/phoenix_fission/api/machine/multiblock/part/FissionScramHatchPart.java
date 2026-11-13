@@ -11,6 +11,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.phoenix.phoenix_fission.common.FissionLang;
 
 import brachy.modularui.factory.PosGuiData;
 import brachy.modularui.screen.UISettings;
@@ -73,18 +74,18 @@ public class FissionScramHatchPart extends TieredPartMachine implements IMuiMach
     public void buildMainUI(ParentWidget<?> main, PosGuiData data, PanelSyncManager syncManager,
                             UISettings settings) {
         main.child(new Widget<>().pos(0, 0).size(200, 145));
-        main.child(PartUi.text(10, 8, "§cFission SCRAM Hatch"));
-        main.child(PartUi.dynamic(10, 24,
-                () -> isScrammed ? "§c[SCRAM] Reactor HALTED" : "§a[OK] Standby - Reactor Permitted"));
+        main.child(PartUi.text(10, 8, "phoenix_fission.ui.fission_scram_hatch"));
+        main.child(PartUi.dynamic(10, 24, () -> isScrammed ? FissionLang.tr("phoenix_fission.ui.scram_halted") :
+                FissionLang.tr("phoenix_fission.ui.scram_standby")));
         main.child(PartUi.rule(10, 43, 180));
-        main.child(PartUi.text(10, 52, "§eHow it works:"));
-        main.child(PartUi.text(10, 63, "§7Any redstone signal on any face"));
-        main.child(PartUi.text(10, 73, "§7halts the reactor immediately."));
-        main.child(PartUi.text(10, 83, "§7Removing the signal resumes it."));
+        main.child(PartUi.text(10, 52, "phoenix_fission.ui.how_it_works"));
+        main.child(PartUi.text(10, 63, "phoenix_fission.ui.any_redstone_signal_on_any"));
+        main.child(PartUi.text(10, 73, "phoenix_fission.ui.halts_the_reactor_immediately"));
+        main.child(PartUi.text(10, 83, "phoenix_fission.ui.removing_the_signal_resumes_it"));
         main.child(PartUi.rule(10, 102, 180));
-        main.child(PartUi.text(10, 111, "Hint: not every redstone source"));
-        main.child(PartUi.text(10, 121, "behaves the way you expect."));
-        main.child(PartUi.text(10, 131, "Think carefully about signal timing."));
+        main.child(PartUi.text(10, 111, "phoenix_fission.ui.hint_not_every_redstone_source"));
+        main.child(PartUi.text(10, 121, "phoenix_fission.ui.behaves_the_way_you_expect"));
+        main.child(PartUi.text(10, 131, "phoenix_fission.ui.think_carefully_about_signal_timing"));
     }
 
     @Override

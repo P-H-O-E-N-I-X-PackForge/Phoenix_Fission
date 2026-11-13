@@ -21,12 +21,12 @@ final class PartUi {
 
     private PartUi() {}
 
-    static TextWidget<?> text(int x, int y, String legacyText) {
-        return new TextWidget<>(Component.literal(legacyText)).pos(x, y);
+    static TextWidget<?> text(int x, int y, String translationKey) {
+        return new TextWidget<>(Component.translatable(translationKey)).pos(x, y);
     }
 
-    static TextWidget<?> dynamic(int x, int y, Supplier<String> legacyText) {
-        return new TextWidget<>(() -> Component.literal(legacyText.get())).pos(x, y);
+    static TextWidget<?> dynamic(int x, int y, Supplier<Component> text) {
+        return new TextWidget<>(text).pos(x, y);
     }
 
     static Widget<?> rule(int x, int y, int width) {
@@ -40,9 +40,10 @@ final class PartUi {
                 .setDefaultNumber(min);
     }
 
-    static ToggleButton toggle(int x, int y, BooleanSupplier get, BooleanConsumer set, String tooltip) {
+    static ToggleButton toggle(int x, int y, BooleanSupplier get, BooleanConsumer set, String tooltipKey) {
+        String translated = net.minecraft.locale.Language.getInstance().getOrDefault(tooltipKey);
         BooleanSyncValue value = (BooleanSyncValue) new BooleanSyncValue(get, set).allowC2S();
-        return new ToggleButton().pos(x, y).size(18, 18).value(value).addTooltip(true, tooltip)
-                .addTooltip(false, tooltip);
+        return new ToggleButton().pos(x, y).size(18, 18).value(value).addTooltip(true, translated)
+                .addTooltip(false, translated);
     }
 }

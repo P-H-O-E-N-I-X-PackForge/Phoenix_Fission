@@ -12,6 +12,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.phoenix.phoenix_fission.common.FissionLang;
 
 import brachy.modularui.factory.PosGuiData;
 import brachy.modularui.screen.UISettings;
@@ -106,25 +107,25 @@ public class AdvancedFissionScramHatchPart extends TieredPartMachine implements 
     public void buildMainUI(ParentWidget<?> main, PosGuiData data, PanelSyncManager syncManager,
                             UISettings settings) {
         main.child(new Widget<>().pos(0, 0).size(200, 175));
-        main.child(PartUi.text(10, 8, "§6Advanced Fission SCRAM Hatch"));
-        main.child(PartUi.dynamic(10, 24,
-                () -> isScrammed ? "§c[SCRAM] Reactor HALTED" : "§a[OK] Standby - Reactor Permitted"));
+        main.child(PartUi.text(10, 8, "phoenix_fission.ui.advanced_fission_scram_hatch"));
+        main.child(PartUi.dynamic(10, 24, () -> isScrammed ? FissionLang.tr("phoenix_fission.ui.scram_halted") :
+                FissionLang.tr("phoenix_fission.ui.scram_standby")));
         main.child(PartUi.dynamic(10, 36, () -> {
             if (sustainCounter > 0 && !isScrammed) {
-                return String.format("§eArming: %d / %d ticks", sustainCounter, sustainTicks);
+                return FissionLang.tr("phoenix_fission.ui.scram_arming", sustainCounter, sustainTicks);
             } else if (isScrammed) {
-                return "§cArmed and triggered.";
+                return FissionLang.tr("phoenix_fission.ui.scram_triggered");
             }
-            return "§7Waiting for signal...";
+            return FissionLang.tr("phoenix_fission.ui.scram_waiting");
         }));
         main.child(PartUi.rule(10, 53, 180));
-        main.child(PartUi.text(10, 64, "§fMin Signal Strength §7(1-15):"));
+        main.child(PartUi.text(10, 64, "phoenix_fission.ui.min_signal_strength_1_15"));
         main.child(PartUi.intField(10, 76, 80, 1, 15, () -> signalThreshold, v -> signalThreshold = v));
-        main.child(PartUi.text(10, 104, "§fSustain Ticks §7(1-100):"));
+        main.child(PartUi.text(10, 104, "phoenix_fission.ui.sustain_ticks_1_100"));
         main.child(PartUi.intField(10, 116, 80, 1, 100, () -> sustainTicks, v -> sustainTicks = v));
         main.child(PartUi.rule(10, 147, 180));
-        main.child(PartUi.text(10, 156, "Signal must meet strength threshold"));
-        main.child(PartUi.text(10, 166, "for the full sustain duration to SCRAM."));
+        main.child(PartUi.text(10, 156, "gui.phoenix_fission.advanced_scram.hint1"));
+        main.child(PartUi.text(10, 166, "gui.phoenix_fission.advanced_scram.hint2"));
     }
 
     @Override

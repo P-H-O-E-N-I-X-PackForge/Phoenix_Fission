@@ -67,6 +67,9 @@ public class PhoenixFission {
     @OnlyIn(Dist.CLIENT)
     private void clientSetup(final FMLClientSetupEvent event) {
         LOGGER.info("Hey, we're on Minecraft version {}!", Minecraft.getInstance().getLaunchedVersion());
+        event.enqueueWork(() -> com.gregtechceu.gtceu.client.renderer.machine.DynamicRenderManager.register(
+                id("ascension_reactor"),
+                net.phoenix.phoenix_fission.client.render.AscensionReactorRender.TYPE));
     }
 
     private void registerGameTests(RegisterGameTestsEvent event) {
