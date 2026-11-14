@@ -229,5 +229,48 @@ public final class TokamakRecipes {
                 .EUt(VA[ZPM], 16)
                 .addData("fusion_tier", 2)
                 .save(provider);
+
+        prettyRecipes(provider);
+    }
+
+    /**
+     * Fusion recipes that do nothing useful and only make the plasma pretty. They burn liquid dye and give back a
+     * drop of water, so there is nothing to gain from them; the Tokamak draws its plasma in their colours.
+     */
+    private static void prettyRecipes(RecipeOutput provider) {
+        var FUSION = PhoenixRecipeTypes.FUSION_REACTOR_RECIPES;
+
+        // Miku: teal and white, with a little pink
+        FUSION.recipeBuilder("tokamak_pretty_miku")
+                .inputFluids(GTMaterials.DyeCyan.getFluid(250))
+                .inputFluids(GTMaterials.DyeWhite.getFluid(125))
+                .inputFluids(GTMaterials.DyePink.getFluid(25))
+                .outputFluids(GTMaterials.DistilledWater.getFluid(1))
+                .duration(200)
+                .EUt(VA[LuV], 16)
+                .addData("fusion_tier", 1)
+                .save(provider);
+
+        // Teto: red, pink and a drop of black
+        FUSION.recipeBuilder("tokamak_pretty_teto")
+                .inputFluids(GTMaterials.DyeRed.getFluid(250))
+                .inputFluids(GTMaterials.DyePink.getFluid(125))
+                .inputFluids(GTMaterials.DyeBlack.getFluid(25))
+                .outputFluids(GTMaterials.DistilledWater.getFluid(1))
+                .duration(200)
+                .EUt(VA[LuV], 16)
+                .addData("fusion_tier", 1)
+                .save(provider);
+
+        // the Phoenix Forge Technologies logo: purple into magenta, with a little white
+        FUSION.recipeBuilder("tokamak_pretty_pft")
+                .inputFluids(GTMaterials.DyePurple.getFluid(250))
+                .inputFluids(GTMaterials.DyeMagenta.getFluid(125))
+                .inputFluids(GTMaterials.DyeWhite.getFluid(25))
+                .outputFluids(GTMaterials.DistilledWater.getFluid(1))
+                .duration(200)
+                .EUt(VA[LuV], 16)
+                .addData("fusion_tier", 1)
+                .save(provider);
     }
 }

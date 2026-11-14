@@ -260,6 +260,18 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine impl
 
     private final ConditionalSubscriptionHandler tickHandler;
 
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        if (isRemote()) TokamakTracker.add(this);
+    }
+
+    @Override
+    public void onUnload() {
+        super.onUnload();
+        if (isRemote()) TokamakTracker.remove(this);
+    }
+
     public FusionReactorMachine(BlockEntityCreationInfo info, Object... args) {
         super(info);
         this.tickHandler = new ConditionalSubscriptionHandler(this, this::tickReactor, this::isFormed);

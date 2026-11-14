@@ -49,6 +49,16 @@ public class PhoenixFission {
 
         if (FMLEnvironment.dist.isClient()) {
             modEventBus.addListener(this::clientSetup);
+            net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(
+                    net.phoenix.phoenix_fission.client.TokamakCommand::register);
+            net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(
+                    net.phoenix.phoenix_fission.client.TokamakStageRenderer::onStage);
+            // the models name their dynamic renders, and are read when the resources load, which is before the
+            // client setup event: the renders have to be known by then or the models fail to load
+            com.gregtechceu.gtceu.client.renderer.machine.DynamicRenderManager.register(id("ascension_reactor"),
+                    net.phoenix.phoenix_fission.client.render.AscensionReactorRender.TYPE);
+            com.gregtechceu.gtceu.client.renderer.machine.DynamicRenderManager.register(id("tokamak"),
+                    net.phoenix.phoenix_fission.client.render.TokamakRender.TYPE);
             net.phoenix.phoenix_fission.client.FissionColorHandlers.register(modEventBus);
         }
         modEventBus.addListener(this::registerGameTests);
@@ -67,9 +77,6 @@ public class PhoenixFission {
     @OnlyIn(Dist.CLIENT)
     private void clientSetup(final FMLClientSetupEvent event) {
         LOGGER.info("Hey, we're on Minecraft version {}!", Minecraft.getInstance().getLaunchedVersion());
-        event.enqueueWork(() -> com.gregtechceu.gtceu.client.renderer.machine.DynamicRenderManager.register(
-                id("ascension_reactor"),
-                net.phoenix.phoenix_fission.client.render.AscensionReactorRender.TYPE));
     }
 
     private void registerGameTests(RegisterGameTestsEvent event) {

@@ -987,9 +987,39 @@ public final class FusionStructure {
     private static final int BANK_ROW_FROM = 3, BANK_ROW_TO = 7, BANK_COL_FROM = 20, BANK_COL_TO = 24;
     private static final int[][] BANK_SLICES = { { 28, 32 }, { 26, 34 }, { 24, 36 } };
 
+    /**
+     * Windows into the vacuum tube, so the plasma can be seen from the middle of the ring: on the inside of each side
+     * of
+     * the racetrack, the casing and the outer coil behind it are fusion glass for a few blocks. Each is
+     * {sliceFrom, sliceTo, colFrom, colTo}, over the rows of the tube. Only fusion casing and outer coil are replaced,
+     * so a window costs a few coils; make them smaller to keep more.
+     */
+    private static final int WINDOW_ROW_FROM = 13, WINDOW_ROW_TO = 15;
+    private static final int[][] WINDOWS = {
+            { 26, 30, 9, 10 }, // the left side
+            { 26, 30, 41, 42 }, // the right side
+            { 12, 13, 23, 27 }, // the far side
+            { 44, 45, 23, 27 } // the near side
+    };
+
+    private static void windows(String[][] out) {
+        for (int[] w : WINDOWS) {
+            for (int s = w[0]; s <= w[1]; s++) {
+                for (int r = WINDOW_ROW_FROM; r <= WINDOW_ROW_TO; r++) {
+                    char[] c = out[s][r].toCharArray();
+                    for (int col = w[2]; col <= w[3]; col++) {
+                        if (c[col] == 'i' || c[col] == 'j') c[col] = 'w';
+                    }
+                    out[s][r] = new String(c);
+                }
+            }
+        }
+    }
+
     private static String[][] withBank(int level) {
         String[][] out = new String[SLICES.length][];
         for (int s = 0; s < SLICES.length; s++) out[s] = SLICES[s].clone();
+        windows(out);
         if (level <= 0) return out;
         int from = BANK_SLICES[level - 1][0], to = BANK_SLICES[level - 1][1];
         for (int s = from; s <= to; s++) {
