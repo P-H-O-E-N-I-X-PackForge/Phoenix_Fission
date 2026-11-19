@@ -325,3 +325,9 @@ shadowJar {
 tasks.named("build") {
     dependsOn("spotlessApply")
 }
+
+
+// the sources contain section signs and other non-ASCII text; without this javac reads them as the platform charset
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}

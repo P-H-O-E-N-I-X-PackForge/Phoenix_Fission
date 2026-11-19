@@ -33,12 +33,12 @@ public class FusionMathPage implements IFancyUIProvider {
 
     @Override
     public boolean hasPlayerInventory() {
-        return false;
+        return true;
     }
 
     @Override
     public Widget createMainPage(FancyMachineUIWidget widget) {
-        var size = widget.getPageContainer().getSize();
-        return new CanvasWidget(new FusionMathPainter(machine), size.width, size.height);
+        return new CanvasWidget(new FusionMathPainter(machine), FusionReactorMachine.UI_WIDTH,
+                FusionReactorMachine.UI_HEIGHT);
     }
 }
