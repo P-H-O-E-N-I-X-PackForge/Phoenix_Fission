@@ -6,9 +6,11 @@ S121 = SRC + r"\src\main\java\net\phoenix\phoenix_fission"
 S120 = MAIN120 + r"\src\main\java\net\phoenix\phoenix_fission"
 DST = MAIN120 + r"\src\gtm8\java\net\phoenix\phoenix_fission\gtm8"
 
-SKIP_DIRS = {"configs"}                     # shared with the GT7 set
+SKIP_DIRS = {"configs", "gametest"}                     # shared with the GT7 set
 SKIP_FILES = set()
 FROM_120 = {"integration\\kubejs"}          # KubeJS 6 builders come from the 1.20.1 tree instead
+
+SKIP_PREFIX = ("client\\render", "client\\Tokamak", "common\\AscensionReactorMachines", "api\\machine\\multiblock\\AscensionReactorMachine", "client\\gui\\Ascension")  # ported later
 
 PKG = "net.phoenix.phoenix_fission"
 
@@ -46,6 +48,21 @@ def convert(s):
     s = s.replace("BuiltInRegistries.ITEM", "ForgeRegistries.ITEMS").replace("BuiltInRegistries.BLOCK", "ForgeRegistries.BLOCKS").replace("BuiltInRegistries.FLUID", "ForgeRegistries.FLUIDS")
     s = s.replace("import net.minecraft.core.registries.BuiltInRegistries;", "import net.minecraftforge.registries.ForgeRegistries;")
     s = s.replace("ResourceLocation.parse(", "new ResourceLocation(")
+    s = s.replace("net.neoforged.neoforge.common.NeoForge", "net.minecraftforge.common.MinecraftForge").replace("NeoForge.EVENT_BUS", "MinecraftForge.EVENT_BUS")
+    # GT8 on 1.20.1 keeps the older registrate: definitions and recipe types are returned directly
+    s = re.sub(r"MachineEntry<(\w+)>", lambda m: m.group(1), s)
+    s = s.replace("GTRecipeTypeEntry", "GTRecipeType")
+    s = re.sub(r"import com\.gregtechceu\.gtceu\.api\.registry\.registrate\.entry\.\w+;" + chr(10), "", s)
+    s = s.replace("import com.gregtechceu.gtceu.api.registry.registrate.builder.MachineBuilder;", "import com.gregtechceu.gtceu.api.registry.registrate.MachineBuilder;")
+    # 1.20 tooltip signatures
+    if "extends Block" in s or "extends ActiveBlock" in s or "extends FusionCoilBlock" in s:
+        s = s.replace("Item.TooltipContext context", "@javax.annotation.Nullable net.minecraft.world.level.BlockGetter level")
+    else:
+        s = s.replace("Item.TooltipContext context", "@javax.annotation.Nullable net.minecraft.world.level.Level level")
+    s = s.replace("RecipeOutput provider", "java.util.function.Consumer<net.minecraft.data.recipes.FinishedRecipe> provider")
+    s = s.replace("import net.minecraft.data.recipes.RecipeOutput;", "import net.minecraft.data.recipes.FinishedRecipe;")
+    s = re.sub(r"(\w+)\.copyWithAmount\(([^()]+)\)", lambda m: "new FluidStack(" + m.group(1) + ", " + m.group(2) + ")", s)
+    s = s.replace("GTRecipeSerializer.CODEC.codec()", "GTRecipeSerializer.CODEC")
     return s
 
 
@@ -69,7 +86,7 @@ for root, dirs, files in os.walk(S121):
         rel = os.path.normpath(os.path.join(rel_dir, f)) if rel_dir != "." else f
         if rel in SKIP_FILES:
             continue
-        if any(rel.startswith(p) for p in FROM_120):
+        if any(rel.startswith(p) for p in FROM_120) or any(rel.startswith(p) for p in SKIP_PREFIX):
             continue
         process(S121, rel, DST)
         count += 1

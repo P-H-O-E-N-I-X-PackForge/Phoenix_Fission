@@ -190,6 +190,11 @@ test {
     useJUnitPlatform()
 }
 
+tasks.named('compileGtm8Java') {
+    options.compilerArgs.addAll(['-Xmaxerrs', '5000'])
+    options.annotationProcessorPath = configurations.gtm8AnnotationProcessor
+}
+
 jar {
     manifest.attributes([
             "MixinConfigs": "phoenix_fission.mixins.json"
