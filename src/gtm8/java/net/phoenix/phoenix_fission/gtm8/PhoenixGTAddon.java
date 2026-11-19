@@ -12,7 +12,8 @@ public class PhoenixGTAddon implements IGTAddon {
 
     @Override
     public GTRegistrate getRegistrate() {
-        return PhoenixFission.PHOENIX_REGISTRATE;
+        // on GregTech 7 this class is still scanned, but must not touch the GregTech 8 half of the mod
+        return GTRegistrate.create(PhoenixFission.MOD_ID);
     }
 
     @Override
@@ -25,6 +26,7 @@ public class PhoenixGTAddon implements IGTAddon {
 
     @Override
     public void addRecipes(java.util.function.Consumer<net.minecraft.data.recipes.FinishedRecipe> provider) {
+        if (!net.phoenix.phoenix_fission.PhoenixFissionMod.isGregTech8()) return;
         if (!net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs.INSTANCE.fission.fusion.defaultRecipesEnabled)
             return;
         net.phoenix.phoenix_fission.gtm8.common.data.TokamakRecipes.init(provider);

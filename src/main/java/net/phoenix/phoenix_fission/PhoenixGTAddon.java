@@ -16,7 +16,9 @@ public class PhoenixGTAddon implements IGTAddon {
 
     @Override
     public GTRegistrate getRegistrate() {
-        return PhoenixFission.PHOENIX_REGISTRATE;
+        // on GregTech 8 this class is still scanned, but must not touch the GregTech 7 half of the mod
+        return net.phoenix.phoenix_fission.PhoenixFissionMod.isGregTech8() ? GTRegistrate.create(PhoenixFission.MOD_ID) :
+                PhoenixFission.PHOENIX_REGISTRATE;
     }
 
     @Override
@@ -35,6 +37,7 @@ public class PhoenixGTAddon implements IGTAddon {
     /** The default Tokamak recipes are GT's fusion recipes, copied (see TokamakRecipes). */
     @Override
     public void addRecipes(Consumer<FinishedRecipe> provider) {
+        if (net.phoenix.phoenix_fission.PhoenixFissionMod.isGregTech8()) return;
         if (!PhoenixFissionConfigs.INSTANCE.fission.fusion.defaultRecipesEnabled) return;
         TokamakRecipes.init(provider);
     }

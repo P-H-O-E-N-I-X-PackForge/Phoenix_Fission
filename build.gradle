@@ -226,7 +226,8 @@ dependencies {
     modCompileOnly("mezz.jei:jei-${minecraft_version}-forge-api:${jei_version}")
     modCompileOnly("mezz.jei:jei-${minecraft_version}-common-api:${jei_version}")
     modRuntimeOnly("mezz.jei:jei-${minecraft_version}-forge:${jei_version}")
-    modImplementation("dev.emi:emi-forge:${emi_version}+${minecraft_version}")
+    modCompileOnly("dev.emi:emi-forge:${emi_version}+${minecraft_version}")
+    modRuntimeOnly("dev.emi:emi-forge:${project.findProperty('gtm') == '8' ? '1.1.24' : emi_version}+${minecraft_version}")
     modRuntimeOnly("curse.maven:jade-324717:5390389")
     modCompileOnly("curse.maven:jade-324717:5390389")
 
@@ -250,7 +251,13 @@ dependencies {
     modImplementation("com.tterrag.registrate:Registrate:${registrate_version}")
     modImplementation("dev.latvian.mods:kubejs-forge:${kubejs_version}")
     modImplementation("dev.latvian.mods:rhino-forge:${rhino_version}")
-    modImplementation("dev.toma.configuration:configuration-forge-${minecraft_version}:${configuration_version}")
+    modCompileOnly("dev.toma.configuration:configuration-forge-${minecraft_version}:${configuration_version}")
+    // GregTech 8 needs Configuration 3.1 and EMI 1.1.24 or newer; GregTech 7 runs on the versions in gradle.properties.
+    if (project.findProperty('gtm') == '8') {
+        modRuntimeOnly("curse.maven:configuration-444699:5840405")
+    } else {
+        modRuntimeOnly("dev.toma.configuration:configuration-forge-${minecraft_version}:${configuration_version}")
+    }
     modRuntimeOnly("dev.architectury:architectury-forge:${architectury_version}")
 
 

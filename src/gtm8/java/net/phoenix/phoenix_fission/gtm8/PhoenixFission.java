@@ -1,5 +1,8 @@
 package net.phoenix.phoenix_fission.gtm8;
 
+import com.gregtechceu.gtceu.api.GTCEuAPI;
+import com.gregtechceu.gtceu.api.machine.MachineDefinition;
+import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.registry.registrate.GTRegistrate;
 
 import net.minecraft.client.Minecraft;
@@ -48,12 +51,20 @@ public class PhoenixFission {
         }
 
         PhoenixFissionEntities.init();
-        PhoenixRecipeTypes.init();
         PhoenixFissionBlocks.init();
         net.phoenix.phoenix_fission.gtm8.common.data.item.PhoenixFissionItems.init();
         net.phoenix.phoenix_fission.gtm8.common.data.block.PhoenixFusionBlocks.init();
         PhoenixFissionDefaultComponents.init();
         PhoenixDatagen.init();
+        modEventBus.addGenericListener(GTRecipeType.class, this::registerRecipeTypes);
+        modEventBus.addGenericListener(MachineDefinition.class, this::registerMachines);
+    }
+
+    private void registerRecipeTypes(GTCEuAPI.RegisterEvent<ResourceLocation, GTRecipeType> event) {
+        PhoenixRecipeTypes.init();
+    }
+
+    private void registerMachines(GTCEuAPI.RegisterEvent<ResourceLocation, MachineDefinition> event) {
         PhoenixFissionMachines.init();
     }
 

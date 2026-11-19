@@ -16,6 +16,7 @@ public class PhoenixJadePlugin implements IWailaPlugin {
 
     @Override
     public void register(IWailaCommonRegistration registration) {
+        if (net.phoenix.phoenix_fission.PhoenixFissionMod.isGregTech8()) return;
         registration.registerBlockDataProvider(new FissionMachineProvider(), BlockEntity.class);
         registration.registerBlockDataProvider(new RtgArrayProvider(), BlockEntity.class);
         registration.registerBlockDataProvider(new FusionReactorProvider(), BlockEntity.class);
@@ -23,6 +24,7 @@ public class PhoenixJadePlugin implements IWailaPlugin {
 
     @Override
     public void registerClient(IWailaClientRegistration registration) {
+        if (net.phoenix.phoenix_fission.PhoenixFissionMod.isGregTech8()) return;
         registration.registerBlockComponent(new FissionMachineProvider(), Block.class);
         registration.registerBlockComponent(new RtgArrayProvider(), Block.class);
         registration.registerBlockComponent(new FusionReactorProvider(), Block.class);

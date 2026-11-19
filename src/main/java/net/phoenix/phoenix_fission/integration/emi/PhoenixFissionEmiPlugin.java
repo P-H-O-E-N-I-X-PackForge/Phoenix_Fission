@@ -26,6 +26,7 @@ public class PhoenixFissionEmiPlugin implements EmiPlugin {
 
     @Override
     public void register(EmiRegistry registry) {
+        if (net.phoenix.phoenix_fission.PhoenixFissionMod.isGregTech8()) return;
         FUEL_BURN = new EmiRecipeCategory(
                 PhoenixFission.id("fission_fuel_burn"),
                 EmiStack.of(Items.BLAZE_POWDER));

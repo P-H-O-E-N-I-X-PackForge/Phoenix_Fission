@@ -1,1 +1,1 @@
-net.phoenix.phoenix_fission.integration.kubejs.PhoenixKubeJSPlugin
+net.phoenix.phoenix_fission.integration.kubejs.PhoenixKubeJSDispatcher
