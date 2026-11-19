@@ -12,5 +12,6 @@ public class PhoenixDatagen {
     public static void init() {
         PHOENIX_REGISTRATE.addDataGenerator(ProviderType.LANG, PhoenixMachineLangHandler::init);
         PHOENIX_REGISTRATE.addDataGenerator(ProviderType.LANG, PhoenixUiLangHandler::init);
+        PHOENIX_REGISTRATE.addDataGenerator(ProviderType.LANG, net.phoenix.phoenix_fission.datagen.lang.PhoenixFusionLangHandler::init);
     }
 }

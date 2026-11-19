@@ -14,7 +14,7 @@ import com.lowdragmc.lowdraglib.utils.LocalizationUtils;
 
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
-import net.phoenix.phoenix_fission.api.machine.multiblock.FissionWorkableElectricMultiblockMachine;
+import net.phoenix.phoenix_fission.api.machine.multiblock.IStabilityMonitored;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -61,9 +61,8 @@ public class FissionStabilitySensorPart extends SensorHatchPartMachine {
                 super.updateScreen();
                 var controller = getController();
                 String text;
-                if (controller instanceof FissionWorkableElectricMultiblockMachine fission) {
-                    double maxSafe = fission.getMaxSafeHeatHU();
-                    double pct = maxSafe > 0 ? (fission.getHeat() / maxSafe) * 100.0 : 0.0;
+                if (controller instanceof IStabilityMonitored monitored) {
+                    double pct = monitored.getStabilityPercent();
 
                     int sig = getOutputSignal(null);
                     String sigColor = sig > 0 ? "§a" : "§c";
@@ -109,12 +108,9 @@ public class FissionStabilitySensorPart extends SensorHatchPartMachine {
     @Override
     public int getOutputSignal(@Nullable Direction direction) {
         var controller = getController();
-        if (!(controller instanceof FissionWorkableElectricMultiblockMachine fission)) return 0;
+        if (!(controller instanceof IStabilityMonitored monitored)) return 0;
 
-        double maxSafe = fission.getMaxSafeHeatHU();
-        if (maxSafe <= 0) return 0;
-
-        double heatPct = (fission.getHeat() / maxSafe) * 100.0;
+        double heatPct = monitored.getStabilityPercent();
 
         int strength = (int) Math.round((heatPct / 200.0) * 15.0);
         strength = Mth.clamp(strength, 0, 15);

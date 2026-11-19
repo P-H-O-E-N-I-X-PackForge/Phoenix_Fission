@@ -28,6 +28,7 @@ import net.phoenix.phoenix_fission.api.machine.multiblock.BreederWorkableElectri
 import net.phoenix.phoenix_fission.api.machine.multiblock.DynamicFissionReactorMachine;
 import net.phoenix.phoenix_fission.api.machine.multiblock.FissionWorkableElectricMultiblockMachine;
 import net.phoenix.phoenix_fission.api.machine.multiblock.MoltenSaltReactorMultiblockMachine;
+import net.phoenix.phoenix_fission.api.machine.multiblock.FusionReactorMachine;
 import net.phoenix.phoenix_fission.api.machine.multiblock.RtgArrayMachine;
 import net.phoenix.phoenix_fission.api.machine.multiblock.ThermoelectricGeneratorMachine;
 import net.phoenix.phoenix_fission.api.machine.multiblock.part.AdvancedFissionScramHatchPart;
@@ -480,6 +481,27 @@ public class PhoenixFissionMachines {
                     .where('C', Predicates.blocks(PhoenixFissionBlocks.FISSILE_HEAT_SAFE_CASING.get()))
                     .where('G', Predicates.controller(Predicates.blocks(definition.get())))
                     .build())
+            .workableCasingModel(
+                    PhoenixFission.id("block/fission/fissile_reaction_safe_casing"),
+                    GTCEu.id("block/multiblock/fusion_reactor"))
+            .register();
+
+    public static final MultiblockMachineDefinition FUSION_REACTOR = PHOENIX_REGISTRATE
+            .multiblock("fusion_reactor", FusionReactorMachine::new)
+            .langValue("§dTokamak Fusion Reactor")
+            .rotationState(RotationState.NON_Y_AXIS)
+            .recipeType(PhoenixRecipeTypes.FUSION_REACTOR_RECIPES)
+            .recipeModifiers(FusionReactorMachine::recipeModifier)
+            .appearanceBlock(PhoenixFissionBlocks.FISSILE_REACTION_SAFE_CASING)
+            .tooltips(
+                    Component.translatable("phoenix_fission.machine.fusion_reactor.tooltip1"),
+                    Component.translatable("phoenix_fission.machine.fusion_reactor.tooltip2"),
+                    Component.translatable("phoenix_fission.machine.fusion_reactor.tooltip3"),
+                    Component.translatable("phoenix_fission.machine.fusion_reactor.tooltip4"),
+                    Component.translatable("phoenix_fission.machine.fusion_reactor.tooltip5"),
+                    Component.translatable("phoenix_fission.machine.fusion_reactor.tooltip6"),
+                    Component.translatable("phoenix_fission.machine.fusion_reactor.tooltip7"))
+            .pattern(definition -> FusionStructure.build(definition))
             .workableCasingModel(
                     PhoenixFission.id("block/fission/fissile_reaction_safe_casing"),
                     GTCEu.id("block/multiblock/fusion_reactor"))

@@ -116,6 +116,9 @@ public class PhoenixFissionConfigs {
         public RtgConfigs rtg = new RtgConfigs();
 
         @Configurable
+        public FusionConfigs fusion = new FusionConfigs();
+
+        @Configurable
         @Configurable.Comment("Cube radius in blocks. Total affected volume is (2r+1)^3.")
         public int nukeCubeRadius = 16;
 
@@ -359,6 +362,13 @@ public class PhoenixFissionConfigs {
     public static class RtgConfigs {
 
         @Configurable
+        @Configurable.Comment({
+                "Registers the four default RTG cells. Turn off to supply your own (KubeJS 'rtg_cell' items).",
+                "Needs a restart."
+        })
+        public boolean defaultCellsEnabled = true;
+
+        @Configurable
         @Configurable.Comment("Multiplies the EU/t every RTG cell produces.")
         public double euMultiplier = 1.0;
 
@@ -368,5 +378,188 @@ public class PhoenixFissionConfigs {
                 "Set very high for effectively indefinite cells."
         })
         public double lifespanMultiplier = 1.0;
+    }
+
+    public static class FusionConfigs {
+
+        @Configurable
+        @Configurable.Comment({
+                "Registers the default fusion coils and compute modules. Turn off to supply your own",
+                "(KubeJS 'fusion_coil' / 'fusion_compute' blocks or the Java API). Needs a restart."
+        })
+        public boolean defaultComponentsEnabled = true;
+
+        @Configurable
+        @Configurable.Comment({
+                "GregTech 7 has no substructures, so there is no compute room here: the Tokamak's compute is this flat",
+                "number. It sets parallels, threads and the recipe tier exactly like built compute would."
+        })
+        public int flatCompute = 100;
+
+        @Configurable
+        @Configurable.Comment("Adds the default fusion recipes (a copy of GT's). Turn off to write your own.")
+        public boolean defaultRecipesEnabled = true;
+
+        @Configurable
+        @Configurable.Comment("EU/t of output per point of plasma power at full throttle and a perfect field.")
+        public double euPerHeat = 8.0;
+
+        @Configurable
+        @Configurable.Comment("Field strength the outer coils must supply per point of plasma power in use.")
+        public double confinementPerHeat = 1.0;
+
+        @Configurable
+        @Configurable.Comment("Field drift points gained per second while the field is under-supplied (0-100 quenches).")
+        public double driftPerSecond = 2.0;
+
+        @Configurable
+        @Configurable.Comment("How long the reactor stays dead after a quench, in ticks.")
+        public int quenchCooldownTicks = 1200;
+
+        @Configurable
+        @Configurable.Comment("mB of each fuel fluid burned per second at full throttle.")
+        public int fuelPerSecondMb = 20;
+
+        @Configurable
+        @Configurable.Comment("First fuel fluid.")
+        public String fuelAFluidId = "gtceu:deuterium";
+
+        @Configurable
+        @Configurable.Comment("Second fuel fluid.")
+        public String fuelBFluidId = "gtceu:tritium";
+
+        @Configurable
+        @Configurable.Comment("Waste points produced per second per point of plasma power in use.")
+        public double wasteRatePerHeat = 0.02;
+
+        @Configurable
+        @Configurable.Comment("Waste points that make one Activated Fusion Waste item.")
+        public int wastePointsPerItem = 1000;
+
+        @Configurable
+        @Configurable.Comment("Contamination gained per second while a waste item has nowhere to go.")
+        public double contaminationPerBlockedSecond = 1.5;
+
+        @Configurable
+        @Configurable.Comment("Fluid used to purge contamination (an air intake feeding a fluid input hatch).")
+        public String purgeFluidId = "gtceu:air";
+
+        @Configurable
+        @Configurable.Comment("mB of purge fluid used per second while there is contamination to clear.")
+        public int purgePerSecondMb = 40;
+
+        @Configurable
+        @Configurable.Comment("Contamination removed per second while purging.")
+        public double purgeRate = 2.0;
+
+        @Configurable
+        @Configurable.Comment("Compute at which field drift is halved. Drift is divided by (1 + compute / this).")
+        public double computeDriftHalf = 100.0;
+
+        @Configurable
+        @Configurable.Comment("Compute needed per extra parallel lane (each lane multiplies output, fuel, waste and coolant).")
+        public int computePerParallel = 30;
+
+        @Configurable
+        @Configurable.Comment("Hard cap on parallel lanes.")
+        public int maxParallels = 8;
+
+        @Configurable
+        @Configurable.Comment("Compute needed per extra thread (used by recipe batching).")
+        public int computePerThread = 80;
+
+        @Configurable
+        @Configurable.Comment("Hard cap on threads.")
+        public int maxThreads = 4;
+
+        @Configurable
+        @Configurable.Comment("Compute needed to run tier 2 fusion recipes.")
+        public int tier2Compute = 40;
+
+        @Configurable
+        @Configurable.Comment("Compute needed to run tier 3 fusion recipes.")
+        public int tier3Compute = 160;
+
+        @Configurable
+        @Configurable.Comment("Energy input hatches needed for the first overclock (halves duration, doubles EUt).")
+        public int ocHatchesLevel1 = 2;
+
+        @Configurable
+        @Configurable.Comment("Energy input hatches needed for the second overclock.")
+        public int ocHatchesLevel2 = 8;
+
+        @Configurable
+        @Configurable.Comment("Gas held in the chamber to keep it at the pressure setpoint.")
+        public String pressureGasFluidId = "gtceu:nitrogen";
+
+        @Configurable
+        @Configurable.Comment("mB of pressure gas used per second at a 100% pressure setpoint (scales with the setpoint).")
+        public int pressureGasPerSecondMb = 30;
+
+        @Configurable
+        @Configurable.Comment("Chamber pressure (0-100) the plasma wants, per percent of throttle.")
+        public double pressurePerThrottle = 0.8;
+
+        @Configurable
+        @Configurable.Comment("Pressure error that is tolerated before the plasma starts to drift faster.")
+        public double pressureTolerance = 15.0;
+
+        @Configurable
+        @Configurable.Comment({
+                "Item fed in as a neutron source (radiation input). One is used per interval while burning.",
+                "The default is the reactor's own waste, so fusion can feed itself."
+        })
+        public String radiationItemId = "phoenix_fission:fusion_waste";
+
+        @Configurable
+        @Configurable.Comment({
+                "Outer confinement coils are GT heating coil blocks (cupronickel is the base).",
+                "Field strength one cupronickel coil gives."
+        })
+        public int outerCoilBaseConfinement = 60;
+
+        @Configurable
+        @Configurable.Comment("Extra field per coil tier above cupronickel, as a fraction (0.25 = +25% per tier).")
+        public double outerCoilTierBoost = 0.25;
+
+        @Configurable
+        @Configurable.Comment("EU/t each outer coil draws to hold its field.")
+        public long outerCoilUpkeepEut = 100;
+
+        @Configurable
+        @Configurable.Comment("mB/s of coolant gas each outer coil uses.")
+        public int outerCoilCoolantPerSecond = 1;
+
+        @Configurable
+        @Configurable.Comment("Coil tiers below this use the low coolant, this tier and above use the high one.")
+        public int outerCoilCoolantTierSplit = 2;
+
+        @Configurable
+        @Configurable.Comment("Coolant gas for the lower tiers. Supplied as a gas; the reactor liquefies it internally.")
+        public String coolantLowFluidId = "gtceu:nitrogen";
+
+        @Configurable
+        @Configurable.Comment("Coolant gas for the higher tiers.")
+        public String coolantHighFluidId = "gtceu:helium";
+
+        @Configurable
+        @Configurable.Comment("Fluid made when air is used to purge contamination.")
+        public String radonFluidId = "gtceu:radon";
+
+        @Configurable
+        @Configurable.Comment("mB of radon made per second of purging. Needs a fluid output hatch.")
+        public int radonPerPurgeMb = 20;
+
+        @Configurable
+        @Configurable.Comment("Seconds a single radiation item lasts.")
+        public int radiationItemSeconds = 30;
+
+        @Configurable
+        @Configurable.Comment("Output multiplier while the plasma is being irradiated.")
+        public double radiationOutputBoost = 1.25;
+
+        @Configurable
+        @Configurable.Comment("Waste multiplier while the plasma is being irradiated.")
+        public double radiationWasteBoost = 1.5;
     }
 }

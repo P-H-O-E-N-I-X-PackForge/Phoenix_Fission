@@ -18,7 +18,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.phoenix.phoenix_fission.api.machine.multiblock.FissionWorkableElectricMultiblockMachine;
 
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
@@ -106,9 +105,7 @@ public class AdvancedFissionScramHatchPart extends TieredPartMachine {
 
     private void notifyController() {
         for (var controller : getControllers()) {
-            if (controller instanceof FissionWorkableElectricMultiblockMachine fission) {
-                fission.markDirty();
-            }
+            if (controller instanceof com.gregtechceu.gtceu.api.machine.MetaMachine machine) machine.markDirty();
         }
     }
 

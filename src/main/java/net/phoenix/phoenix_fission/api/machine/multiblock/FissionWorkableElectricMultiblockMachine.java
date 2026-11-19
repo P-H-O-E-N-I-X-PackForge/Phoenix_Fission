@@ -50,7 +50,7 @@ import java.util.*;
 
 @MethodsReturnNonnullByDefault
 public class FissionWorkableElectricMultiblockMachine extends WorkableElectricMultiblockMachine
-                                                      implements IExplosionMachine {
+                                                      implements IExplosionMachine, IStabilityMonitored {
 
     protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(
             FissionWorkableElectricMultiblockMachine.class,
@@ -271,6 +271,12 @@ public class FissionWorkableElectricMultiblockMachine extends WorkableElectricMu
         }
 
         return fuelManager.hasFuelAvailableForNextTick();
+    }
+
+    @Override
+    public double getStabilityPercent() {
+        double maxSafe = getMaxSafeHeatHU();
+        return maxSafe <= 0 ? 0 : getHeat() / maxSafe * 100.0;
     }
 
     public boolean isScramActive() {

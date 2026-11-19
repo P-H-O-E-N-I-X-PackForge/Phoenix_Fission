@@ -21,6 +21,8 @@ public class PhoenixRecipeTypes {
     public static GTRecipeType THERMOELECTRIC_GENERATOR_RECIPES;
     /** Placeholder so the RTG Array is a normal multiblock; it has no recipes, the cells are the fuel. */
     public static GTRecipeType RTG_ARRAY_RECIPES;
+    /** Fusion processing recipes. They carry a "fusion_tier" data value; the reactor's compute sets its tier. */
+    public static GTRecipeType FUSION_REACTOR_RECIPES;
 
     public static void init() {
         HIGH_PERFORMANCE_BREEDER_REACTOR_RECIPES = register("high_performance_breeder_reactor", MULTIBLOCK)
@@ -75,5 +77,9 @@ public class PhoenixRecipeTypes {
         RTG_ARRAY_RECIPES = register("rtg_array", MULTIBLOCK)
                 .setMaxIOSize(0, 0, 0, 0)
                 .setEUIO(IO.OUT);
+
+        FUSION_REACTOR_RECIPES = register("tokamak_fusion", MULTIBLOCK)
+                .setMaxIOSize(0, 0, 3, 3)
+                .setEUIO(IO.IN);
     }
 }

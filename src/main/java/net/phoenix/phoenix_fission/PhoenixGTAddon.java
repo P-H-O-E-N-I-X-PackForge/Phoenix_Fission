@@ -4,6 +4,12 @@ import com.gregtechceu.gtceu.api.addon.GTAddon;
 import com.gregtechceu.gtceu.api.addon.IGTAddon;
 import com.gregtechceu.gtceu.api.registry.registrate.GTRegistrate;
 
+import net.minecraft.data.recipes.FinishedRecipe;
+import net.phoenix.phoenix_fission.common.data.TokamakRecipes;
+import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
+
+import java.util.function.Consumer;
+
 @SuppressWarnings("unused")
 @GTAddon
 public class PhoenixGTAddon implements IGTAddon {
@@ -24,5 +30,12 @@ public class PhoenixGTAddon implements IGTAddon {
     @Override
     public void registerElements() {
         IGTAddon.super.registerElements();
+    }
+
+    /** The default Tokamak recipes are GT's fusion recipes, copied (see TokamakRecipes). */
+    @Override
+    public void addRecipes(Consumer<FinishedRecipe> provider) {
+        if (!PhoenixFissionConfigs.INSTANCE.fission.fusion.defaultRecipesEnabled) return;
+        TokamakRecipes.init(provider);
     }
 }

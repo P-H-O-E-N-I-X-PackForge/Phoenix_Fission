@@ -1,6 +1,8 @@
 package net.phoenix.phoenix_fission.api.pattern;
 
+import com.gregtechceu.gtceu.api.GTCEuAPI;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
+import com.gregtechceu.gtceu.common.block.CoilBlock;
 
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
 
@@ -192,5 +194,44 @@ public class PhoenixFissionPredicates {
                     .toArray(BlockInfo[]::new);
             return infos.length > 0 ? infos : new BlockInfo[] { emptyComponentFallback() };
         }).addTooltips(Component.translatable("phoenix.multiblock.pattern.info.multiple_liners"));
+    }
+
+    /** Fusion inner plasma coils (custom blocks, KubeJS or the default set). */
+    public static TraceabilityPredicate fusionInnerCoils() {
+        return new TraceabilityPredicate(blockWorldState -> {
+            var blockState = blockWorldState.getBlockState();
+            var emptyBlock = safeGet(PhoenixFissionBlocks.EMPTY_REACTOR_COMPONENT);
+            if (PhoenixAPI.FUSION_INNER_COILS.isEmpty() && emptyBlock != null && blockState.is(emptyBlock)) {
+                return true;
+            }
+            return blockState.getBlock() instanceof FusionCoilBlock.Inner;
+        }, () -> {
+            var infos = PhoenixAPI.FUSION_INNER_COILS.entrySet().stream()
+                    .sorted(Comparator.comparing(e -> e.getKey().getName()))
+                    .map(e -> safeGet(e.getValue()))
+                    .filter(Objects::nonNull)
+                    .map(b -> BlockInfo.fromBlockState(b.defaultBlockState()))
+                    .toArray(BlockInfo[]::new);
+            return infos.length > 0 ? infos : new BlockInfo[] { emptyComponentFallback() };
+        }).addTooltips(Component.translatable("phoenix.multiblock.pattern.info.fusion_inner_coils"));
+    }
+
+    /** GT heating coils (cupronickel and up) or any custom fusion outer coil. */
+    public static TraceabilityPredicate fusionOuterCoils() {
+        return new TraceabilityPredicate(blockWorldState -> {
+            var block = blockWorldState.getBlockState().getBlock();
+            return block instanceof FusionCoilBlock.Outer || block instanceof CoilBlock;
+        }, () -> {
+            List<BlockInfo> infos = new ArrayList<>();
+            GTCEuAPI.HEATING_COILS.entrySet().stream()
+                    .sorted(Comparator.comparingInt(e -> e.getKey().getTier()))
+                    .map(e -> safeGet(e.getValue()))
+                    .filter(Objects::nonNull)
+                    .forEach(b -> infos.add(BlockInfo.fromBlockState(b.defaultBlockState())));
+            PhoenixAPI.FUSION_OUTER_COILS.values().stream().map(PhoenixFissionPredicates::safeGet)
+                    .filter(Objects::nonNull)
+                    .forEach(b -> infos.add(BlockInfo.fromBlockState(b.defaultBlockState())));
+            return infos.isEmpty() ? new BlockInfo[] { emptyComponentFallback() } : infos.toArray(BlockInfo[]::new);
+        }).addTooltips(Component.translatable("phoenix.multiblock.pattern.info.fusion_outer_coils"));
     }
 }

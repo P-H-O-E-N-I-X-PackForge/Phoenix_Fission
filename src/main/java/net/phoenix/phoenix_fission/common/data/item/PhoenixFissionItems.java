@@ -1,5 +1,8 @@
 package net.phoenix.phoenix_fission.common.data.item;
 
+import com.gregtechceu.gtceu.GTCEu;
+
+import net.minecraft.world.item.Item;
 import net.phoenix.phoenix_fission.api.item.RtgCellItem;
 import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
 
@@ -24,7 +27,16 @@ public class PhoenixFissionItems {
 
     public static final List<ItemEntry<RtgCellItem>> RTG_CELLS = new ArrayList<>();
 
+    /** By-product of fusion; turn it into RTG cells or dispose of it. */
+    public static ItemEntry<Item> FUSION_WASTE;
+
     public static void init() {
+        FUSION_WASTE = PHOENIX_REGISTRATE.item("fusion_waste", Item::new)
+                .lang("Activated Fusion Waste")
+                .model(NonNullBiConsumer.noop())
+                .register();
+
+        if (!PhoenixFissionConfigs.INSTANCE.fission.rtg.defaultCellsEnabled && !GTCEu.isDataGen()) return;
         double lifespanMul = Math.max(0.01, PhoenixFissionConfigs.INSTANCE.fission.rtg.lifespanMultiplier);
         for (RtgTier tier : RTG_TIERS) {
             int lifespan = (int) Math.min(Integer.MAX_VALUE - 1, Math.max(1, tier.lifespanSeconds() * lifespanMul));
