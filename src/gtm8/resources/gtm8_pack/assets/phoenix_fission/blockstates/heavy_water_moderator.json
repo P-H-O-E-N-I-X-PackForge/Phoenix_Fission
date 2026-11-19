@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "phoenix_fission:block/heavy_water_moderator"
+    }
+  }
+}

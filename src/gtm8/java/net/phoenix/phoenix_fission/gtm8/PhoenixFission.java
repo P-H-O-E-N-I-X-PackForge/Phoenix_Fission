@@ -41,12 +41,34 @@ public class PhoenixFission {
                             .icon(() -> PhoenixFissionBlocks.FISSILE_REACTION_SAFE_CASING.asStack()))
             .register();
 
+    private static boolean dynamicRendersRegistered;
+
+    /**
+     * The machine models name their dynamic renders, and are read before the client setup event, so the renders have
+     * to be known by then. Datagen needs them too: whichever comes first registers them, as GregTech throws on a
+     * second registration. Only call this on the client or in datagen.
+     */
+    public static synchronized void registerDynamicRenders() {
+        if (dynamicRendersRegistered) return;
+        dynamicRendersRegistered = true;
+        com.gregtechceu.gtceu.client.renderer.machine.DynamicRenderManager.register(id("ascension_reactor"),
+                net.phoenix.phoenix_fission.gtm8.client.render.AscensionReactorRender.TYPE);
+        com.gregtechceu.gtceu.client.renderer.machine.DynamicRenderManager.register(id("tokamak"),
+                net.phoenix.phoenix_fission.gtm8.client.render.TokamakRender.TYPE);
+    }
+
     public PhoenixFission() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         PhoenixFissionConfigs.init();
 
         if (FMLEnvironment.dist.isClient()) {
             modEventBus.addListener(this::clientSetup);
+            modEventBus.addListener(net.phoenix.phoenix_fission.gtm8.client.render.TokamakVolume::onRegisterShaders);
+            net.minecraftforge.common.MinecraftForge.EVENT_BUS.addListener(
+                    net.phoenix.phoenix_fission.gtm8.client.TokamakCommand::register);
+            net.minecraftforge.common.MinecraftForge.EVENT_BUS.addListener(
+                    net.phoenix.phoenix_fission.gtm8.client.TokamakStageRenderer::onStage);
+            registerDynamicRenders();
             net.phoenix.phoenix_fission.gtm8.client.FissionColorHandlers.register(modEventBus);
         }
 
@@ -56,8 +78,23 @@ public class PhoenixFission {
         net.phoenix.phoenix_fission.gtm8.common.data.block.PhoenixFusionBlocks.init();
         PhoenixFissionDefaultComponents.init();
         PhoenixDatagen.init();
+        modEventBus.addListener(this::addGtm8Pack);
         modEventBus.addGenericListener(GTRecipeType.class, this::registerRecipeTypes);
         modEventBus.addGenericListener(MachineDefinition.class, this::registerMachines);
+    }
+
+    /** The generated models, blockstates and lang for GregTech 8, in a built-in pack on top of the shared assets. */
+    private void addGtm8Pack(net.minecraftforge.event.AddPackFindersEvent event) {
+        var type = event.getPackType();
+        var file = net.minecraftforge.fml.ModList.get().getModFileById(MOD_ID);
+        if (file == null) return;
+        java.nio.file.Path root = file.getFile().findResource("gtm8_pack");
+        var pack = net.minecraft.server.packs.repository.Pack.readMetaAndCreate("phoenix_fission_gtm8",
+                net.minecraft.network.chat.Component.literal("Phoenix's Fission (GregTech 8)"), true,
+                id -> new net.minecraftforge.resource.PathPackResources(id, true, root),
+                type, net.minecraft.server.packs.repository.Pack.Position.TOP,
+                net.minecraft.server.packs.repository.PackSource.BUILT_IN);
+        if (pack != null) event.addRepositorySource(consumer -> consumer.accept(pack));
     }
 
     private void registerRecipeTypes(GTCEuAPI.RegisterEvent<ResourceLocation, GTRecipeType> event) {

@@ -1,0 +1,28 @@
+{
+  "variants": {
+    "facing=down": {
+      "model": "phoenix_fission:block/machine/ev_fission_advanced_scram_hatch",
+      "x": 90
+    },
+    "facing=east": {
+      "model": "phoenix_fission:block/machine/ev_fission_advanced_scram_hatch",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "phoenix_fission:block/machine/ev_fission_advanced_scram_hatch"
+    },
+    "facing=south": {
+      "model": "phoenix_fission:block/machine/ev_fission_advanced_scram_hatch",
+      "y": 180
+    },
+    "facing=up": {
+      "gtceu:z": 180,
+      "model": "phoenix_fission:block/machine/ev_fission_advanced_scram_hatch",
+      "x": 270
+    },
+    "facing=west": {
+      "model": "phoenix_fission:block/machine/ev_fission_advanced_scram_hatch",
+      "y": 270
+    }
+  }
+}

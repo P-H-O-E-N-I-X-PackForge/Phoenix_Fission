@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "bottom": "phoenix_fission:block/nuke_bottom",
+    "side": "phoenix_fission:block/nuke_side",
+    "top": "phoenix_fission:block/nuke_top"
+  }
+}

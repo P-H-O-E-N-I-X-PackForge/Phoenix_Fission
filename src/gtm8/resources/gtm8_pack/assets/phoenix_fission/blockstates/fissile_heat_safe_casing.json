@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "phoenix_fission:block/fissile_heat_safe_casing"
+    }
+  }
+}

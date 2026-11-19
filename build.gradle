@@ -41,6 +41,8 @@ sourceSets {
     // picks one set at startup from the installed GregTech version; the other set is never loaded.
     gtm8 {
         java.srcDir 'src/gtm8/java'
+        // GregTech 8 generates its own model/blockstate/lang files (its machine models are a different format), which
+        // would collide with the GregTech 7 ones, so they live in a built-in resource pack (src/gtm8/resources/gtm8_pack) that only loads on GT 8
     }
 
 }
@@ -155,7 +157,7 @@ legacyForge {
 
         data {
             data()
-            programArguments.addAll('--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath())
+            programArguments.addAll('--mod', project.mod_id, '--all', '--output', file(project.findProperty('gtm') == '8' ? 'src/gtm8/resources/gtm8_pack/' : 'src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath())
             programArguments.addAll('--existing-mod', 'gtceu')
         }
 

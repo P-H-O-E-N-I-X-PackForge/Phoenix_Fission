@@ -432,10 +432,22 @@ public class PhoenixFissionMachines {
             .pattern("compute_1", definition -> FusionStructure.build(definition, 1))
             .pattern("compute_2", definition -> FusionStructure.build(definition, 2))
             .pattern("compute_3", definition -> FusionStructure.build(definition, 3))
-            .workableCasingModel(PhoenixFission.id("block/fission/fissile_reaction_safe_casing"),
-                    GTCEu.id("block/multiblock/fusion_reactor"))
+            .model(com.gregtechceu.gtceu.common.data.models.GTMachineModels.createWorkableCasingMachineModel(
+                    PhoenixFission.id("block/fission/fissile_reaction_safe_casing"),
+                    GTCEu.id("block/multiblock/fusion_reactor")).andThen(
+                            b -> b.addDynamicRenderer(
+                                    () -> net.phoenix.phoenix_fission.gtm8.client.render.TokamakRender.INSTANCE)))
+            .hasBER(true)
             .register();
 
+    static {
+        if (GTCEu.isDataGen()) {
+            // the model data names its dynamic render, so the render has to be known before it is written
+            PhoenixFission.registerDynamicRenders();
+        }
+    }
+
     public static void init() {
+        AscensionReactorMachines.init();
     }
 }

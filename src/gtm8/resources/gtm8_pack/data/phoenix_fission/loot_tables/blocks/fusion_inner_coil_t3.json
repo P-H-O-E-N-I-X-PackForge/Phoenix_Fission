@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "phoenix_fission:fusion_inner_coil_t3"
+        }
+      ],
+      "rolls": 1.0
+    }
+  ],
+  "random_sequence": "phoenix_fission:blocks/fusion_inner_coil_t3"
+}
