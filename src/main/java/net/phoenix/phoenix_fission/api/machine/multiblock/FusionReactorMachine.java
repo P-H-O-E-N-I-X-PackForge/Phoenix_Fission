@@ -474,7 +474,8 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine impl
         }
         ResourceLocation rl = ResourceLocation.tryParse(cfg.radiationItemId);
         var item = rl == null ? null : ForgeRegistries.ITEMS.getValue(rl);
-        if (item != null && item != net.minecraft.world.item.Items.AIR && HatchIO.item(this, new ItemStack(item), IO.IN, true) &&
+        if (item != null && item != net.minecraft.world.item.Items.AIR &&
+                HatchIO.item(this, new ItemStack(item), IO.IN, true) &&
                 HatchIO.item(this, new ItemStack(item), IO.IN, false)) {
             radiationSeconds = Math.max(1, cfg.radiationItemSeconds);
             radiationActive = true;
@@ -505,8 +506,6 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine impl
             }
         }
     }
-
-
 
     private void tryStartThread(RecipeThread thread) {
         var iterator = getRecipeLogic().searchRecipe();
@@ -660,6 +659,13 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine impl
         super.attachSideTabs(tabs);
         tabs.attachSubTab(new FusionMathPage(this));
         tabs.attachSubTab(new FusionGraphsPage(this));
+    }
+
+    /** The home page is the HUD; GregTech's own page of status text is not used. */
+    @Override
+    public com.lowdragmc.lowdraglib.gui.widget.Widget createMainPage(
+                                                                     com.gregtechceu.gtceu.api.gui.fancy.FancyMachineUIWidget widget) {
+        return FusionFancyUIWidget.hudPage(this, UI_WIDTH, UI_HEIGHT);
     }
 
     @Override

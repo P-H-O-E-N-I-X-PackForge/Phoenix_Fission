@@ -1,30 +1,26 @@
 package net.phoenix.phoenix_fission.api.machine.multiblock;
 
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
+import com.gregtechceu.gtceu.api.gui.fancy.TabsWidget;
+import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.common.block.CoilBlock;
 
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
-import com.gregtechceu.gtceu.api.gui.fancy.TabsWidget;
-
 import net.minecraft.core.BlockPos;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.phoenix.phoenix_fission.client.gui.AscensionPage;
-import net.phoenix.phoenix_fission.client.gui.AscensionGraphsTab;
-import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.registries.ForgeRegistries;
 import net.phoenix.phoenix_fission.api.block.FusionCoilBlock;
-import net.phoenix.phoenix_fission.client.gui.AscensionGraphsPage;
+import net.phoenix.phoenix_fission.client.gui.AscensionGraphsTab;
 import net.phoenix.phoenix_fission.client.gui.AscensionHistory;
-import net.phoenix.phoenix_fission.client.gui.AscensionHud;
+import net.phoenix.phoenix_fission.client.gui.AscensionPage;
 import net.phoenix.phoenix_fission.configs.PhoenixFissionConfigs;
-
 
 import java.util.Random;
 

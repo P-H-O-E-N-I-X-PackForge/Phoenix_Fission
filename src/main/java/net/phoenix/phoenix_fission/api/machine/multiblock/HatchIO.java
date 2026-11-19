@@ -3,9 +3,8 @@ package net.phoenix.phoenix_fission.api.machine.multiblock;
 import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.IRecipeCapabilityHolder;
-import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
-import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
+import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
@@ -28,9 +27,8 @@ public final class HatchIO {
             if (simulate || !matches) return matches;
         }
         if (simulate) return true;
-        java.util.Map<RecipeCapability<?>, Object2IntMap<?>> caches =
-                machine instanceof com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine logic ?
-                        logic.getRecipeLogic().getChanceCaches() : new java.util.HashMap<>();
+        java.util.Map<RecipeCapability<?>, Object2IntMap<?>> caches = machine instanceof com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine logic ?
+                logic.getRecipeLogic().getChanceCaches() : new java.util.HashMap<>();
         return RecipeHelper.handleRecipeIO(machine, dummy, type, caches).isSuccess();
     }
 

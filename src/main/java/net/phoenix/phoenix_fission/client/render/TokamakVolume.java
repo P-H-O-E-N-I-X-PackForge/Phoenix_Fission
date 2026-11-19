@@ -1,6 +1,5 @@
 package net.phoenix.phoenix_fission.client.render;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraftforge.client.event.RegisterShadersEvent;
 import net.phoenix.phoenix_fission.PhoenixFission;

@@ -17,7 +17,8 @@ public class PhoenixGTAddon implements IGTAddon {
     @Override
     public GTRegistrate getRegistrate() {
         // on GregTech 8 this class is still scanned, but must not touch the GregTech 7 half of the mod
-        return net.phoenix.phoenix_fission.PhoenixFissionMod.isGregTech8() ? GTRegistrate.create(PhoenixFission.MOD_ID) :
+        return net.phoenix.phoenix_fission.PhoenixFissionMod.isGregTech8() ?
+                GTRegistrate.create(PhoenixFission.MOD_ID) :
                 PhoenixFission.PHOENIX_REGISTRATE;
     }
 
