@@ -36,6 +36,13 @@ sourceSets {
 
     }
 
+    // The GregTech 8 implementation. GT 8 has a different API from 7.x (substructures, ModularUI, new sync system), so
+    // its code is a separate set of classes, compiled against GT 8 and shipped in the same jar. The mod entry point
+    // picks one set at startup from the installed GregTech version; the other set is never loaded.
+    gtm8 {
+        java.srcDir 'src/gtm8/java'
+    }
+
 }
 
 repositories {
@@ -47,6 +54,7 @@ repositories {
         url = 'https://maven.gtceu.com'
         content {
             includeGroup 'com.gregtechceu.gtceu'
+            includeGroup 'brachy.modularui'
             includeGroup 'appeng'
             includeGroup 'lu.kolja'
 
@@ -164,6 +172,7 @@ legacyForge {
     mods {
         "${mod_id}" {
             sourceSet(sourceSets.main)
+            sourceSet(sourceSets.gtm8)
         }
     }
 }
@@ -172,6 +181,10 @@ legacyForge {
 // mod types. The legacyforge plugin doesn't expose the newer `unitTest { }` DSL (that's
 // NeoForge-only), so this is the manual equivalent.
 legacyForge.addModdingDependenciesTo(sourceSets.test)
+// GregTech 7 is compile-only on main (the runtime GregTech is chosen by the -Pgtm switch), so give the tests main's
+// compile classpath too.
+sourceSets.test.compileClasspath += sourceSets.main.compileClasspath
+sourceSets.test.runtimeClasspath += sourceSets.main.compileClasspath
 
 test {
     useJUnitPlatform()
@@ -181,6 +194,7 @@ jar {
     manifest.attributes([
             "MixinConfigs": "phoenix_fission.mixins.json"
     ])
+    from sourceSets.gtm8.output
 }
 
 mixin {
@@ -188,6 +202,12 @@ mixin {
     add sourceSets.main, 'mixins.phoenix_fission.refmap.json'
     config 'phoenix_fission.mixins.json'
 }
+
+configurations {
+    gtm8CompileOnly.extendsFrom(compileOnly, implementation)
+}
+def gtm8Remapped = obfuscation.createRemappingConfiguration(configurations.gtm8CompileOnly)
+sourceSets.gtm8.compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
 
 apply from: "$rootDir/gradle/scripts/spotless.gradle"
 
@@ -208,7 +228,19 @@ dependencies {
 
 
 // GregTech and dependencies
-    modImplementation("com.gregtechceu.gtceu:gtceu-${minecraft_version}:${gtceu_version}:slim") { transitive = false }
+    // Compile against GregTech 7.x; the GT 8 classes compile in the gtm8 source set.
+    modCompileOnly("com.gregtechceu.gtceu:gtceu-${minecraft_version}:${gtceu_version}:slim") { transitive = false }
+    modGtm8CompileOnly("com.gregtechceu.gtceu:gtceu-${minecraft_version}:${gtceu8_version}:slim") { transitive = false }
+    modGtm8CompileOnly("brachy.modularui:modularui-mc${minecraft_version}:${mui8_version}") { transitive = false }
+    // The GT 8 snapshot jar-in-jars these (its slim jar leaves them out), so a dev run on it has to provide them.
+    if (project.findProperty('gtm') == '8') {
+        modRuntimeOnly("brachy.modularui:modularui-mc${minecraft_version}:${mui8_version}") { transitive = false }
+        modRuntimeOnly("io.github.llamalad7:mixinextras-forge:0.5.3")
+        modRuntimeOnly("top.theillusivec4.curios:curios-forge:5.9.1+1.20.1")
+    }
+    // Which GregTech the dev client/server runs: 7.x by default, the GT 8 snapshot with -Pgtm=8, or an exact version
+    // with -Pgtm=<version> (for example -Pgtm=8.0.0).
+    modRuntimeOnly("com.gregtechceu.gtceu:gtceu-${minecraft_version}:${project.findProperty('gtm') == '8' ? gtceu8_version : (project.findProperty('gtm') ?: gtceu_version)}:slim") { transitive = false }
     modImplementation("com.lowdragmc.ldlib:ldlib-forge-${minecraft_version}:${ldlib_version}") { transitive = false }
     modImplementation("com.tterrag.registrate:Registrate:${registrate_version}")
     modImplementation("dev.latvian.mods:kubejs-forge:${kubejs_version}")
@@ -223,6 +255,7 @@ dependencies {
 // lombok
     compileOnly 'org.projectlombok:lombok:1.18.24'
     annotationProcessor 'org.projectlombok:lombok:1.18.24'
+    gtm8AnnotationProcessor 'org.projectlombok:lombok:1.18.24'
 
 // tests
     testCompileOnly("org.jetbrains:annotations:26.0.1")
