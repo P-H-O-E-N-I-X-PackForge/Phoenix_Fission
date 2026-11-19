@@ -127,7 +127,7 @@ public class RtgArrayMachine extends WorkableElectricMultiblockMachine {
                 .mainContents(main -> {
                     if (finalScreen != null) main.child(new CanvasWidget(finalScreen).size(UI_WIDTH, UI_HEIGHT));
                     FissionPanelUi.addInventory(main, UI_WIDTH, UI_HEIGHT);
-                }).build(syncManager, settings);
+                }).build(data, syncManager, settings);
         if (finalScreen != null) FissionPanelUi.apply(panel, finalScreen);
         return panel;
     }

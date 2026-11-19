@@ -566,11 +566,14 @@ public class AscensionReactorMachine extends FissionWorkableElectricMultiblockMa
         FissionTabbedScreen screen = null;
         if (client) {
             var history = new AscensionHistory();
-            AscensionHud.Controls controls = (which, value) -> syncManager.callSyncedAction("ascension_control",
-                    buf -> {
-                        buf.writeVarInt(which);
-                        buf.writeVarInt(value);
-                    });
+            // ModularUI's callSyncedAction takes a finished buffer, not a writer
+            AscensionHud.Controls controls = (which, value) -> {
+                var buf = new net.minecraft.network.RegistryFriendlyByteBuf(io.netty.buffer.Unpooled.buffer(),
+                        net.minecraft.client.Minecraft.getInstance().level.registryAccess());
+                buf.writeVarInt(which);
+                buf.writeVarInt(value);
+                syncManager.callSyncedAction("ascension_control", buf);
+            };
             screen = new FissionTabbedScreen(List.of(
                     new FissionTabbedScreen.Tab("A", new AscensionHud(this, history, controls)),
                     new FissionTabbedScreen.Tab("R", new FissionReactorHud(this)),
@@ -584,7 +587,7 @@ public class AscensionReactorMachine extends FissionWorkableElectricMultiblockMa
                 .mainContents(main -> {
                     if (finalScreen != null) main.child(new CanvasWidget(finalScreen).size(UI_WIDTH, UI_HEIGHT));
                     FissionPanelUi.addInventory(main, UI_WIDTH, UI_HEIGHT);
-                }).build(syncManager, settings);
+                }).build(data, syncManager, settings);
         if (finalScreen != null) FissionPanelUi.apply(panel, finalScreen);
         return panel;
     }

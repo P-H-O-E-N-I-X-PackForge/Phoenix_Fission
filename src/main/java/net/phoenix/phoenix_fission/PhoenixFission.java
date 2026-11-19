@@ -43,22 +43,36 @@ public class PhoenixFission {
                             .build())
             .register();
 
+    private static boolean dynamicRendersRegistered;
+
+    /**
+     * Makes the dynamic renders known to GTM. The mod constructor does it on the client and the machine classes do
+     * it for datagen, so whichever comes first registers them and the other does nothing: GTM throws if an id is
+     * registered twice. Only call this on the client or in datagen.
+     */
+    public static synchronized void registerDynamicRenders() {
+        if (dynamicRendersRegistered) return;
+        dynamicRendersRegistered = true;
+        com.gregtechceu.gtceu.client.renderer.machine.DynamicRenderManager.register(id("ascension_reactor"),
+                net.phoenix.phoenix_fission.client.render.AscensionReactorRender.TYPE);
+        com.gregtechceu.gtceu.client.renderer.machine.DynamicRenderManager.register(id("tokamak"),
+                net.phoenix.phoenix_fission.client.render.TokamakRender.TYPE);
+    }
+
     public PhoenixFission(IEventBus modEventBus, ModContainer container) {
         PhoenixFissionConfigs.init();
         PHOENIX_REGISTRATE.registerEventListeners(modEventBus);
 
         if (FMLEnvironment.dist.isClient()) {
             modEventBus.addListener(this::clientSetup);
+            modEventBus.addListener(net.phoenix.phoenix_fission.client.render.TokamakVolume::onRegisterShaders);
             net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(
                     net.phoenix.phoenix_fission.client.TokamakCommand::register);
             net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(
                     net.phoenix.phoenix_fission.client.TokamakStageRenderer::onStage);
             // the models name their dynamic renders, and are read when the resources load, which is before the
             // client setup event: the renders have to be known by then or the models fail to load
-            com.gregtechceu.gtceu.client.renderer.machine.DynamicRenderManager.register(id("ascension_reactor"),
-                    net.phoenix.phoenix_fission.client.render.AscensionReactorRender.TYPE);
-            com.gregtechceu.gtceu.client.renderer.machine.DynamicRenderManager.register(id("tokamak"),
-                    net.phoenix.phoenix_fission.client.render.TokamakRender.TYPE);
+            registerDynamicRenders();
             net.phoenix.phoenix_fission.client.FissionColorHandlers.register(modEventBus);
         }
         modEventBus.addListener(this::registerGameTests);

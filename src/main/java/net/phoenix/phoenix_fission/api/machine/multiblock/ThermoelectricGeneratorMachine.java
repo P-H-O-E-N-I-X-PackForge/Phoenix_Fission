@@ -256,7 +256,7 @@ public class ThermoelectricGeneratorMachine extends WorkableElectricMultiblockMa
                 .mainContents(main -> {
                     if (screen != null) main.child(new CanvasWidget(screen).size(198, 190));
                     FissionPanelUi.addInventory(main, 198, 190);
-                }).build(syncManager, settings);
+                }).build(data, syncManager, settings);
         if (screen != null) FissionPanelUi.apply(panel, screen);
         return panel;
     }

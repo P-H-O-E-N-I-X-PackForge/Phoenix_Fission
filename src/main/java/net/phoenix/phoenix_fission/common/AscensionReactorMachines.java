@@ -113,9 +113,7 @@ public final class AscensionReactorMachines {
     static {
         if (com.gregtechceu.gtceu.GTCEu.isDataGen()) {
             // the model data names its dynamic render, so the render has to be known before it is written
-            com.gregtechceu.gtceu.client.renderer.machine.DynamicRenderManager.register(
-                    PhoenixFission.id("ascension_reactor"),
-                    net.phoenix.phoenix_fission.client.render.AscensionReactorRender.TYPE);
+            PhoenixFission.registerDynamicRenders();
         }
         PhoenixFissionMachines.registerFissionReactor(ASCENSION_REACTOR, AscensionReactorMachine.class);
     }

@@ -116,6 +116,12 @@ public class TokamakRender extends DynamicRender<FusionReactorMachine, TokamakRe
         public static volatile float[] tint;
         public static volatile Theme theme;
 
+        /** True to draw the ribbon-built plasma, as it does unless the shader one is asked for. */
+        public static volatile boolean classic = true;
+
+        /** How fine the shader's steps are, 0.3 to 1. */
+        public static volatile float detail = 1f;
+
         private Tune() {}
 
         public static void reset() {
@@ -123,6 +129,8 @@ public class TokamakRender extends DynamicRender<FusionReactorMachine, TokamakRe
             scram = null;
             tint = null;
             theme = null;
+            classic = true;
+            detail = 1f;
         }
     }
 
@@ -273,6 +281,58 @@ public class TokamakRender extends DynamicRender<FusionReactorMachine, TokamakRe
 
     private TokamakRender() {}
 
+    /**
+     * Whether the plasma is drawn by the shader, as it is unless the command asks for the old one or it did not load.
+     */
+    public static boolean useShader() {
+        return TokamakVolume.SHADER != null && !Tune.classic;
+    }
+
+    /**
+     * The plasma as a volume. Everything that decided the look of the ribbon version is handed to the shader as it
+     * stands, so the colours, the themes, the thickness, the drift and a scram all mean what they meant before.
+     */
+    private void drawShader(PoseStack poseStack, float t, float power, float fat, float shake, float alarm, float drift,
+                            float field, float[] mid, float[] halo, float[] core, float[] tint, float[] baseHalo,
+                            Theme theme, boolean themed, float rx, float rz, float fx, float fz, float ox, float oy,
+                            float oz) {
+        float strands = themed ? theme.strands : 6f;
+        float twist = themed ? theme.twist : 6f;
+        float radius = themed ? theme.radius : 1.05f;
+        float[] fieldColour = tint != null ? GlowDraw.lerp3(FIELD, baseHalo, 0.35f) : FIELD;
+        // the box has to hold the ring, the strands, and everything that leaps off it
+        float out = 3.4f * Math.max(fat, radius * fat) + 0.8f + shake * 1.5f;
+        float halfXZ = 18.5f + out + 1f;
+        float halfY = out + shake + 1f;
+        float detail = Tune.detail;
+        float seed = 0.37f;
+        TokamakVolume.draw(TokamakVolume.SHADER, poseStack.last().pose(), new org.joml.Vector3f(ox, oy, oz),
+                new org.joml.Vector3f(halfXZ, halfY, halfXZ), detail, s -> {
+                    s.safeGetUniform("Time").set(t);
+                    s.safeGetUniform("Power").set(power);
+                    s.safeGetUniform("Seed").set(seed);
+                    s.safeGetUniform("Right").set(rx, rz);
+                    s.safeGetUniform("Front").set(fx, fz);
+                    s.safeGetUniform("ColorA").set(mid[0], mid[1], mid[2]);
+                    s.safeGetUniform("ColorB").set(core[0], core[1], core[2]);
+                    s.safeGetUniform("ColorC").set(halo[0], halo[1], halo[2]);
+                    s.safeGetUniform("ColorD").set(fieldColour[0], fieldColour[1], fieldColour[2]);
+                    s.safeGetUniform("P0").set(fat, shake, alarm, drift);
+                    s.safeGetUniform("P1").set(strands, twist, radius, field);
+                    float count = 0f;
+                    if (themed) {
+                        count = theme.stops != null ? theme.stops.length : 2f;
+                        float[][] stops = theme.stops != null ? theme.stops : new float[][] { theme.a, theme.b };
+                        for (int i = 0; i < 6; i++) {
+                            float[] c = stops[Math.min(i, stops.length - 1)];
+                            s.safeGetUniform("Stop" + i).set(c[0], c[1], c[2]);
+                        }
+                    }
+                    s.safeGetUniform("P2").set(themed ? theme.cycles : 1f, themed ? theme.speed : 0.1f, count,
+                            theme == Theme.PFT ? 1f : 0f);
+                });
+    }
+
     @Override
     public @NotNull DynamicRenderType<FusionReactorMachine, TokamakRender> getType() {
         return TYPE;
@@ -366,6 +426,12 @@ public class TokamakRender extends DynamicRender<FusionReactorMachine, TokamakRe
         float ox = 0.5f + rx * CENTRE_RIGHT - fx * CENTRE_BACK;
         float oz = 0.5f + rz * CENTRE_RIGHT - fz * CENTRE_BACK;
         float oy = CENTRE_UP;
+
+        if (useShader()) {
+            drawShader(poseStack, t, power, fat, shake, alarm, drift, field, mid, halo, core, tint, baseHalo, theme,
+                    themed, rx, rz, fx, fz, ox, oy, oz);
+            return;
+        }
 
         poseStack.pushPose();
         Matrix4f m = poseStack.last().pose();

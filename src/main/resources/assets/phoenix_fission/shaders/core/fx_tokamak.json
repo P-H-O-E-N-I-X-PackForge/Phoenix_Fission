@@ -1,0 +1,32 @@
+{
+  "vertex": "phoenix_fission:fx_volume",
+  "fragment": "phoenix_fission:fx_tokamak",
+  "attributes": [ "Position" ],
+  "samplers": [ { "name": "DepthSampler" } ],
+  "uniforms": [
+    { "name": "ModelViewMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
+    { "name": "ProjMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
+    { "name": "Time", "type": "float", "count": 1, "values": [ 0.0 ] },
+    { "name": "Power", "type": "float", "count": 1, "values": [ 1.0 ] },
+    { "name": "Seed", "type": "float", "count": 1, "values": [ 0.0 ] },
+    { "name": "Scale", "type": "float", "count": 1, "values": [ 1.0 ] },
+    { "name": "Detail", "type": "float", "count": 1, "values": [ 1.0 ] },
+    { "name": "Centre", "type": "float", "count": 3, "values": [ 0.0, 0.0, 0.0 ] },
+    { "name": "BoxHalf", "type": "float", "count": 3, "values": [ 21.0, 4.0, 21.0 ] },
+    { "name": "Right", "type": "float", "count": 2, "values": [ 1.0, 0.0 ] },
+    { "name": "Front", "type": "float", "count": 2, "values": [ 0.0, 1.0 ] },
+    { "name": "ColorA", "type": "float", "count": 3, "values": [ 1.0, 0.26, 0.68 ] },
+    { "name": "ColorB", "type": "float", "count": 3, "values": [ 1.0, 0.86, 0.96 ] },
+    { "name": "ColorC", "type": "float", "count": 3, "values": [ 0.5, 0.32, 1.0 ] },
+    { "name": "ColorD", "type": "float", "count": 3, "values": [ 0.38, 0.78, 1.0 ] },
+    { "name": "Stop0", "type": "float", "count": 3, "values": [ 1.0, 0.2, 0.6 ] },
+    { "name": "Stop1", "type": "float", "count": 3, "values": [ 0.2, 0.8, 1.0 ] },
+    { "name": "Stop2", "type": "float", "count": 3, "values": [ 1.0, 1.0, 1.0 ] },
+    { "name": "Stop3", "type": "float", "count": 3, "values": [ 1.0, 1.0, 1.0 ] },
+    { "name": "Stop4", "type": "float", "count": 3, "values": [ 1.0, 1.0, 1.0 ] },
+    { "name": "Stop5", "type": "float", "count": 3, "values": [ 1.0, 1.0, 1.0 ] },
+    { "name": "P0", "type": "float", "count": 4, "values": [ 0.6, 0.1, 0.0, 0.0 ] },
+    { "name": "P1", "type": "float", "count": 4, "values": [ 6.0, 6.0, 1.05, 0.6 ] },
+    { "name": "P2", "type": "float", "count": 4, "values": [ 1.0, 0.1, 0.0, 0.0 ] }
+  ]
+}

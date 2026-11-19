@@ -382,7 +382,7 @@ public class FissionWorkableElectricMultiblockMachine extends WorkableElectricMu
                 .mainContents(main -> {
                     if (screen != null) main.child(new CanvasWidget(screen).size(UI_WIDTH, UI_HEIGHT));
                     FissionPanelUi.addInventory(main, UI_WIDTH, UI_HEIGHT);
-                }).build(syncManager, settings);
+                }).build(data, syncManager, settings);
         if (screen != null) FissionPanelUi.apply(panel, screen);
         return panel;
     }

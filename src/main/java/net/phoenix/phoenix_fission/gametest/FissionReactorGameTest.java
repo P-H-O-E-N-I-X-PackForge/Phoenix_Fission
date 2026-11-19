@@ -214,10 +214,12 @@ public class FissionReactorGameTest {
 
     private static void buildStructure(GameTestHelper helper, FissionWorkableElectricMultiblockMachine reactor) {
         var blocks = new java.util.HashMap<BlockPos, com.gregtechceu.gtceu.api.multiblock.util.BlockInfo>();
+        var schemaInfo = new com.gregtechceu.gtceu.api.mui.MultiblockSchemaInfo(
+                (com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition) reactor.getDefinition());
         com.gregtechceu.gtceu.api.multiblock.util.AbstractStructureHelper
                 .blockPattern(new it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap())
-                .populate(blocks, reactor.getDefaultStructurePattern(),
-                        new it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap<>(), reactor.getFrontFacing(),
+                .populate(schemaInfo, blocks, reactor.getDefaultStructurePattern(),
+                        new it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap<>(), reactor.getFrontFacing(),
                         reactor.getUpwardsFacing(), false);
         BlockPos controllerAbs = helper.absolutePos(CONTROLLER_POS);
         blocks.forEach((rel, info) -> {

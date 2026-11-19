@@ -69,6 +69,19 @@ public final class TokamakCommand {
                             TokamakRender.Tune.scram = BoolArgumentType.getBool(c, "value");
                             return say(c, "scram " + TokamakRender.Tune.scram);
                         })))
+                .then(Commands.literal("style")
+                        .then(Commands.literal("shader").executes(c -> {
+                            TokamakRender.Tune.classic = false;
+                            c.getSource().sendSuccess(() -> Component.literal("Tokamak plasma: shader"), false);
+                            return 1;
+                        }))
+                        .then(Commands.literal("classic").executes(c -> {
+                            TokamakRender.Tune.classic = true;
+                            c.getSource().sendSuccess(() -> Component.literal("Tokamak plasma: classic ribbons"),
+                                    false);
+                            return 1;
+                        })))
+                .then(number("detail", 0.3f, 1f, v -> TokamakRender.Tune.detail = v))
                 .then(Commands.literal("reset").executes(c -> {
                     TokamakRender.Tune.reset();
                     return say(c, "back to what the reactor says");

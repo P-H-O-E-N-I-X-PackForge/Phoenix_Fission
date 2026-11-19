@@ -23,6 +23,16 @@ public final class TokamakStageRenderer {
     private TokamakStageRenderer() {}
 
     public static void onStage(RenderLevelStageEvent event) {
+        // Right after the solid things are drawn, before water and glass, the shader plasma takes a copy of the depth.
+        // It is
+        // drawn after the translucent blocks, so they lie over it, and stops at that copy, so only solid things hide
+        // it.
+        if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_BLOCK_ENTITIES) {
+            if (TokamakRender.useShader() && !TokamakTracker.all().isEmpty()) {
+                net.phoenix.phoenix_fission.client.render.SceneDepth.capture();
+            }
+            return;
+        }
         if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) return;
         var all = TokamakTracker.all();
         if (all.isEmpty()) return;
@@ -32,6 +42,12 @@ public final class TokamakStageRenderer {
         MultiBufferSource.BufferSource buffer = mc.renderBuffers().bufferSource();
         float partial = event.getPartialTick().getGameTimeDeltaPartialTick(false);
         boolean drew = false;
+        boolean shader = TokamakRender.useShader();
+        Runnable restore = shader ?
+                net.phoenix.phoenix_fission.client.render.TokamakVolume.stageMatrices(
+                        new org.joml.Matrix4f(event.getModelViewMatrix()), event.getProjectionMatrix()) :
+                null;
+        if (shader) net.phoenix.phoenix_fission.client.render.TokamakVolume.adapt(mc.getFps());
         for (FusionReactorMachine machine : new ArrayList<>(all)) {
             if (machine.getLevel() != mc.level || !machine.isFormed()) continue;
             var pos = machine.getBlockPos();
@@ -43,6 +59,8 @@ public final class TokamakStageRenderer {
             pose.popPose();
             drew = true;
         }
+        if (restore != null) restore.run();
+        if (shader) net.phoenix.phoenix_fission.client.render.SceneDepth.release();
         if (drew) buffer.endBatch(GlowDraw.GLOW);
     }
 }

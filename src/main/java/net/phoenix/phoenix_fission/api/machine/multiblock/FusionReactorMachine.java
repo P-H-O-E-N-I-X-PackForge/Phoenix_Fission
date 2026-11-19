@@ -737,7 +737,7 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine impl
                             .value(pressureValue).setDefaultNumber(50).setTextAlignment(Alignment.Center)
                             .setEnabledIf(w -> finalScreen == null || finalScreen.getActive() == 0));
                     FissionPanelUi.addInventory(main, UI_WIDTH, UI_HEIGHT);
-                }).build(syncManager, settings);
+                }).build(data, syncManager, settings);
         if (finalScreen != null) FissionPanelUi.apply(panel, finalScreen);
         return panel;
     }

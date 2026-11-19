@@ -444,8 +444,7 @@ public class PhoenixFissionMachines {
     static {
         if (GTCEu.isDataGen()) {
             // the model data names its dynamic render, so the render has to be known before it is written
-            com.gregtechceu.gtceu.client.renderer.machine.DynamicRenderManager.register(
-                    PhoenixFission.id("tokamak"), net.phoenix.phoenix_fission.client.render.TokamakRender.TYPE);
+            PhoenixFission.registerDynamicRenders();
         }
     }
 
