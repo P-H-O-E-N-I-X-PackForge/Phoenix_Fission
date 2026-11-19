@@ -56,6 +56,22 @@ public class PhoenixFission {
                             .build())
             .register();
 
+    private static boolean dynamicRendersRegistered;
+
+    /**
+     * The machine models name their dynamic renders, and are read before the client setup event, so the renders have
+     * to be known by then. Datagen needs them too: whichever comes first registers them, as GregTech throws on a
+     * second registration. Only call this on the client or in datagen.
+     */
+    public static synchronized void registerDynamicRenders() {
+        if (dynamicRendersRegistered) return;
+        dynamicRendersRegistered = true;
+        com.gregtechceu.gtceu.client.renderer.machine.DynamicRenderManager.register(id("ascension_reactor"),
+                net.phoenix.phoenix_fission.client.render.AscensionReactorRender.TYPE);
+        com.gregtechceu.gtceu.client.renderer.machine.DynamicRenderManager.register(id("tokamak"),
+                net.phoenix.phoenix_fission.client.render.TokamakRender.TYPE);
+    }
+
     public PhoenixFission() {
         init();
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
@@ -64,6 +80,10 @@ public class PhoenixFission {
         if (FMLEnvironment.dist.isClient()) {
 
             modEventBus.addListener(this::clientSetup);
+            modEventBus.addListener(net.phoenix.phoenix_fission.client.render.TokamakVolume::onRegisterShaders);
+            MinecraftForge.EVENT_BUS.addListener(net.phoenix.phoenix_fission.client.TokamakCommand::register);
+            MinecraftForge.EVENT_BUS.addListener(net.phoenix.phoenix_fission.client.TokamakStageRenderer::onStage);
+            registerDynamicRenders();
             net.phoenix.phoenix_fission.client.FissionColorHandlers.register(modEventBus);
         }
         modEventBus.addGenericListener(RecipeConditionType.class, this::registerConditions);

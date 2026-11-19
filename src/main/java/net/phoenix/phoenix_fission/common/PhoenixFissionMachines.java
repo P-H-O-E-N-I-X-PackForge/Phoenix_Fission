@@ -502,10 +502,22 @@ public class PhoenixFissionMachines {
                     Component.translatable("phoenix_fission.machine.fusion_reactor.tooltip6"),
                     Component.translatable("phoenix_fission.machine.fusion_reactor.tooltip7"))
             .pattern(definition -> FusionStructure.build(definition))
-            .workableCasingModel(
+            .model(createWorkableCasingMachineModel(
                     PhoenixFission.id("block/fission/fissile_reaction_safe_casing"),
-                    GTCEu.id("block/multiblock/fusion_reactor"))
+                    GTCEu.id("block/multiblock/fusion_reactor")).andThen(
+                            b -> b.addDynamicRenderer(
+                                    () -> net.phoenix.phoenix_fission.client.render.TokamakRender.INSTANCE)))
+            .hasBER(true)
             .register();
 
-    public static void init() {}
+    static {
+        if (GTCEu.isDataGen()) {
+            // the model data names its dynamic render, so the render has to be known before it is written
+            PhoenixFission.registerDynamicRenders();
+        }
+    }
+
+    public static void init() {
+        AscensionReactorMachines.init();
+    }
 }

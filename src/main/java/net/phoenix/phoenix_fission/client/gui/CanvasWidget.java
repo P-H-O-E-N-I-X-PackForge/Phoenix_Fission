@@ -14,6 +14,10 @@ public class CanvasWidget extends Widget {
 
     private final CanvasPainter painter;
 
+    protected CanvasPainter painter() {
+        return painter;
+    }
+
     public CanvasWidget(CanvasPainter painter, int width, int height) {
         super(0, 0, width, height);
         this.painter = painter;
@@ -34,6 +38,18 @@ public class CanvasWidget extends Widget {
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (!isMouseOverElement(mouseX, mouseY)) return false;
         return painter.click(mouseX - getPosition().x, mouseY - getPosition().y, button);
+    }
+
+    @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        painter.drag(mouseX - getPosition().x, mouseY - getPosition().y, button);
+        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+    }
+
+    @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        painter.release(button);
+        return super.mouseReleased(mouseX, mouseY, button);
     }
 
     @Override
